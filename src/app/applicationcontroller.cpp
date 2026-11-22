@@ -57,6 +57,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QRegularExpression>
 #include <QScopedValueRollback>
 #include <QStandardPaths>
 #include <QTemporaryDir>
@@ -198,16 +199,32 @@ void ApplicationController::handleGeoUrl(const QUrl &url)
     }
     const auto pathElems = url.path().split(QLatin1Char(';'));
     const auto coordElems = pathElems.isEmpty() ? QStringList() : pathElems.at(0).split(QLatin1Char(','));
-    const auto lat = coordElems.size() < 2 ? 0.0 : coordElems.at(0).toDouble();
-    const auto lon = coordElems.size() < 2 ? 0.0 : coordElems.at(1).toDouble();
+    auto lat = coordElems.size() < 2 ? 0.0 : coordElems.at(0).toDouble();
+    auto lon = coordElems.size() < 2 ? 0.0 : coordElems.at(1).toDouble();
 
-    const QUrlQuery geoQuery(url.query());
-    const auto query = geoQuery.queryItemValue(u"q"_s);
+    // '+' stands for a space in the query, as many apps encode it like a form
+    const QUrlQuery geoQuery(url.query(QUrl::FullyEncoded).replace(QLatin1Char('+'), "%20"_L1));
+    auto query = geoQuery.queryItemValue(u"q"_s, QUrl::FullyDecoded).trimmed();
 
-    KPublicTransport::Location location;
-    location.setCoordinate(lat, lon);
-    location.setName(query.isEmpty() ? i18nc("geo coordinate", "%1, %2", lat, lon) : query);
-    requestOpenPage(u"journeyRequest"_s, {{u"arrivalStop"_s, location}});
+    // geo:0,0?q=lat,lon(label), as used by many apps to name a place
+    static const QRegularExpression coordQuery(uR"(^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*(?:\((.*)\))?$)"_s);
+    if (const auto match = coordQuery.match(query); match.hasMatch()) {
+        lat = match.captured(1).toDouble();
+        lon = match.captured(2).toDouble();
+        query = match.captured(3).trimmed();
+    }
+
+    // show the place on the map, from where one can go there
+    if (lat != 0.0 || lon != 0.0) {
+        QVariantMap properties{{u"place"_s, QString(QString::number(lat, 'f', 7) + QLatin1Char(',') + QString::number(lon, 'f', 7))}};
+        if (!query.isEmpty()) {
+            properties.insert(u"placeName"_s, query);
+        }
+        requestOpenPage(u"map"_s, properties);
+    } else if (!query.isEmpty()) {
+        // only a search query, e.g. an address
+        requestOpenPage(u"map"_s, {{u"query"_s, query}});
+    }
 }
 
 void ApplicationController::commitImport(ImportController *importController)

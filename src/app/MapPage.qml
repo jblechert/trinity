@@ -92,11 +92,12 @@ Kirigami.Page {
         geocoder.update();
     }
 
-    /** Rename the departure or arrival ("from", "to"), or the destination of a route preview ("preview"),
-     *  to the address found for it, unless it changed meanwhile.
+    /** Rename the departure or arrival ("from", "to"), the destination of a route preview ("preview"),
+     *  or the selected place ("place") to the address found for it, unless it changed meanwhile.
      */
     function applyGeocoding(endpoint: string, geocoder: QtLocation.GeocodeModel): void {
-        const location = endpoint === "from" ? root.journeyFrom : (endpoint === "to" ? root.journeyTo : root.previewTo);
+        const locations = { from: root.journeyFrom, to: root.journeyTo, preview: root.previewTo, place: root.selection };
+        const location = locations[endpoint];
         if (geocoder.status !== QtLocation.GeocodeModel.Ready || geocoder.count === 0 || !location) {
             return;
         }
@@ -108,6 +109,10 @@ Kirigami.Page {
         const street = [address.street, address.streetNumber].filter((s) => s).join(" ");
         const name = [street, address.city].filter((s) => s).join(", ");
         if (name === "") {
+            return;
+        }
+        if (endpoint === "place") {
+            root.select(Object.assign({}, location, { name: name }));
             return;
         }
         const named = helper.locationAt(coord.latitude, coord.longitude, name);
@@ -158,6 +163,41 @@ Kirigami.Page {
         return helper.locationAt(lat, lon, name ? name : i18nc("@info a place picked on the map", "Selected place"));
     }
 
+    /** Show a place given by @p args, see openRequest(). */
+    function openPlace(args: var): void {
+        root.closeJourney();
+        root.prepareJourneyDisplay();
+        root.plannerShown = false;
+        if (args.query && !args.place) {
+            root.openSearch();
+            searchPane.text = args.query;
+            searchPane.search("");
+            return;
+        }
+        const location = root.parseLocation(args.place, args.placeName);
+        if (!location) {
+            console.warn("Invalid place to show on the map:", args.place);
+            return;
+        }
+        const coord = QtPositioning.coordinate(location.latitude, location.longitude);
+        root.followPosition = false;
+        map.zoomLevel = 17;
+        root.select({
+            type: "place",
+            name: location.name,
+            typeName: "",
+            iconSource: "mark-location-symbolic",
+            latitude: location.latitude,
+            longitude: location.longitude,
+            distance: 0,
+            address: "",
+        });
+        root.centerOn(coord);
+        if (!args.placeName) {
+            root.geocode(placeGeocoder, coord);
+        }
+    }
+
     /** Plan a journey given by @p args, the query items of a page:///map URL (see ApplicationController::handlePageUrl()),
      *  e.g. from another app or for automated tests:
      *  - from, to: departure and arrival as "latitude,longitude", the current location if from is missing
@@ -165,8 +205,15 @@ Kirigami.Page {
      *  - search: "transit" to search public transport connections, "walk", "bike" or "car" to preview a route
      *  - time: departure time of the connections to search, as ISO 8601 local time, e.g. 2026-11-23T09:00, now if missing
      *  - show: "best" to show the best connection found on the map once the search is done
+     *  Or a single place to show, e.g. from a geo: URI:
+     *  - place: the place as "latitude,longitude", placeName: its name, otherwise it is named by its address
+     *  - query: text to search places for, if there is no coordinate
      */
     function openRequest(args: var): void {
+        if (args.place || args.query) {
+            root.openPlace(args);
+            return;
+        }
         const from = root.parseLocation(args.from, args.fromName);
         const to = root.parseLocation(args.to, args.toName);
         if (!from && !to) {
@@ -221,6 +268,12 @@ Kirigami.Page {
         autoUpdate: false
         limit: 1
         onStatusChanged: root.applyGeocoding("to", toGeocoder)
+    }
+    QtLocation.GeocodeModel {
+        id: placeGeocoder
+        autoUpdate: false
+        limit: 1
+        onStatusChanged: root.applyGeocoding("place", placeGeocoder)
     }
     QtLocation.GeocodeModel {
         id: previewGeocoder
