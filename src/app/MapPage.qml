@@ -1138,9 +1138,9 @@ Kirigami.Page {
             size: 24
         }
 
-        // departure and arrival of the journey to search
+        // departure and arrival of the journey to search, along with the planner
         MapCircle {
-            visible: root.journeyFrom !== undefined && !root.journeyPaneShown
+            visible: root.journeyFrom !== undefined && root.plannerShown && !root.journeyPaneShown
             coordinate: root.journeyFrom ? QtPositioning.coordinate(root.journeyFrom.latitude, root.journeyFrom.longitude) : QtPositioning.coordinate()
             color: "#27ae60"
             textColor: "#eff0f1"
@@ -1149,7 +1149,7 @@ Kirigami.Page {
             z: 6
         }
         MapCircle {
-            visible: root.journeyTo !== undefined && !root.journeyPaneShown
+            visible: root.journeyTo !== undefined && root.plannerShown && !root.journeyPaneShown
             coordinate: root.journeyTo ? QtPositioning.coordinate(root.journeyTo.latitude, root.journeyTo.longitude) : QtPositioning.coordinate()
             color: "#da4453"
             textColor: "#eff0f1"
