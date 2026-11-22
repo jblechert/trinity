@@ -6917,3 +6917,13 @@ msgstr ""
 msgctxt "@info"
 msgid "Zoom in to see details of places and stops."
 msgstr "Vergrößern Sie die Karte, um Details zu Orten und Haltestellen zu sehen."
+
+#: fork
+msgctxt "@info navigation by bike, %1 is a place"
+msgid "Cycle to %1"
+msgstr "Mit dem Rad zu %1"
+
+#: fork
+msgctxt "@info navigation by car, %1 is a place"
+msgid "Drive to %1"
+msgstr "Mit dem Auto zu %1"
