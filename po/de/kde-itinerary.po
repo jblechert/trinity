@@ -6927,3 +6927,8 @@ msgstr "Mit dem Rad zu %1"
 msgctxt "@info navigation by car, %1 is a place"
 msgid "Drive to %1"
 msgstr "Mit dem Auto zu %1"
+
+#: fork
+msgctxt "@info a place in the journey planner, %1 is a street address, %2 a town"
+msgid "%1, %2"
+msgstr "%1, %2"
