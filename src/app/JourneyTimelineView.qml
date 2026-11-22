@@ -196,7 +196,30 @@ ColumnLayout {
                 return;
             }
             journeyArea.contentX = root.contentXForY(root.visibleTopY());
+            alignTimer.restart();
         }
+    }
+
+    // following vertical scrolling smoothly leaves a journey cut off at the left edge, which is fixed once it stops
+    Timer {
+        id: alignTimer
+        interval: 300
+        onTriggered: {
+            if (root.verticalFlickable?.moving) {
+                alignTimer.restart();
+            } else {
+                root.alignColumns(Math.round);
+            }
+        }
+    }
+
+    /** Scroll horizontally so that no journey is cut off at the left edge, rounding the column with @p round. */
+    function alignColumns(round: var): void {
+        if (journeyArea.moving || !root.visible || root.columnWidth <= 0) {
+            return;
+        }
+        const maxX = Math.max(0, journeyArea.contentWidth - journeyArea.width);
+        journeyArea.contentX = Math.min(round(journeyArea.contentX / root.columnWidth) * root.columnWidth, maxX);
     }
 
     Connections {
@@ -220,6 +243,8 @@ ColumnLayout {
         const y = timeAxis.mapToItem(flickable.contentItem, 0, 0).y + root.yFor(focus) - root.referenceOffset;
         const maxY = flickable.originY + Math.max(0, flickable.contentHeight - flickable.height);
         flickable.contentY = Math.max(flickable.originY, Math.min(y, maxY));
+        // with the journey departing first fully visible
+        root.alignColumns(Math.floor);
     }
 
     /** Vertical position of @p time on the time axis. */
