@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # localized turn-by-turn instructions, in KPublicTransport since 27.04
+# checked again on every configure run, the result would be cached otherwise and miss a KPublicTransport
+# updated in the same prefix, which is how Craft builds it
 include(CheckCXXSourceCompiles)
+unset(HAVE_KPUBLICTRANSPORT_NAVIGATION_INSTRUCTIONS CACHE)
 set(CMAKE_REQUIRED_LIBRARIES KPublicTransport)
 set(CMAKE_REQUIRED_FLAGS "-std=c++20")
 check_cxx_source_compiles("#include <KPublicTransport/Path>
