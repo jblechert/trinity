@@ -48,7 +48,10 @@ tickets you set once where they are valid: a country, or within a radius of wher
 - Journeys from the map: tap and hold to pick where to start or where to go, or search a station or address. Starting
   from your current location is the default, and picked places are named by their address. Then choose how to get
   there: public transport connections between them, walking all the way included where that's all it takes, or
-  navigation on foot, by bike or by car.
+  navigation on foot, by bike or by car. Routes on foot, by bike or by car are shown on the map first, with duration,
+  length and ascent, before navigation starts.
+- Show a connection from the journey search on the map: trains, buses and subways in their line colors with their stops
+  and line names, walks as dotted lines, and a list of its sections to zoom to each of them.
 - Tap a shop, café or other place on the map to see what OpenStreetMap knows about it: opening hours and whether it's
   open now, address, phone, website. Walk, cycle or drive there, or use it as start or destination of a journey.
 - Tap a bus stop or station on the map to see the lines departing there with their next departures, and tap a line to
@@ -60,6 +63,8 @@ tickets you set once where they are valid: a country, or within a radius of wher
   to be proposed to KDE).
 - Rental bikes in the journey search, if you like: to and from stations or all the way, shown in the timeline with
   the bike sharing system's name and color, and a button to rent the bike at the right station in its app.
+- Flights in the journey search, if you like. They're left out by default, as flight data is only available for a few
+  regions so far.
 - The journey search remembers the kind of ticket you travel with, e.g. local transport only for the
   Deutschlandticket, so long distance trains don't show up when you can't use them.
 
