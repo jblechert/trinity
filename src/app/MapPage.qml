@@ -722,6 +722,14 @@ Kirigami.Page {
             root.select(nearest[0]);
             return;
         }
+        // A single stop next to things without a name of their own, such as a post box or a bench, is what
+        // was tapped: its symbol stands out on the map, theirs aren't shown. The coordinate of a stop often
+        // is a bit off from its symbol on the map though, so it doesn't need to be the nearest.
+        const stops = candidates.filter((c) => c.type === "stop");
+        if (stops.length === 1 && candidates.every((c) => c.type === "stop" || (c.amenity?.name ?? "") === "")) {
+            root.select(stops[0]);
+            return;
+        }
         root.selection = undefined;
         sheetLoader.source = "";
         root.candidates = candidates.slice(0, 8);
