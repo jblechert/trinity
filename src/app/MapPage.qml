@@ -1222,7 +1222,8 @@ Kirigami.Page {
                 id: tripStopDelegate
                 required property var modelData
                 required property int index
-                readonly property bool isEnd: tripStopDelegate.index === 0 || tripStopDelegate.index === sheetLoader.item.tripStops.length - 1
+                // the sheet can be gone before the delegates are
+                readonly property bool isEnd: tripStopDelegate.index === 0 || tripStopDelegate.index === (sheetLoader.item?.tripStops?.length ?? 0) - 1
                 coordinate: QtPositioning.coordinate(tripStopDelegate.modelData.stopPoint.latitude, tripStopDelegate.modelData.stopPoint.longitude)
                 size: tripStopDelegate.isEnd ? 15 : 10
                 borderWidth: tripStopDelegate.isEnd ? 2 : 1
