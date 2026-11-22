@@ -58,6 +58,7 @@ target_sources(itinerary PRIVATE
     onlineticketretrievaljob.cpp
     osmimportjob.cpp
     passmanager.cpp
+    placecategories.cpp
     pkpassimageprovider.cpp
     pkpassmanager.cpp
     publictransport.cpp
