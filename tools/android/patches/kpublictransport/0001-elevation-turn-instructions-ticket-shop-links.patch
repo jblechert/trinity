@@ -57,6 +57,1367 @@ index 7c298899..14de1fcd 100644
          "sections": [
              {
                  "arrival": {
+diff --git a/autotests/data/journeys/de-bus-platform-numbering.lhs.json b/autotests/data/journeys/de-bus-platform-numbering.lhs.json
+new file mode 100644
+index 00000000..19e7eaad
+--- /dev/null
++++ b/autotests/data/journeys/de-bus-platform-numbering.lhs.json
+@@ -0,0 +1,449 @@
++{
++    "sections": [
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "rmv": "3026736"
++                    },
++                    "latitude": 50.196718,
++                    "longitude": 9.188216,
++                    "name": "Gelnhausen Busbahnhof",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:09:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "latitude": 50.196677,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.188744,
++                    "name": "Busbahnhof, Gelnhausen",
++                    "postalCode": "63571",
++                    "region": "DE-HE"
++                }
++            },
++            "distance": 60,
++            "mode": "Walking"
++        },
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "route": {
++                    "direction": "Breitenborn Forsthausstraße, Gründau",
++                    "line": {
++                        "color": "#a71680",
++                        "mode": "Bus",
++                        "name": "Bus 66",
++                        "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                        "operatorUrl": "https://bahn.de",
++                        "textColor": "#ffffff"
++                    }
++                },
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:32:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "db": "126637",
++                        "db-hafas": "A=1@O=Rothenbergen Dorfgemeinschaftshaus, Gründau@X=9112275@Y=50199810@U=80@L=126637@",
++                        "rmv": "3026637"
++                    },
++                    "latitude": 50.19981,
++                    "longitude": 9.112275,
++                    "name": "Rothenbergen Dorfgemeinschaftshaus, Gründau",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "load": [
++                    {
++                        "load": "High",
++                        "seatingClass": "2"
++                    }
++                ],
++                "route": {
++                    "direction": "Breitenborn Forsthausstraße, Gründau",
++                    "line": {
++                        "color": "#a71680",
++                        "mode": "Bus",
++                        "name": "Bus 66",
++                        "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                        "operatorUrl": "https://bahn.de",
++                        "textColor": "#ffffff"
++                    }
++                },
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "scheduledPlatform": "1",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "db": "126736",
++                        "db-hafas": "A=1@O=Busbahnhof, Gelnhausen@X=9188216@Y=50196718@U=80@L=126736@i=U×008097210@",
++                        "rmv": "3026736",
++                        "uic": "8097210"
++                    },
++                    "latitude": 50.196718,
++                    "longitude": 9.188216,
++                    "name": "Busbahnhof, Gelnhausen",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "identifiers": {
++                "db": "2|#VN#1#ST#1795088768#PI#0#ZI#729537#TA#2#DA#231126#1S#126736#1T#1611#LS#126626#LT#1653#PU#80#RT#1#CA#Bus#ZE#66#ZB#Bus            66#PC#5#FR#126736#FT#1611#TO#126626#TT#1653#",
++                "rmv": "2|#VN#1#ST#1795114700#PI#0#ZI#110993#TA#2#DA#231126#1S#3026736#1T#1611#LS#3026626#LT#1653#PU#80#RT#1#CA#1aE#ZE#66#ZB#Bus 66  #PC#6#FR#3026736#FT#1611#TO#3026626#TT#1653#"
++            },
++            "intermediateStops": [
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:12:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:12:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "126676",
++                            "db-hafas": "A=1@O=Im Weiherfeld, Gelnhausen@X=9184495@Y=50197985@U=80@L=126676@",
++                            "rmv": "3026676"
++                        },
++                        "latitude": 50.197985,
++                        "longitude": 9.184495,
++                        "name": "Im Weiherfeld, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:13:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:13:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "126672",
++                            "db-hafas": "A=1@O=Hallenbad, Gelnhausen@X=9177645@Y=50201392@U=80@L=126672@",
++                            "rmv": "3026672"
++                        },
++                        "latitude": 50.201392,
++                        "longitude": 9.177645,
++                        "name": "Hallenbad, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:15:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:15:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "122709",
++                            "db-hafas": "A=1@O=Parkstraße, Gelnhausen@X=9178733@Y=50204763@U=80@L=122709@",
++                            "rmv": "3022709"
++                        },
++                        "latitude": 50.204763,
++                        "longitude": 9.178733,
++                        "name": "Parkstraße, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:18:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:18:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "119150",
++                            "db-hafas": "A=1@O=Roth Leipziger Straße, Gelnhausen@X=9156565@Y=50206822@U=80@L=119150@",
++                            "rmv": "3019150"
++                        },
++                        "latitude": 50.206822,
++                        "longitude": 9.156565,
++                        "name": "Roth Leipziger Straße, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:20:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:20:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "111153",
++                            "db-hafas": "A=1@O=Lieblos Bahnhof, Gründau@X=9143342@Y=50207595@U=80@L=111153@i=U×028002593@",
++                            "rmv": "3011153"
++                        },
++                        "latitude": 50.207231,
++                        "longitude": 9.144389,
++                        "name": "Lieblos Bahnhof, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:23:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:23:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "102149",
++                            "db-hafas": "A=1@O=Lieblos Kinzigtalschule, Gründau@X=9136456@Y=50209114@U=80@L=102149@",
++                            "rmv": "3022851"
++                        },
++                        "latitude": 50.209114,
++                        "longitude": 9.136456,
++                        "name": "Lieblos Kinzigtalschule, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:27:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:27:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "122736",
++                            "db-hafas": "A=1@O=Lieblos Industriegebiet, Gründau@X=9136825@Y=50204017@U=80@L=122736@",
++                            "rmv": "3022736"
++                        },
++                        "latitude": 50.204017,
++                        "longitude": 9.136825,
++                        "name": "Lieblos Industriegebiet, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "name": "Bus 66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:31:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:31:00+01:00"
++                    },
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "102151",
++                            "db-hafas": "A=1@O=Rothenbergen Fuldaer Straße, Gründau@X=9118046@Y=50202049@U=80@L=102151@",
++                            "rmv": "3022853"
++                        },
++                        "latitude": 50.202049,
++                        "longitude": 9.118046,
++                        "name": "Rothenbergen Fuldaer Straße, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                }
++            ],
++            "mode": "PublicTransport"
++        }
++    ]
++}
+diff --git a/autotests/data/journeys/de-bus-platform-numbering.merged.json b/autotests/data/journeys/de-bus-platform-numbering.merged.json
+new file mode 100644
+index 00000000..bd2c4a9d
+--- /dev/null
++++ b/autotests/data/journeys/de-bus-platform-numbering.merged.json
+@@ -0,0 +1,533 @@
++{
++    "sections": [
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "scheduledPlatform": "13",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026736",
++                        "ifopt": "de:06435:26736:1:13",
++                        "rmv": "3026736"
++                    },
++                    "latitude": 50.196698,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.18851,
++                    "name": "Gelnhausen Busbahnhof",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:09:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "latitude": 50.196695000000005,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.1887425,
++                    "name": "Busbahnhof, Gelnhausen",
++                    "postalCode": "63571",
++                    "region": "DE-HE"
++                }
++            },
++            "distance": 60,
++            "mode": "Walking"
++        },
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "route": {
++                    "direction": "Breitenborn Forsthausstraße, Gründau",
++                    "line": {
++                        "color": "#a71680",
++                        "mode": "Bus",
++                        "modeString": "Bus",
++                        "name": "66",
++                        "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                        "operatorUrl": "https://bahn.de",
++                        "textColor": "#ffffff"
++                    }
++                },
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:32:00+01:00"
++                },
++                "scheduledPlatform": "2",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "db": "126637",
++                        "db-hafas": "A=1@O=Rothenbergen Dorfgemeinschaftshaus, Gründau@X=9112275@Y=50199810@U=80@L=126637@",
++                        "de_by_bayern": "10026637",
++                        "ifopt": "de:06435:26637:2:2",
++                        "rmv": "3026637"
++                    },
++                    "latitude": 50.19986,
++                    "locality": "Gründau",
++                    "longitude": 9.112294,
++                    "name": "Rothenbergen Dorfgemeinschaftshaus, Gründau",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "load": [
++                    {
++                        "load": "High",
++                        "seatingClass": "2"
++                    }
++                ],
++                "route": {
++                    "direction": "Breitenborn Forsthausstraße, Gründau",
++                    "line": {
++                        "color": "#a71680",
++                        "mode": "Bus",
++                        "modeString": "Bus",
++                        "name": "66",
++                        "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                        "operatorUrl": "https://bahn.de",
++                        "textColor": "#ffffff"
++                    }
++                },
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "scheduledPlatform": "13",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "db": "126736",
++                        "db-hafas": "A=1@O=Busbahnhof, Gelnhausen@X=9188216@Y=50196718@U=80@L=126736@i=U×008097210@",
++                        "de_by_bayern": "10026736",
++                        "ifopt": "de:06435:26736:1:13",
++                        "rmv": "3026736",
++                        "uic": "8097210"
++                    },
++                    "latitude": 50.196698,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.18851,
++                    "name": "Busbahnhof, Gelnhausen",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "identifiers": {
++                "db": "2|#VN#1#ST#1795088768#PI#0#ZI#729537#TA#2#DA#231126#1S#126736#1T#1611#LS#126626#LT#1653#PU#80#RT#1#CA#Bus#ZE#66#ZB#Bus            66#PC#5#FR#126736#FT#1611#TO#126626#TT#1653#",
++                "rmv": "2|#VN#1#ST#1795114700#PI#0#ZI#110993#TA#2#DA#231126#1S#3026736#1T#1611#LS#3026626#LT#1653#PU#80#RT#1#CA#1aE#ZE#66#ZB#Bus 66  #PC#6#FR#3026736#FT#1611#TO#3026626#TT#1653#"
++            },
++            "intermediateStops": [
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:12:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:12:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "126676",
++                            "db-hafas": "A=1@O=Im Weiherfeld, Gelnhausen@X=9184495@Y=50197985@U=80@L=126676@",
++                            "de_by_bayern": "10026676",
++                            "ifopt": "de:06435:26676:1:1",
++                            "rmv": "3026676"
++                        },
++                        "latitude": 50.197990000000004,
++                        "longitude": 9.184507,
++                        "name": "Im Weiherfeld, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:13:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:13:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "126672",
++                            "db-hafas": "A=1@O=Hallenbad, Gelnhausen@X=9177645@Y=50201392@U=80@L=126672@",
++                            "de_by_bayern": "10026672",
++                            "ifopt": "de:06435:26672:1:1",
++                            "rmv": "3026672"
++                        },
++                        "latitude": 50.201407,
++                        "longitude": 9.177727,
++                        "name": "Hallenbad, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:15:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:15:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "122709",
++                            "db-hafas": "A=1@O=Parkstraße, Gelnhausen@X=9178733@Y=50204763@U=80@L=122709@",
++                            "de_by_bayern": "10022709",
++                            "ifopt": "de:06435:22709:1:1",
++                            "rmv": "3022709"
++                        },
++                        "latitude": 50.2047975,
++                        "longitude": 9.1789355,
++                        "name": "Parkstraße, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:18:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:18:00+01:00"
++                    },
++                    "scheduledPlatform": "2",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "119150",
++                            "db-hafas": "A=1@O=Roth Leipziger Straße, Gelnhausen@X=9156565@Y=50206822@U=80@L=119150@",
++                            "de_by_bayern": "10019150",
++                            "ifopt": "de:06435:19150:2:2",
++                            "rmv": "3019150"
++                        },
++                        "latitude": 50.2068905,
++                        "longitude": 9.156533,
++                        "name": "Roth Leipziger Straße, Gelnhausen",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:20:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:20:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "111153",
++                            "db-hafas": "A=1@O=Lieblos Bahnhof, Gründau@X=9143342@Y=50207595@U=80@L=111153@i=U×028002593@",
++                            "de_by_bayern": "10011153",
++                            "ifopt": "de:06435:11153:1:1",
++                            "rmv": "3011153"
++                        },
++                        "latitude": 50.207374,
++                        "longitude": 9.143757,
++                        "name": "Lieblos Bahnhof, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:23:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:23:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "102149",
++                            "db-hafas": "A=1@O=Lieblos Kinzigtalschule, Gründau@X=9136456@Y=50209114@U=80@L=102149@",
++                            "de_by_bayern": "10022851",
++                            "ifopt": "de:06435:22851:1:1",
++                            "rmv": "3022851"
++                        },
++                        "latitude": 50.2091145,
++                        "longitude": 9.1363725,
++                        "name": "Lieblos Kinzigtalschule, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:27:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:27:00+01:00"
++                    },
++                    "scheduledPlatform": "2",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "122736",
++                            "db-hafas": "A=1@O=Lieblos Industriegebiet, Gründau@X=9136825@Y=50204017@U=80@L=122736@",
++                            "de_by_bayern": "10022736",
++                            "ifopt": "de:06435:22736:2:2",
++                            "rmv": "3022736"
++                        },
++                        "latitude": 50.2039415,
++                        "longitude": 9.1367815,
++                        "name": "Lieblos Industriegebiet, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "load": [
++                        {
++                            "load": "High",
++                            "seatingClass": "2"
++                        }
++                    ],
++                    "route": {
++                        "direction": "Breitenborn Forsthausstraße, Gründau",
++                        "line": {
++                            "color": "#a71680",
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66",
++                            "operatorName": "RDG Regionalverkehrsdienst Gründau E. Laubach e.K.",
++                            "operatorUrl": "https://bahn.de",
++                            "textColor": "#ffffff"
++                        }
++                    },
++                    "scheduledArrivalTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:31:00+01:00"
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:31:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "db": "102151",
++                            "db-hafas": "A=1@O=Rothenbergen Fuldaer Straße, Gründau@X=9118046@Y=50202049@U=80@L=102151@",
++                            "de_by_bayern": "10022853",
++                            "ifopt": "de:06435:22853:1:1",
++                            "rmv": "3022853"
++                        },
++                        "latitude": 50.2019715,
++                        "longitude": 9.11769,
++                        "name": "Rothenbergen Fuldaer Straße, Gründau",
++                        "region": "DE-HE",
++                        "type": "Stop"
++                    }
++                }
++            ],
++            "mode": "PublicTransport"
++        },
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:33:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "latitude": 50.199812,
++                    "locality": "Rothenbergen",
++                    "longitude": 9.112241,
++                    "name": "Rothenbergen Dorfgemeinschaftshaus, Gründau",
++                    "region": "DE-HE"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:32:00+01:00"
++                },
++                "scheduledPlatform": "2",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026637",
++                        "ifopt": "de:06435:26637:2:2"
++                    },
++                    "latitude": 50.19991,
++                    "locality": "Gründau",
++                    "longitude": 9.112313,
++                    "name": "Gründau-Rothenbergen Dorfgemeinschaftshaus",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "mode": "Walking"
++        }
++    ]
++}
+diff --git a/autotests/data/journeys/de-bus-platform-numbering.rhs.json b/autotests/data/journeys/de-bus-platform-numbering.rhs.json
+new file mode 100644
+index 00000000..902c00ee
+--- /dev/null
++++ b/autotests/data/journeys/de-bus-platform-numbering.rhs.json
+@@ -0,0 +1,361 @@
++{
++    "sections": [
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "scheduledPlatform": "13",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026736",
++                        "ifopt": "de:06435:26736:1:13"
++                    },
++                    "latitude": 50.196678,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.188804,
++                    "name": "Gelnhausen Busbahnhof",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "latitude": 50.196713,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.188741,
++                    "name": "Busbahnhof, Gelnhausen",
++                    "region": "DE-HE"
++                }
++            },
++            "mode": "Walking"
++        },
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "route": {
++                    "direction": "Gründau-Breitenborn Forsthausstraße",
++                    "line": {
++                        "mode": "Bus",
++                        "modeString": "Bus",
++                        "name": "66"
++                    }
++                },
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:32:00+01:00"
++                },
++                "scheduledPlatform": "2",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026637",
++                        "ifopt": "de:06435:26637:2:2"
++                    },
++                    "latitude": 50.19991,
++                    "locality": "Gründau",
++                    "longitude": 9.112313,
++                    "name": "Gründau-Rothenbergen Dorfgemeinschaftshaus",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "route": {
++                    "direction": "Gründau-Breitenborn Forsthausstraße",
++                    "line": {
++                        "mode": "Bus",
++                        "modeString": "Bus",
++                        "name": "66"
++                    }
++                },
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:11:00+01:00"
++                },
++                "scheduledPlatform": "13",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026736",
++                        "ifopt": "de:06435:26736:1:13"
++                    },
++                    "latitude": 50.196678,
++                    "locality": "Gelnhausen",
++                    "longitude": 9.188804,
++                    "name": "Gelnhausen Busbahnhof",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "intermediateStops": [
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:12:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10026676",
++                            "ifopt": "de:06435:26676:1:1"
++                        },
++                        "latitude": 50.197995,
++                        "longitude": 9.184519,
++                        "name": "Gelnhausen Im Weiherfeld",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:13:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10026672",
++                            "ifopt": "de:06435:26672:1:1"
++                        },
++                        "latitude": 50.201422,
++                        "longitude": 9.177809,
++                        "name": "Gelnhausen Hallenbad",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:15:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10022709",
++                            "ifopt": "de:06435:22709:1:1"
++                        },
++                        "latitude": 50.204832,
++                        "longitude": 9.179138,
++                        "name": "Gelnhausen Parkstraße",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:18:00+01:00"
++                    },
++                    "scheduledPlatform": "2",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10019150",
++                            "ifopt": "de:06435:19150:2:2"
++                        },
++                        "latitude": 50.206959,
++                        "longitude": 9.156501,
++                        "name": "Gelnhausen-Roth Leipziger Straße",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:20:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10011153",
++                            "ifopt": "de:06435:11153:1:1"
++                        },
++                        "latitude": 50.207517,
++                        "longitude": 9.143125,
++                        "name": "Gründau-Lieblos Bahnhof",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:23:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10022851",
++                            "ifopt": "de:06435:22851:1:1"
++                        },
++                        "latitude": 50.209115,
++                        "longitude": 9.136289,
++                        "name": "Gründau-Lieblos Kinzigtalschule",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:27:00+01:00"
++                    },
++                    "scheduledPlatform": "2",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10022736",
++                            "ifopt": "de:06435:22736:2:2"
++                        },
++                        "latitude": 50.203866,
++                        "longitude": 9.136738,
++                        "name": "Gründau-Lieblos Industriegebiet",
++                        "region": "DE-HE"
++                    }
++                },
++                {
++                    "disruptionEffect": "NormalService",
++                    "route": {
++                        "direction": "Gründau-Breitenborn Forsthausstraße",
++                        "line": {
++                            "mode": "Bus",
++                            "modeString": "Bus",
++                            "name": "66"
++                        }
++                    },
++                    "scheduledDepartureTime": {
++                        "timezone": "Europe/Berlin",
++                        "value": "2026-11-23T16:31:00+01:00"
++                    },
++                    "scheduledPlatform": "1",
++                    "stopPoint": {
++                        "country": "DE",
++                        "identifier": {
++                            "de_by_bayern": "10022853",
++                            "ifopt": "de:06435:22853:1:1"
++                        },
++                        "latitude": 50.201894,
++                        "longitude": 9.117334,
++                        "name": "Gründau-Rothenbergen Fuldaer Straße",
++                        "region": "DE-HE"
++                    }
++                }
++            ],
++            "mode": "PublicTransport"
++        },
++        {
++            "arrival": {
++                "disruptionEffect": "NormalService",
++                "scheduledArrivalTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:33:00+01:00"
++                },
++                "stopPoint": {
++                    "country": "DE",
++                    "latitude": 50.199812,
++                    "locality": "Rothenbergen",
++                    "longitude": 9.112241,
++                    "name": "Rothenbergen Dorfgemeinschaftshaus, Gründau",
++                    "region": "DE-HE"
++                }
++            },
++            "departure": {
++                "disruptionEffect": "NormalService",
++                "scheduledDepartureTime": {
++                    "timezone": "Europe/Berlin",
++                    "value": "2026-11-23T16:32:00+01:00"
++                },
++                "scheduledPlatform": "2",
++                "stopPoint": {
++                    "country": "DE",
++                    "identifier": {
++                        "de_by_bayern": "10026637",
++                        "ifopt": "de:06435:26637:2:2"
++                    },
++                    "latitude": 50.19991,
++                    "locality": "Gründau",
++                    "longitude": 9.112313,
++                    "name": "Gründau-Rothenbergen Dorfgemeinschaftshaus",
++                    "region": "DE-HE",
++                    "type": "Stop"
++                }
++            },
++            "mode": "Walking"
++        }
++    ]
++}
 diff --git a/autotests/data/motis2/generate-tests.sh b/autotests/data/motis2/generate-tests.sh
 index ec4d9fed..20442f7b 100755
 --- a/autotests/data/motis2/generate-tests.sh
@@ -15663,7 +17024,7 @@ index 00000000..f0282945
 +
 +#endif
 diff --git a/src/lib/datatypes/journey.cpp b/src/lib/datatypes/journey.cpp
-index 9bbc46fc..99c31f96 100644
+index 9bbc46fc..0cebbfc8 100644
 --- a/src/lib/datatypes/journey.cpp
 +++ b/src/lib/datatypes/journey.cpp
 @@ -20,6 +20,8 @@
@@ -15789,7 +17150,19 @@ index 9bbc46fc..99c31f96 100644
  
          path.setSections(std::move(pathSections));
          partialTrip.setPath(path);
-@@ -906,7 +961,34 @@ JourneySection JourneySection::merge(const JourneySection &lhs, const JourneySec
+@@ -870,8 +925,10 @@ bool JourneySection::isSame(const JourneySection &lhs, const JourneySection &rhs
+     const auto sameLine = Line::isSame(lhs.route().line(), rhs.route().line());
+     result += sameRoute ? Equal : (sameDir || sameLine) ? Compatible : Conflict;
+ 
++    // data sources don't always agree on platforms, e.g. for bus stations one gives the bay and another one the area,
++    // so a different platform only counts against the rest, rather than ruling a match out
+     if (!lhs.scheduledDeparturePlatform().isEmpty() && !rhs.scheduledDeparturePlatform().isEmpty()) {
+-        result += lhs.scheduledDeparturePlatform() == rhs.scheduledDeparturePlatform() ? Equal : Conflict;
++        result += lhs.scheduledDeparturePlatform() == rhs.scheduledDeparturePlatform() ? Equal : -Equal;
+     }
+ 
+     return result >= 4;
+@@ -906,7 +963,34 @@ JourneySection JourneySection::merge(const JourneySection &lhs, const JourneySec
      res.d->co2Emission = std::max(lhs.d->co2Emission, rhs.d->co2Emission);
      res.d->rentalVehicle = RentalVehicleUtil::merge(lhs.d->rentalVehicle, rhs.d->rentalVehicle);
  
@@ -15825,7 +17198,7 @@ index 9bbc46fc..99c31f96 100644
  
      res.d->bookingUrl = lhs.d->bookingUrl.isEmpty() ? rhs.d->bookingUrl : lhs.d->bookingUrl;
  
-@@ -936,6 +1018,12 @@ QJsonObject JourneySection::toJson(const JourneySection &section)
+@@ -936,6 +1020,12 @@ QJsonObject JourneySection::toJson(const JourneySection &section)
      if (section.d->co2Emission < 0) {
          obj.remove("co2Emission"_L1);
      }
@@ -15838,7 +17211,7 @@ index 9bbc46fc..99c31f96 100644
      if (section.d->disruptionEffect == Disruption::NormalService) {
          obj.remove("disruptionEffect"_L1);
      }
-@@ -951,8 +1039,9 @@ QJsonObject JourneySection::toJson(const JourneySection &section)
+@@ -951,8 +1041,9 @@ QJsonObject JourneySection::toJson(const JourneySection &section)
          obj.insert("individualTransport"_L1, IndividualTransport::toJson(section.individualTransport()));
      }
  
@@ -15850,7 +17223,7 @@ index 9bbc46fc..99c31f96 100644
      }
  
      if (obj.size() <= 1) { // only the mode enums, ie. this is an empty object
-@@ -1125,6 +1214,48 @@ int Journey::co2Emission() const
+@@ -1125,6 +1216,48 @@ int Journey::co2Emission() const
      return std::accumulate(d->sections.begin(), d->sections.end(), 0, [](auto co2, const auto &jny) { return co2 + std::max(0, jny.co2Emission()); });
  }
  
@@ -15899,7 +17272,7 @@ index 9bbc46fc..99c31f96 100644
  Load::Category Journey::maximumOccupancy() const
  {
      return std::accumulate(d->sections.begin(), d->sections.end(), Load::Unknown, [](auto l, const auto &jny) {
-@@ -1153,7 +1284,14 @@ QUrl Journey::bookingUrl() const
+@@ -1153,7 +1286,14 @@ QUrl Journey::bookingUrl() const
          break;
      }
  
@@ -15915,7 +17288,18 @@ index 9bbc46fc..99c31f96 100644
  }
  
  void Journey::setBookingUrl(const QUrl &value)
-@@ -1238,15 +1376,17 @@ Journey Journey::merge(const Journey &lhs, const Journey &rhs)
+@@ -1219,6 +1359,10 @@ Journey Journey::merge(const Journey &lhs, const Journey &rhs)
+     std::copy(rhs.sections().begin(), rhs.sections().end(), std::back_inserter(sections));
+     std::sort(sections.begin(), sections.end(), [](const auto &lSec, const auto &rSec) {
+         if (MergeUtil::distance(lSec.scheduledDepartureTime(), rSec.scheduledDepartureTime()) == 0) {
++            // e.g. a walk of no time to the stop before the ride departing at the same time
++            if (MergeUtil::distance(lSec.scheduledArrivalTime(), rSec.scheduledArrivalTime()) != 0) {
++                return MergeUtil::isBefore(lSec.scheduledArrivalTime(), rSec.scheduledArrivalTime());
++            }
+             return lSec.mode() < rSec.mode();
+         }
+         return MergeUtil::isBefore(lSec.scheduledDepartureTime(), rSec.scheduledDepartureTime());
+@@ -1238,15 +1382,17 @@ Journey Journey::merge(const Journey &lhs, const Journey &rhs)
  
      Journey res;
      res.setSections(std::move(sections));
@@ -17074,6 +18458,27 @@ index 00000000..4dc90bf0
 +}
 +
 +#endif
+diff --git a/src/lib/datatypes/stopover.cpp b/src/lib/datatypes/stopover.cpp
+index 4919e1b2..688cd1c0 100644
+--- a/src/lib/datatypes/stopover.cpp
++++ b/src/lib/datatypes/stopover.cpp
+@@ -262,11 +262,12 @@ Stopover Stopover::merge(const Stopover &lhs, const Stopover &rhs)
+     stopover.setScheduledArrivalTime(mergeDateTimeMax(lhs.scheduledArrivalTime(), rhs.scheduledArrivalTime()));
+     stopover.setExpectedArrivalTime(mergeDateTimeMax(lhs.expectedArrivalTime(), rhs.expectedArrivalTime()));
+ 
+-    if (stopover.scheduledPlatform().isEmpty() && !rhs.scheduledPlatform().isEmpty()) {
+-        stopover.setScheduledPlatform(rhs.scheduledPlatform());
++    // sources can disagree on platforms, e.g. bay and area of a bus station, pick one independent of the order
++    if (!rhs.scheduledPlatform().isEmpty()) {
++        stopover.setScheduledPlatform(stopover.scheduledPlatform().isEmpty() ? rhs.scheduledPlatform() : mergeString(stopover.scheduledPlatform(), rhs.scheduledPlatform()));
+     }
+-    if (!stopover.hasExpectedPlatform() && rhs.hasExpectedPlatform()) {
+-        stopover.setExpectedPlatform(rhs.expectedPlatform());
++    if (rhs.hasExpectedPlatform()) {
++        stopover.setExpectedPlatform(!stopover.hasExpectedPlatform() ? rhs.expectedPlatform() : mergeString(stopover.expectedPlatform(), rhs.expectedPlatform()));
+     }
+ 
+     stopover.setRoute(Route::merge(lhs.route(), rhs.route()));
 diff --git a/src/lib/geo/pathfilter_p.h b/src/lib/geo/pathfilter_p.h
 index bdca428c..a7a3a0b4 100644
 --- a/src/lib/geo/pathfilter_p.h
