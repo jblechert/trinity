@@ -233,7 +233,14 @@ QString WalkingNavigationController::instruction() const
     if (m_currentSection < 0 && !m_path.sections().empty()) {
         return sectionInstruction(m_path.sections().front());
     }
-    return i18nc("@info walking navigation", "Walk to %1", m_destination.name());
+    switch (m_travelMode) {
+    case KPublicTransport::IndividualTransport::Bike:
+        return i18nc("@info navigation by bike, %1 is a place", "Cycle to %1", m_destination.name());
+    case KPublicTransport::IndividualTransport::Car:
+        return i18nc("@info navigation by car, %1 is a place", "Drive to %1", m_destination.name());
+    default:
+        return i18nc("@info walking navigation", "Walk to %1", m_destination.name());
+    }
 }
 
 QString WalkingNavigationController::instructionIconName() const
@@ -243,7 +250,12 @@ QString WalkingNavigationController::instructionIconName() const
     }
     const auto next = m_currentSection + 1;
     if (next >= 1 && next < (int)m_path.sections().size()) {
-        return m_path.sections()[next].iconName();
+        const auto &section = m_path.sections()[next];
+        // the icon of a plain move is a pedestrian, whatever the route is for
+        if (section.maneuver() == KPublicTransport::PathSection::Move) {
+            return KPublicTransport::IndividualTransport::modeIconName(static_cast<KPublicTransport::IndividualTransport::Mode>(m_travelMode));
+        }
+        return section.iconName();
     }
     return u"flag"_s;
 }
