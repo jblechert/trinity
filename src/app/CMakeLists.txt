@@ -177,6 +177,7 @@ ecm_add_qml_module(itinerary GENERATE_PLUGIN_SOURCE
         MapCircle.qml
         MapPin.qml
         MapStopoverInfoSheetDrawer.qml
+        MapJourneyGeometry.qml
         MapJourneyPane.qml
         MapPage.qml
         MapPlaceDelegate.qml
