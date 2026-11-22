@@ -24,6 +24,8 @@ struct CategoryData {
     // icon file name from KOSMIndoorMap
     const char *icon;
     // other names of this category users might search for, in English and German, separated by commas
+    // TODO German is hard-coded here so German terms match regardless of the UI language, which only suits this
+    // fork; for upstream these should become translatable keyword lists, so translators can add their own terms
     const char *keywords;
 };
 
