@@ -161,6 +161,7 @@ Item {
             if (amenity.distance > mapData.radius || !root.inCategory(amenity)) {
                 continue;
             }
+            // NearbyAmenityModel doesn't tell the OSM id itself yet, only as part of the URL of the element
             const types = { node: "n", way: "w", relation: "r" };
             const match = amenity.element.url.match(/\/(node|way|relation)\/(\d+)$/);
             const osmId = match ? types[match[1]] + match[2] : "";

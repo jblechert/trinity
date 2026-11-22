@@ -188,6 +188,7 @@ const std::vector<Category> &categories()
         });
         c.name = data.name.toString();
         c.osmTags = QString::fromLatin1(data.osmTags).split(','_L1);
+        // KOSMIndoorMap has no public API for its icons yet, this is the one place relying on where they are
         const auto iconFile = ":/org.kde.kosmindoormap/assets/icons/"_L1 + QLatin1StringView(data.icon) + ".svg"_L1;
         // as URL, a plain path would be taken as relative to the QML file it is used in
         c.iconSource = QFile::exists(iconFile) ? "qrc"_L1 + iconFile : u"map-symbolic"_s;
@@ -347,7 +348,7 @@ QVariantMap PlaceCategories::categoryForTag(const QString &key, const QString &v
 {
     const auto tag = key + '='_L1 + value;
     for (const auto &c : categories()) {
-        if (c.osmTags.contains(tag) || c.osmTags.contains(key)) {
+        if (c.osmTags.contains(tag)) {
             return toVariant(c);
         }
     }
