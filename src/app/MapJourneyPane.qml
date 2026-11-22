@@ -5,6 +5,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtPositioning
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.coreaddons as CoreAddons
@@ -35,6 +36,8 @@ QQC2.Pane {
     property bool canStart: false
     /** The search results the shown connection was picked from can be shown again. */
     property bool canShowResults: false
+    /** The current location, if known, for offering walking directions to the first stop when it is close. */
+    property var currentPosition: QtPositioning.coordinate()
     /** Index of the journey section brought into view on the map, -1 for the whole journey. */
     property int currentSection: -1
     /** Height available for the list of sections. */
@@ -377,6 +380,8 @@ QQC2.Pane {
             id: walkButton
             readonly property var stop: root.firstTransportSection ? root.firstTransportSection.from : null
             visible: !root.isPreview && walkButton.stop !== null && walkButton.stop.hasCoordinate
+                // e.g. not when planning a journey somewhere else
+                && root.currentPosition.isValid && root.currentPosition.distanceTo(QtPositioning.coordinate(walkButton.stop.latitude, walkButton.stop.longitude)) < 5000
             icon.source: KPublicTransport.IndividualTransportMode.modeIconName(KPublicTransport.IndividualTransport.Walk)
             text: walkButton.stop ? i18nc("@action:button walking directions to a departure stop", "Walk to %1", walkButton.stop.name) : ""
             onClicked: root.walkToStopRequested(walkButton.stop)

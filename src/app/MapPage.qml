@@ -2102,6 +2102,7 @@ Kirigami.Page {
         errorMessage: previewModel.errorMessage
         destinationName: root.previewTo?.name ?? ""
         canStart: root.isHere(root.previewFrom)
+        currentPosition: root.hasPosition ? positionSource.position.coordinate : QtPositioning.coordinate()
         canShowResults: root.journeyResultsPage !== null && root.QQC2.ApplicationWindow.window !== null
             && root.QQC2.ApplicationWindow.window.pageStack.depth > 0 && root.journeyResultsPageIndex() >= 0
         currentSection: root.focusedSection
