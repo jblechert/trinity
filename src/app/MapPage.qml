@@ -24,6 +24,8 @@ import org.kde.itinerary
  *  Places can be searched by name or category (such as bakeries or pharmacies) around the current location
  *  or the center of the map.
  *  Departure and arrival of a journey can be picked on the map or searched, to search connections between them.
+ *  Connections found that way can be shown on the map with all their sections, and routes on foot, by bike
+ *  or by car are previewed on the map before navigation starts.
  */
 Kirigami.Page {
     id: root
@@ -60,9 +62,6 @@ Kirigami.Page {
         }
     }
     readonly property bool hasPosition: positionSource.valid && positionSource.position.latitudeValid && positionSource.position.longitudeValid
-    /** The journey starts where we are, so navigating there on foot, by bike or by car is possible. */
-    readonly property bool journeyStartsHere: root.hasPosition && (!root.journeyFrom
-        || QtPositioning.coordinate(root.journeyFrom.latitude, root.journeyFrom.longitude).distanceTo(positionSource.position.coordinate) < 100)
 
     function currentLocation(): var {
         const coord = positionSource.position.coordinate;
@@ -80,7 +79,11 @@ Kirigami.Page {
         root.pickedCoordinate = undefined;
         root.plannerShown = true;
         // name the place by its address
-        const geocoder = endpoint === "from" ? fromGeocoder : toGeocoder;
+        root.geocode(endpoint === "from" ? fromGeocoder : toGeocoder, coord);
+    }
+
+    /** Look up the address at @p coord with @p geocoder, see applyGeocoding(). */
+    function geocode(geocoder: QtLocation.GeocodeModel, coord: var): void {
         // the plugin is created on demand, which must not happen in a binding
         if (!geocoder.plugin) {
             geocoder.plugin = applicationWindow().geocodingPlugin();
@@ -89,9 +92,11 @@ Kirigami.Page {
         geocoder.update();
     }
 
-    /** Rename the departure or arrival to the address found for it, unless it changed meanwhile. */
+    /** Rename the departure or arrival ("from", "to"), or the destination of a route preview ("preview"),
+     *  to the address found for it, unless it changed meanwhile.
+     */
     function applyGeocoding(endpoint: string, geocoder: QtLocation.GeocodeModel): void {
-        const location = endpoint === "from" ? root.journeyFrom : root.journeyTo;
+        const location = endpoint === "from" ? root.journeyFrom : (endpoint === "to" ? root.journeyTo : root.previewTo);
         if (geocoder.status !== QtLocation.GeocodeModel.Ready || geocoder.count === 0 || !location) {
             return;
         }
@@ -108,8 +113,10 @@ Kirigami.Page {
         const named = helper.locationAt(coord.latitude, coord.longitude, name);
         if (endpoint === "from") {
             root.journeyFrom = named;
-        } else {
+        } else if (endpoint === "to") {
             root.journeyTo = named;
+        } else {
+            root.previewTo = named;
         }
     }
 
@@ -134,6 +141,12 @@ Kirigami.Page {
         autoUpdate: false
         limit: 1
         onStatusChanged: root.applyGeocoding("to", toGeocoder)
+    }
+    QtLocation.GeocodeModel {
+        id: previewGeocoder
+        autoUpdate: false
+        limit: 1
+        onStatusChanged: root.applyGeocoding("preview", previewGeocoder)
     }
 
     /** Show departure and arrival on the map, after one of them was searched. */
@@ -203,12 +216,314 @@ Kirigami.Page {
         }
     }
 
-    /** Navigate from the current position to @p destination, on foot, by bike or by car. */
-    function startNavigation(destination: var, mode: int): void {
-        root.QQC2.ApplicationWindow.window.pageStack.layers.push(Qt.createComponent("org.kde.itinerary", "WalkingNavigationPage"), {
+    /** Navigate from the current position to @p destination, on foot, by bike or by car.
+     *  @p journey is the route to follow if already known, e.g. from a preview.
+     */
+    function startNavigation(destination: var, mode: int, journey: var): void {
+        let properties = {
             destination: destination,
             travelMode: mode,
-        });
+        };
+        if (journey) {
+            properties.journey = journey;
+        }
+        root.QQC2.ApplicationWindow.window.pageStack.layers.push(Qt.createComponent("org.kde.itinerary", "WalkingNavigationPage"), properties);
+    }
+
+    /** The journey shown on the map: a public transport connection, or the preview of a route on foot, by bike or by car. */
+    property var shownJourney
+    /** The KPublicTransport.IndividualTransport mode of a route preview, -1 for a public transport connection. */
+    property int shownJourneyMode: -1
+    /** The pane with the shown journey or route preview is open. */
+    property bool journeyPaneShown: false
+    /** The search results page a shown connection was picked from. */
+    property var journeyResultsPage: null
+    /** Index of the section of the shown journey brought into view, -1 for all of it. */
+    property int focusedSection: -1
+    /** Start of a route preview, undefined for the current location. */
+    property var previewFrom
+    /** Destination of a route preview. */
+    property var previewTo
+
+    /** Whether @p location is where we are, so navigation can start there. Undefined stands for the current location. */
+    function isHere(location: var): bool {
+        return root.hasPosition && (!location
+            || QtPositioning.coordinate(location.latitude, location.longitude).distanceTo(positionSource.position.coordinate) < 100);
+    }
+
+    /** Close what would hide a journey or compete with it on the map. */
+    function prepareJourneyDisplay(): void {
+        root.clearSelection();
+        if (root.searchShown) {
+            root.closeSearch();
+        }
+        markedRoutes.clearRoute();
+        root.routeListShown = false;
+        root.routeShown = false;
+        root.pickedCoordinate = undefined;
+    }
+
+    /** Show @p journey, a public transport connection, on the map with all its sections.
+     *  @p resultsPage is the page with the search results it was picked from, to go back to.
+     */
+    function showJourney(journey: var, resultsPage: var): void {
+        root.prepareJourneyDisplay();
+        previewModel.cancel();
+        root.shownJourneyMode = -1;
+        root.previewFrom = undefined;
+        root.previewTo = undefined;
+        root.shownJourney = journey;
+        root.journeyResultsPage = resultsPage ?? null;
+        root.journeyPaneShown = true;
+        root.focusedSection = -1;
+        root.focusLater("journey");
+    }
+
+    /** Show the route from @p from (undefined for the current location) to @p to, on foot, by bike or by car,
+     *  before starting navigation along it.
+     */
+    function previewRoute(from: var, to: var, mode: int): void {
+        if (!from && !root.hasPosition) {
+            // without a start there is nothing to show yet, navigation waits for the location though
+            root.startNavigation(to, mode, undefined);
+            return;
+        }
+        root.prepareJourneyDisplay();
+        root.previewFrom = from;
+        root.previewTo = to;
+        root.shownJourneyMode = mode;
+        root.shownJourney = undefined;
+        root.journeyResultsPage = null;
+        root.journeyPaneShown = true;
+        root.focusedSection = -1;
+        // the same request navigation uses, so the preview shows the route it follows
+        const start = from ?? root.currentLocation();
+        helper.travelMode = mode;
+        let request = helper.routeRequest(start.latitude, start.longitude, to);
+        request.from = start;
+        previewModel.request = request;
+        // show where the route goes already while it is searched
+        root.focusLater("journey");
+    }
+
+    function closeJourney(): void {
+        previewModel.cancel();
+        root.journeyPaneShown = false;
+        root.shownJourney = undefined;
+        root.previewFrom = undefined;
+        root.previewTo = undefined;
+        root.journeyResultsPage = null;
+        root.focusedSection = -1;
+        if (root.focusTarget === "journey") {
+            root.focusTarget = undefined;
+        }
+    }
+
+    /** Switch a route preview to another mode, or search public transport connections instead for -1. */
+    function changePreviewMode(mode: int): void {
+        if (mode >= 0) {
+            root.previewRoute(root.previewFrom, root.previewTo, mode);
+            return;
+        }
+        root.journeyFrom = root.previewFrom;
+        root.journeyTo = root.previewTo;
+        root.closeJourney();
+        root.plannerShown = true;
+        root.searchConnection();
+    }
+
+    /** Bring the section with index @p index of the shown journey into view, or all of it for -1. */
+    function focusJourneySection(index: int): void {
+        root.focusedSection = index;
+        root.focusTarget = "journey";
+        root.applyFocus();
+    }
+
+    /** Index of the page with the search results of the shown connection in the page stack, -1 if it is gone. */
+    function journeyResultsPageIndex(): int {
+        const pageStack = root.QQC2.ApplicationWindow.window?.pageStack;
+        if (!root.journeyResultsPage || !pageStack) {
+            return -1;
+        }
+        for (let i = 0; i < pageStack.depth; ++i) {
+            if (pageStack.get(i) === root.journeyResultsPage) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    KPublicTransport.JourneyQueryModel {
+        id: previewModel
+        manager: LiveDataManager.publicTransportManager
+        onLoadingChanged: {
+            if (previewModel.loading || !root.journeyPaneShown || root.shownJourneyMode < 0) {
+                return;
+            }
+            if (previewModel.rowCount() > 0) {
+                root.shownJourney = previewModel.data(previewModel.index(0, 0), KPublicTransport.JourneyQueryModel.JourneyRole);
+                root.focusLater("journey");
+            }
+        }
+    }
+
+    /** What to draw on the map for the shown journey. */
+    readonly property var journeyGeometry: root.buildJourneyGeometry(root.shownJourney)
+
+    /** Lines, stops, labels and walks of @p journey, to draw on the map. */
+    function buildJourneyGeometry(journey: var): var {
+        let geometry = { lines: [], walks: [], stops: [], labels: [], start: undefined, end: undefined };
+        if (!journey || journey.sections.length === 0) {
+            return geometry;
+        }
+        const sections = journey.sections;
+        for (const section of sections) {
+            const path = KPublicTransportUi.MapUtils.polyline(section);
+            switch (section.mode) {
+            case KPublicTransport.JourneySection.PublicTransport: {
+                const line = section.route.line;
+                // hardcoded Breeze black, as there is no theme color with enough contrast to the map in all themes
+                const color = line.hasColor ? line.color : "#232629";
+                geometry.lines.push({ path: path, color: color, width: line.mode === KPublicTransport.Line.Air ? 3 : 8 });
+                geometry.stops.push({ stopover: section.departure, color: color, size: 14, isDeparture: true, isArrival: false });
+                for (const stop of section.intermediateStops) {
+                    geometry.stops.push({ stopover: stop, color: color, size: 7, isDeparture: false, isArrival: false });
+                }
+                geometry.stops.push({ stopover: section.arrival, color: color, size: 14, isDeparture: false, isArrival: true });
+                const middle = root.pathMiddle(path);
+                if (middle) {
+                    geometry.labels.push({ section: section, coordinate: middle });
+                }
+                break;
+            }
+            case KPublicTransport.JourneySection.Walking:
+            case KPublicTransport.JourneySection.Transfer:
+                if (path.length >= 2) {
+                    geometry.walks.push(path);
+                }
+                break;
+            case KPublicTransport.JourneySection.IndividualTransport:
+            case KPublicTransport.JourneySection.RentedVehicle:
+                geometry.lines.push({ path: path, color: root.routeColor, width: 6 });
+                break;
+            }
+        }
+        const from = sections[0].from;
+        const to = sections[sections.length - 1].to;
+        if (from.hasCoordinate) {
+            geometry.start = QtPositioning.coordinate(from.latitude, from.longitude);
+        }
+        if (to.hasCoordinate) {
+            geometry.end = QtPositioning.coordinate(to.latitude, to.longitude);
+        }
+        return geometry;
+    }
+
+    /** Color of routes on foot, by bike or by car. */
+    readonly property color routeColor: "#2980b9"
+
+    /** Distance in meters between two coordinates, precise enough for short distances. */
+    function roughDistance(a: var, b: var): real {
+        const cosLat = Math.cos((a.latitude + b.latitude) / 2 * Math.PI / 180);
+        const dx = (b.longitude - a.longitude) * cosLat;
+        const dy = b.latitude - a.latitude;
+        return Math.sqrt(dx * dx + dy * dy) * 111195;
+    }
+
+    /** The point halfway along @p path, e.g. to label a line there. */
+    function pathMiddle(path: var): var {
+        if (path.length === 0) {
+            return undefined;
+        }
+        let length = 0;
+        for (let i = 0; i + 1 < path.length; ++i) {
+            length += root.roughDistance(path[i], path[i + 1]);
+        }
+        let remaining = length / 2;
+        for (let i = 0; i + 1 < path.length; ++i) {
+            const d = root.roughDistance(path[i], path[i + 1]);
+            if (d >= remaining && d > 0) {
+                const t = remaining / d;
+                return QtPositioning.coordinate(path[i].latitude + t * (path[i + 1].latitude - path[i].latitude),
+                                                path[i].longitude + t * (path[i + 1].longitude - path[i].longitude));
+            }
+            remaining -= d;
+        }
+        return QtPositioning.coordinate(path[0].latitude, path[0].longitude);
+    }
+
+    /** Dots along the walks of the shown journey, within and around the visible part of the map.
+     *  Map lines can't be dashed, so walks are drawn as dots, spaced evenly on screen at the current zoom level.
+     */
+    property var walkDots: []
+
+    function updateWalkDots(): void {
+        const walks = root.journeyGeometry.walks;
+        if (walks.length === 0 || map.width <= 0) {
+            root.walkDots = [];
+            return;
+        }
+        const center = map.toCoordinate(Qt.point(map.width / 2, map.height / 2), false);
+        const metersPerPixel = center.distanceTo(map.toCoordinate(Qt.point(map.width / 2 + 100, map.height / 2), false)) / 100;
+        if (!(metersPerPixel > 0)) {
+            return;
+        }
+        const spacing = metersPerPixel * Kirigami.Units.gridUnit * 0.8;
+        // the visible part of the map, and as much around it, for moving the map a bit without dots missing
+        const topLeft = map.toCoordinate(Qt.point(-map.width, -map.height), false);
+        const bottomRight = map.toCoordinate(Qt.point(map.width * 2, map.height * 2), false);
+        const bounded = topLeft.isValid && bottomRight.isValid;
+        const minLat = Math.min(topLeft.latitude, bottomRight.latitude);
+        const maxLat = Math.max(topLeft.latitude, bottomRight.latitude);
+        const minLon = Math.min(topLeft.longitude, bottomRight.longitude);
+        const maxLon = Math.max(topLeft.longitude, bottomRight.longitude);
+        let dots = [];
+        for (const path of walks) {
+            let offset = spacing / 2;
+            for (let i = 0; i + 1 < path.length && dots.length < 2000; ++i) {
+                const a = path[i];
+                const b = path[i + 1];
+                const length = root.roughDistance(a, b);
+                for (; offset < length && dots.length < 2000; offset += spacing) {
+                    const t = offset / length;
+                    const lat = a.latitude + t * (b.latitude - a.latitude);
+                    const lon = a.longitude + t * (b.longitude - a.longitude);
+                    if (!bounded || (lat >= minLat && lat <= maxLat && lon >= minLon && lon <= maxLon)) {
+                        dots.push(QtPositioning.coordinate(lat, lon));
+                    }
+                }
+                offset -= length;
+            }
+        }
+        root.walkDots = dots;
+    }
+    onJourneyGeometryChanged: walkDotsTimer.restart()
+
+    Timer {
+        id: walkDotsTimer
+        interval: 100
+        onTriggered: root.updateWalkDots()
+    }
+    Connections {
+        target: map
+        enabled: root.journeyGeometry.walks.length > 0
+        function onZoomLevelChanged(): void {
+            walkDotsTimer.restart();
+        }
+        function onCenterChanged(): void {
+            walkDotsTimer.restart();
+        }
+        function onWidthChanged(): void {
+            walkDotsTimer.restart();
+        }
+        function onHeightChanged(): void {
+            walkDotsTimer.restart();
+        }
+    }
+
+    MapStopoverInfoSheetDrawer {
+        id: stopInfoDrawer
+        parent: root.QQC2.Overlay.overlay
     }
 
     /** The place or stop tapped on the map whose details are shown, a candidate as found by MapPlaceLookup. */
@@ -294,6 +609,15 @@ Kirigami.Page {
     /** Bottom of the part of the map not hidden by the pane at the bottom, and the attribution of the map above it. */
     readonly property real visibleBottom: root.height - root.bottomPaneHeight - map.attribution.height - Kirigami.Units.largeSpacing
 
+    /** Show the area @p bbox (x/y being longitude/latitude) within the part of the map that is not hidden. */
+    function fitBoundingBox(bbox: rect): void {
+        const margin = Kirigami.Units.gridUnit;
+        const zoom = KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, root.visibleBottom - root.visibleTop - margin * 2);
+        map.zoomLevel = isFinite(zoom) ? Math.min(zoom, 17) : 17;
+        const center = KPublicTransportUi.MapUtils.center(bbox);
+        root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
+    }
+
     /** Center the map on @p coord within the part of it that is not hidden. */
     function centerOn(coord: var): void {
         root.followPosition = false;
@@ -313,10 +637,22 @@ Kirigami.Page {
             if (!root.tripShown) {
                 return;
             }
-            const bbox = KPublicTransportUi.MapUtils.boundingBox(sheetLoader.item.trip);
-            const center = KPublicTransportUi.MapUtils.center(bbox);
-            map.zoomLevel = Math.min(KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, bottom - top - margin * 2), 17);
-            root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
+            root.fitBoundingBox(KPublicTransportUi.MapUtils.boundingBox(sheetLoader.item.trip));
+            return;
+        }
+        if (what === "journey") {
+            const sections = root.shownJourney?.sections ?? [];
+            if (root.focusedSection >= 0 && root.focusedSection < sections.length) {
+                root.fitBoundingBox(KPublicTransportUi.MapUtils.boundingBox(sections[root.focusedSection]));
+            } else if (sections.length > 0) {
+                root.fitBoundingBox(KPublicTransportUi.MapUtils.boundingBox(root.shownJourney));
+            } else if (root.previewTo) {
+                // a route preview still being searched: where it starts and ends
+                const from = root.previewFrom ?? (root.hasPosition ? root.currentLocation() : root.previewTo);
+                const minLat = Math.min(from.latitude, root.previewTo.latitude);
+                const minLon = Math.min(from.longitude, root.previewTo.longitude);
+                root.fitBoundingBox(Qt.rect(minLon, minLat, Math.abs(from.longitude - root.previewTo.longitude), Math.abs(from.latitude - root.previewTo.latitude)));
+            }
             return;
         }
         if (what === "results") {
@@ -414,7 +750,11 @@ Kirigami.Page {
     property var amenityCache: ({})
 
     function navigateToPickedPlace(mode: int): void {
-        root.startNavigation(helper.locationAt(root.pickedCoordinate.latitude, root.pickedCoordinate.longitude, i18nc("@info a place picked on the map", "Selected place")), mode);
+        const coord = root.pickedCoordinate;
+        root.previewRoute(undefined, helper.locationAt(coord.latitude, coord.longitude, i18nc("@info a place picked on the map", "Selected place")), mode);
+        if (root.journeyPaneShown) {
+            root.geocode(previewGeocoder, coord);
+        }
     }
 
     // only used for its helper functions
@@ -520,7 +860,7 @@ Kirigami.Page {
         id: map
         anchors.fill: parent
         zoomLevel: 15
-        coveringItems: [plannerPane, searchPane, routePane, selectionPane]
+        coveringItems: [plannerPane, searchPane, routePane, selectionPane, journeyPane]
         // keep the attribution visible above the pane at the bottom, using as little height as possible there
         attribution.anchors.bottomMargin: root.bottomPaneHeight + Kirigami.Units.largeSpacing
         attribution.width: Math.min(Kirigami.Units.gridUnit * 22, map.width - Kirigami.Units.largeSpacing * 2)
@@ -562,7 +902,7 @@ Kirigami.Page {
 
         // departure and arrival of the journey to search
         MapCircle {
-            visible: root.journeyFrom !== undefined
+            visible: root.journeyFrom !== undefined && !root.journeyPaneShown
             coordinate: root.journeyFrom ? QtPositioning.coordinate(root.journeyFrom.latitude, root.journeyFrom.longitude) : QtPositioning.coordinate()
             color: "#27ae60"
             textColor: "#eff0f1"
@@ -571,13 +911,100 @@ Kirigami.Page {
             z: 6
         }
         MapCircle {
-            visible: root.journeyTo !== undefined
+            visible: root.journeyTo !== undefined && !root.journeyPaneShown
             coordinate: root.journeyTo ? QtPositioning.coordinate(root.journeyTo.latitude, root.journeyTo.longitude) : QtPositioning.coordinate()
             color: "#da4453"
             textColor: "#eff0f1"
             iconName: "flag"
             size: 24
             z: 6
+        }
+
+        // the shown journey: lines of public transport and of routes by bike or by car, dots along walks,
+        // stops, line names, and where it starts and ends
+        QtLocation.MapItemView {
+            model: root.journeyPaneShown ? root.journeyGeometry.lines : []
+            z: 4
+            delegate: QtLocation.MapPolyline {
+                id: journeyLineDelegate
+                required property var modelData
+                line.width: journeyLineDelegate.modelData.width
+                line.color: journeyLineDelegate.modelData.color
+                path: journeyLineDelegate.modelData.path
+            }
+        }
+        QtLocation.MapItemView {
+            model: root.journeyPaneShown ? root.walkDots : []
+            z: 5
+            delegate: QtLocation.MapQuickItem {
+                id: walkDotDelegate
+                required property var modelData
+                coordinate: walkDotDelegate.modelData
+                anchorPoint.x: walkDot.width / 2
+                anchorPoint.y: walkDot.height / 2
+                sourceItem: Rectangle {
+                    id: walkDot
+                    width: Math.round(Kirigami.Units.gridUnit * 0.5)
+                    height: walkDot.width
+                    radius: walkDot.width / 2
+                    color: root.routeColor
+                    border.color: "white"
+                    border.width: 1
+                }
+            }
+        }
+        QtLocation.MapItemView {
+            model: root.journeyPaneShown ? root.journeyGeometry.stops : []
+            z: 6
+            delegate: MapCircle {
+                id: journeyStopDelegate
+                required property var modelData
+                coordinate: QtPositioning.coordinate(journeyStopDelegate.modelData.stopover.stopPoint.latitude, journeyStopDelegate.modelData.stopover.stopPoint.longitude)
+                size: journeyStopDelegate.modelData.size
+                borderWidth: journeyStopDelegate.modelData.size > 10 ? 2 : 1
+                color: journeyStopDelegate.modelData.color
+                textColor: "#eff0f1"
+                onClicked: {
+                    stopInfoDrawer.isDeparture = journeyStopDelegate.modelData.isDeparture;
+                    stopInfoDrawer.isArrival = journeyStopDelegate.modelData.isArrival;
+                    stopInfoDrawer.stop = journeyStopDelegate.modelData.stopover;
+                    stopInfoDrawer.popup();
+                }
+            }
+        }
+        QtLocation.MapItemView {
+            model: root.journeyPaneShown ? root.journeyGeometry.labels : []
+            z: 7
+            delegate: QtLocation.MapQuickItem {
+                id: journeyLabelDelegate
+                required property var modelData
+                coordinate: journeyLabelDelegate.modelData.coordinate
+                anchorPoint.x: journeyLabel.width / 2
+                anchorPoint.y: journeyLabel.height / 2
+                sourceItem: KPublicTransportUi.TransportNameControl {
+                    id: journeyLabel
+                    journeySection: journeyLabelDelegate.modelData.section
+                }
+            }
+        }
+        MapCircle {
+            // a route preview from the current location starts at the marker of the location
+            visible: root.journeyPaneShown && (root.journeyGeometry.start !== undefined || root.previewFrom !== undefined)
+            coordinate: root.journeyGeometry.start ?? (root.previewFrom ? QtPositioning.coordinate(root.previewFrom.latitude, root.previewFrom.longitude) : QtPositioning.coordinate())
+            color: "#27ae60"
+            textColor: "#eff0f1"
+            iconName: "flag"
+            size: 24
+            z: 8
+        }
+        MapCircle {
+            visible: root.journeyPaneShown && (root.journeyGeometry.end !== undefined || root.previewTo !== undefined)
+            coordinate: root.journeyGeometry.end ?? (root.previewTo ? QtPositioning.coordinate(root.previewTo.latitude, root.previewTo.longitude) : QtPositioning.coordinate())
+            color: "#da4453"
+            textColor: "#eff0f1"
+            iconName: "flag"
+            size: 24
+            z: 8
         }
 
         // the route of the trip selected at a stop
@@ -766,7 +1193,8 @@ Kirigami.Page {
     // departure and arrival of a journey to search
     QQC2.Pane {
         id: plannerPane
-        visible: root.plannerShown
+        // a shown journey tells where it goes itself, and needs the room
+        visible: root.plannerShown && !root.journeyPaneShown
         z: map.z + 3
         anchors {
             left: parent.left
@@ -879,29 +1307,21 @@ Kirigami.Page {
                 ModeButton {
                     icon.source: KPublicTransport.IndividualTransportMode.modeIconName(KPublicTransport.IndividualTransport.Walk)
                     text: i18nc("@action:button navigate on foot", "Walk")
-                    enabled: root.journeyTo !== undefined && root.journeyStartsHere
-                    onClicked: root.startNavigation(root.journeyTo, KPublicTransport.IndividualTransport.Walk)
+                    enabled: root.journeyTo !== undefined && (root.journeyFrom !== undefined || root.hasPosition)
+                    onClicked: root.previewRoute(root.journeyFrom, root.journeyTo, KPublicTransport.IndividualTransport.Walk)
                 }
                 ModeButton {
                     icon.source: KPublicTransport.IndividualTransportMode.modeIconName(KPublicTransport.IndividualTransport.Bike)
                     text: i18nc("@action:button navigate by bike", "Bike")
-                    enabled: root.journeyTo !== undefined && root.journeyStartsHere
-                    onClicked: root.startNavigation(root.journeyTo, KPublicTransport.IndividualTransport.Bike)
+                    enabled: root.journeyTo !== undefined && (root.journeyFrom !== undefined || root.hasPosition)
+                    onClicked: root.previewRoute(root.journeyFrom, root.journeyTo, KPublicTransport.IndividualTransport.Bike)
                 }
                 ModeButton {
                     icon.source: KPublicTransport.IndividualTransportMode.modeIconName(KPublicTransport.IndividualTransport.Car)
                     text: i18nc("@action:button navigate by car", "Car")
-                    enabled: root.journeyTo !== undefined && root.journeyStartsHere
-                    onClicked: root.startNavigation(root.journeyTo, KPublicTransport.IndividualTransport.Car)
+                    enabled: root.journeyTo !== undefined && (root.journeyFrom !== undefined || root.hasPosition)
+                    onClicked: root.previewRoute(root.journeyFrom, root.journeyTo, KPublicTransport.IndividualTransport.Car)
                 }
-            }
-            QQC2.Label {
-                text: i18nc("@info", "Navigation on foot, by bike or by car starts at your location.")
-                visible: root.journeyTo !== undefined && !root.journeyStartsHere
-                wrapMode: Text.Wrap
-                font: Kirigami.Theme.smallFont
-                opacity: 0.7
-                Layout.fillWidth: true
             }
         }
     }
@@ -1143,7 +1563,10 @@ Kirigami.Page {
     }
 
     /** Height of the pane at the bottom, if any. */
-    readonly property real bottomPaneHeight: routePane.visible ? routePane.height : (selectionPane.visible ? selectionPane.height : 0)
+    readonly property real bottomPaneHeight: routePane.visible ? routePane.height
+        : selectionPane.visible ? selectionPane.height
+        : journeyPane.visible ? journeyPane.height
+        : 0
 
     /** Search results are shown in the pane at the bottom. */
     readonly property bool searchResultsShown: root.searchShown && placeSearch.active && root.selection === undefined && root.candidates.length === 0
@@ -1317,7 +1740,7 @@ Kirigami.Page {
                     root.clearSelection();
                 }
                 function onNavigationRequested(mode: int): void {
-                    root.startNavigation(root.selectionLocation(), mode);
+                    root.previewRoute(undefined, root.selectionLocation(), mode);
                 }
                 function onJourneyEndpointRequested(endpoint: string): void {
                     root.setJourneyEndpointToSelection(endpoint);
@@ -1331,6 +1754,47 @@ Kirigami.Page {
                 }
             }
         }
+    }
+
+    // the shown journey, or route preview; a place or stop tapped meanwhile goes first
+    MapJourneyPane {
+        id: journeyPane
+        visible: root.journeyPaneShown && !routePane.visible && !selectionPane.visible
+        z: map.z + 3
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        journey: root.shownJourney
+        travelMode: root.shownJourneyMode
+        loading: root.shownJourneyMode >= 0 && previewModel.loading
+        errorMessage: previewModel.errorMessage
+        destinationName: root.previewTo?.name ?? ""
+        canStart: root.isHere(root.previewFrom)
+        canShowResults: root.journeyResultsPage !== null && root.QQC2.ApplicationWindow.window !== null
+            && root.QQC2.ApplicationWindow.window.pageStack.depth > 0 && root.journeyResultsPageIndex() >= 0
+        currentSection: root.focusedSection
+        maximumListHeight: root.sheetListHeight
+        onHeightChanged: {
+            if (root.focusTarget !== undefined) {
+                focusTimer.restart();
+            }
+        }
+        onCloseRequested: root.closeJourney()
+        onResultsRequested: {
+            const index = root.journeyResultsPageIndex();
+            if (index >= 0) {
+                root.QQC2.ApplicationWindow.window.pageStack.currentIndex = index;
+            }
+        }
+        onSectionRequested: (index) => root.focusJourneySection(index)
+        onTravelModeRequested: (mode) => root.changePreviewMode(mode)
+        onStartRequested: root.startNavigation(root.previewTo, root.shownJourneyMode, root.shownJourney)
+        onWalkToStopRequested: (stop) => root.QQC2.ApplicationWindow.window.pageStack.layers.push(Qt.createComponent("org.kde.itinerary", "WalkingNavigationPage"), {
+            journey: root.shownJourney,
+            destination: stop,
+        })
     }
 
     Components.FloatingButton {

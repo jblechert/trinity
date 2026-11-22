@@ -177,6 +177,7 @@ ecm_add_qml_module(itinerary GENERATE_PLUGIN_SOURCE
         MapCircle.qml
         MapPin.qml
         MapStopoverInfoSheetDrawer.qml
+        MapJourneyPane.qml
         MapPage.qml
         MapPlaceDelegate.qml
         MapPlaceLookup.qml
@@ -458,6 +459,7 @@ set(ITINERARY_ICONS
     internet-services
     zoom-in-symbolic
     zoom-out-symbolic
+    zoom-fit-best
 
     weather-clear
     weather-clear-wind
