@@ -5984,17 +5984,17 @@ msgstr "Zu Fuß zu %1"
 #: fork
 msgctxt "@info"
 msgid "You have a ticket valid in the entire country."
-msgstr "Du hast ein Ticket, das im ganzen Land gilt."
+msgstr "Sie haben ein Ticket, das im ganzen Land gilt."
 
 #: fork
 msgctxt "@info"
 msgid "You have a ticket valid in this area. Mind its zones or area limits."
-msgstr "Du hast ein Ticket, das in diesem Gebiet gilt. Achte auf Tarifzonen und Gebietsgrenzen."
+msgstr "Sie haben ein Ticket, das in diesem Gebiet gilt. Achten Sie auf Tarifzonen und Gebietsgrenzen."
 
 #: fork
 msgctxt "@info"
 msgid "None of your tickets is known to be valid here."
-msgstr "Für keines deiner Tickets ist bekannt, dass es hier gilt."
+msgstr "Für keines Ihrer Tickets ist bekannt, dass es hier gilt."
 
 #: fork
 msgctxt "@title:group"
@@ -6074,7 +6074,7 @@ msgstr "Ganz %1"
 #: fork
 msgctxt "@info walking navigation"
 msgid "You have arrived at %1"
-msgstr "Du bist an %1 angekommen"
+msgstr "Sie sind an %1 angekommen"
 
 #: fork
 msgctxt "@info walking navigation"
@@ -6089,12 +6089,12 @@ msgstr "Gehe zu %1"
 #: fork
 msgctxt "@info:tts walking navigation"
 msgid "You left the route, looking for a new one."
-msgstr "Du hast die Route verlassen, ich suche eine neue."
+msgstr "Sie haben die Route verlassen, es wird eine neue gesucht."
 
 #: fork
 msgctxt "@info:tts walking navigation"
 msgid "You have arrived at %1."
-msgstr "Du bist an %1 angekommen."
+msgstr "Sie sind an %1 angekommen."
 
 #: fork
 msgctxt "@info:tts walking navigation, %1 is a distance, %2 an instruction"
@@ -6114,7 +6114,7 @@ msgstr "Zu Fuß zu %1"
 #: fork
 msgctxt "@info walking navigation"
 msgid "Waiting for your location…"
-msgstr "Warte auf deinen Standort …"
+msgstr "Warten auf Ihren Standort …"
 
 #: fork
 msgctxt "@info walking navigation"
@@ -6279,7 +6279,7 @@ msgstr "Markierte Routen hier"
 #: fork
 msgctxt "@info"
 msgid "No marked routes here. Tap on a route on the map."
-msgstr "Hier gibt es keine markierten Routen. Tippe auf eine Route auf der Karte."
+msgstr "Hier gibt es keine markierten Routen. Tippen Sie auf eine Route auf der Karte."
 
 #: fork
 msgctxt "@info route length, total ascent and descent"
