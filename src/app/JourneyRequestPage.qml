@@ -29,13 +29,14 @@ FormCard.FormCardPage {
     property var departureStop
     property var arrivalStop
 
+    /** The line modes to search for, flights only if enabled, see Settings.includeFlights. */
     property var lineModes: [
         Line.LongDistanceTrain, Line.Train,
         Line.LocalTrain,
         Line.RapidTransit, Line.Metro, Line.Tramway, Line.RailShuttle, Line.Funicular, Line.AerialLift,
         Line.Bus, Line.Coach,
         Line.Ferry, Line.Boat,
-    ]
+    ].concat(Settings.includeFlights ? [Line.Air] : [])
 
     /** Line modes not usable with tickets valid for local public transport only.
      *  Like in JourneyFilterPage, unspecified trains count as long distance trains, as some backends use that for those.
@@ -321,6 +322,25 @@ FormCard.FormCardPage {
 
         FormCard.FormDelegateSeparator {
             below: rentalBikesSwitch
+            above: flightsSwitch
+        }
+
+        FormCard.FormSwitchDelegate {
+            id: flightsSwitch
+
+            text: i18nc("@option:check consider flights in the journey search", "Include flights")
+            description: i18nc("@info", "Flight data is only available in a few regions so far")
+            checked: Settings.includeFlights
+            onToggled: {
+                Settings.includeFlights = flightsSwitch.checked;
+                // also when the line modes were changed in the filter, flights only in addition to other modes
+                const modes = root.lineModes.filter((mode) => mode !== Line.Air);
+                root.lineModes = flightsSwitch.checked && modes.length > 0 ? modes.concat([Line.Air]) : modes;
+            }
+        }
+
+        FormCard.FormDelegateSeparator {
+            below: flightsSwitch
             above: filterButton
         }
 

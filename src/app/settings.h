@@ -22,6 +22,8 @@ class Settings : public QObject
     Q_PROPERTY(bool localTransportOnly READ localTransportOnly WRITE setLocalTransportOnly NOTIFY localTransportOnlyChanged)
     /** Consider rental bikes for getting to and from public transport, or for the entire journey. */
     Q_PROPERTY(bool rentalBikes READ rentalBikes WRITE setRentalBikes NOTIFY rentalBikesChanged)
+    /** Also search for journeys by plane. Off by default, as flight data is only available in a few regions so far. */
+    Q_PROPERTY(bool includeFlights READ includeFlights WRITE setIncludeFlights NOTIFY includeFlightsChanged)
     /** Show journey search results on a time axis rather than as a list. */
     Q_PROPERTY(bool journeyResultsAsTimeline READ journeyResultsAsTimeline WRITE setJourneyResultsAsTimeline NOTIFY journeyResultsAsTimelineChanged)
     Q_PROPERTY(bool weatherForecastEnabled READ weatherForecastEnabled WRITE setWeatherForecastEnabled NOTIFY weatherForecastEnabledChanged)
@@ -91,6 +93,9 @@ public:
     [[nodiscard]] bool rentalBikes() const;
     void setRentalBikes(bool rentalBikes);
 
+    [[nodiscard]] bool includeFlights() const;
+    void setIncludeFlights(bool includeFlights);
+
     [[nodiscard]] bool journeyResultsAsTimeline() const;
     void setJourneyResultsAsTimeline(bool asTimeline);
 
@@ -140,6 +145,7 @@ Q_SIGNALS:
     void startPageChanged(Settings::StartPage startPage);
     void localTransportOnlyChanged(bool localOnly);
     void rentalBikesChanged(bool rentalBikes);
+    void includeFlightsChanged(bool includeFlights);
     void journeyResultsAsTimelineChanged(bool asTimeline);
     void welcomePageShownChanged(bool shown);
     void performCurrencyConversionChanged(bool enabled);
@@ -162,6 +168,7 @@ private:
     StartPage m_startPage = TicketsStartPage;
     bool m_localTransportOnly = false;
     bool m_rentalBikes = false;
+    bool m_includeFlights = false;
     bool m_journeyResultsAsTimeline = true;
     bool m_welcomePageShown = false;
     bool m_currencyConversion = false;
