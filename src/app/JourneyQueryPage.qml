@@ -73,6 +73,21 @@ Kirigami.ScrollablePage {
         root.journeyRequest = req;
     }
 
+    /** Show @p journey on the map, with a way back to these results. */
+    function showOnMap(journey: var): void {
+        const pageStack = root.QQC2.ApplicationWindow.window.pageStack;
+        const map = pagepool.loadPage(Qt.resolvedUrl("MapPage.qml"));
+        map.showJourney(journey, root);
+        pageStack.layers.clear();
+        // the map goes on top of these results, so going back returns to them, also when it was open before
+        // (going back to it would close the pages after it)
+        if (pageStack.columnView.containsItem(map)) {
+            pageStack.removePage(map);
+        }
+        pageStack.currentIndex = pageStack.depth - 1;
+        pageStack.push(map);
+    }
+
     /** Load one more batch of earlier or later journeys, unless a query is still running. */
     function loadMore(earlier: bool): void {
         if (journeyModel.loading) {
@@ -139,6 +154,15 @@ Kirigami.ScrollablePage {
                 modelLength: sectionRepeater.count - 1
             }
             model: detailsLayout.journey.sections
+        }
+
+        FormCard.FormDelegateSeparator {}
+        FormCard.FormButtonDelegate {
+            text: i18nc("@action:button show a journey on the map", "Show on Map")
+            description: i18nc("@info", "All sections of the connection, with walks and stops")
+            icon.name: "map-symbolic"
+            onClicked: root.showOnMap(detailsLayout.journey)
+            Layout.fillWidth: true
         }
 
         /** The first section using public transport, e.g. to walk to its departure stop. */
