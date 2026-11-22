@@ -64,7 +64,7 @@ Rubber, made in Germany. Thank you!
 
 ## Download
 
-**[Download the latest APK](https://github.com/jblechert/trinity/releases/latest/download/itinerary-arm64-v8a.apk)**
+**[Download the latest APK](https://github.com/jblechert/trinity/releases/latest/download/trinity-arm64-v8a.apk)**
 (Android 9 or later, 64-bit ARM), or pick a specific build from the
 [releases page](https://github.com/jblechert/trinity/releases).
 
