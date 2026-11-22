@@ -420,6 +420,8 @@ table {{ border-collapse: collapse; width: 100%; }}
 th, td {{ border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; font-size: 14px; }}
 tr.pass .status {{ color: #1a7f37; font-weight: bold; }}
 tr.fail .status, tr.timeout .status {{ color: #c62828; font-weight: bold; }}
+.table {{ overflow-x: auto; }}
+.shots {{ white-space: nowrap; }}
 .shots img {{ width: 180px; border: 1px solid #aaa; margin-right: 4px; }}
 .error {{ color: #c62828; }}
 @media (prefers-color-scheme: dark) {{ body {{ background: #1e1e1e; color: #ddd; }} a {{ color: #8ab4f8; }} th, td {{ border-color: #444; }} }}
@@ -427,9 +429,9 @@ tr.fail .status, tr.timeout .status {{ color: #c62828; font-weight: bold; }}
 <h1>Journey end-to-end test</h1>
 <p><strong>{passed} of {len(results)} passed</strong> (pass: at least one connection found)</p>
 <ul>{meta_items}</ul>
-<table><tr><th>#</th><th>From</th><th>To</th><th>Distance</th><th>Status</th><th>Journeys</th><th>Best connection</th><th>Search</th><th>Screenshots</th></tr>
+<div class="table"><table><tr><th>#</th><th>From</th><th>To</th><th>Distance</th><th>Status</th><th>Journeys</th><th>Best connection</th><th>Search</th><th>Screenshots</th></tr>
 {''.join(rows)}
-</table></body></html>
+</table></div></body></html>
 """
     with open(os.path.join(out, "index.html"), "w") as f:
         f.write(page)
