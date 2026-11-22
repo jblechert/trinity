@@ -848,8 +848,10 @@ Kirigami.Page {
             }
             return;
         }
-        if (candidates.length === 1 || candidates[0].distance < candidates[1].distance * 0.35) {
-            root.select(candidates[0]);
+        // the list has stops first, see MapPlaceLookup, a place right where the map was tapped is meant though
+        const nearest = candidates.slice().sort((lhs, rhs) => lhs.distance - rhs.distance);
+        if (nearest.length === 1 || nearest[0].distance < nearest[1].distance * 0.35) {
+            root.select(nearest[0]);
             return;
         }
         root.selection = undefined;

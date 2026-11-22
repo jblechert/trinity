@@ -12,7 +12,7 @@ import org.kde.itinerary
 /** Finds what is at a place tapped on the map: points of interest from OpenStreetMap,
  *  and public transport stops.
  *
- *  The result is passed to finished() as a list of candidates, nearest first. Each candidate is an object with
+ *  The result is passed to finished() as a list of candidates, stops first, then nearest first. Each candidate is an object with
  *  - type: "place" or "stop"
  *  - name, typeName, iconSource: for showing it in a list
  *  - latitude, longitude, distance: where it is, and how far from the tapped point in metres
@@ -161,7 +161,9 @@ Item {
         }
 
         let candidates = near.length > 0 ? near : areas;
-        candidates.sort((lhs, rhs) => lhs.distance - rhs.distance);
+        // a stop found is most likely what was tapped, its map symbol is easy to aim at and stands out,
+        // but its coordinate often is farther away than other places next to it
+        candidates.sort((lhs, rhs) => (lhs.type === "stop" ? 0 : 1) - (rhs.type === "stop" ? 0 : 1) || lhs.distance - rhs.distance);
         root.finished(candidates);
     }
 
