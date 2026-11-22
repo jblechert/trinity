@@ -435,6 +435,7 @@ Kirigami.Page {
      */
     function showJourney(journey: var, resultsPage: var): void {
         root.prepareJourneyDisplay();
+        previewModel.running = false;
         previewModel.cancel();
         root.shownJourneyMode = -1;
         root.previewFrom = undefined;
@@ -469,12 +470,15 @@ Kirigami.Page {
         helper.travelMode = mode;
         let request = helper.routeRequest(start.latitude, start.longitude, to);
         request.from = start;
+        // the model still has the routes of a previous request until the new one starts, see onLoadingChanged
+        previewModel.running = false;
         previewModel.request = request;
         // show where the route goes already while it is searched
         root.focusLater("journey");
     }
 
     function closeJourney(): void {
+        previewModel.running = false;
         previewModel.cancel();
         root.journeyPaneShown = false;
         root.shownJourney = undefined;
@@ -523,9 +527,21 @@ Kirigami.Page {
 
     KPublicTransport.JourneyQueryModel {
         id: previewModel
+        /** The current request is being searched, so the results are its own once loading stops.
+         *  A new request cancels the previous one first, which stops loading as well.
+         */
+        property bool running: false
         manager: LiveDataManager.publicTransportManager
         onLoadingChanged: {
-            if (previewModel.loading || !root.journeyPaneShown || root.shownJourneyMode < 0) {
+            if (previewModel.loading) {
+                previewModel.running = true;
+                return;
+            }
+            if (!previewModel.running) {
+                return;
+            }
+            previewModel.running = false;
+            if (!root.journeyPaneShown || root.shownJourneyMode < 0) {
                 return;
             }
             if (previewModel.rowCount() > 0) {
