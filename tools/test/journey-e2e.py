@@ -491,7 +491,8 @@ def main():
     ap.add_argument("--modes", default="transit",
                     help=f"what to test for each pair, comma separated: {', '.join(MODES)} (default: transit)")
     ap.add_argument("--slow", type=float, default=6, help="mark connections taking longer than this many hours (default: 6)")
-    ap.add_argument("--time", default=None, help="departure time, ISO 8601 local time (default: next weekday 09:00)")
+    ap.add_argument("--time", default=None, help="departure time of public transport connections, ISO 8601 local time"
+                    " (default: next weekday 09:00); routes on foot, by bike or by car are previewed for now, as before navigation")
     ap.add_argument("--timeout", type=float, default=180, help="seconds to wait for a search (default: 180)")
     ap.add_argument("--settle", type=float, default=6, help="seconds to let the map load before the screenshot (default: 6)")
     ap.add_argument("--photon", default="https://photon.komoot.io", help="Photon instance for reverse geocoding")
