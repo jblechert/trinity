@@ -177,6 +177,9 @@ ecm_add_qml_module(itinerary GENERATE_PLUGIN_SOURCE
         MapPin.qml
         MapStopoverInfoSheetDrawer.qml
         MapPage.qml
+        MapPlaceDelegate.qml
+        MapPlaceLookup.qml
+        MapPlaceSheet.qml
         MapView.qml
         MatrixRoomSelectionSheet.qml
         MatrixKeyVerificationPage.qml

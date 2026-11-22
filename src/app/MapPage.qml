@@ -19,6 +19,7 @@ import org.kde.itinerary
 /** A map centered on the current location, with optional overlays for marked hiking, cycling and
  *  mountain bike routes, and routes on foot, by bike or by car to any place picked on the map.
  *  Tapping a marked route shows its course and elevation profile, and allows to follow it.
+ *  Without overlay, tapping a shop, restaurant or other point of interest shows its details such as opening hours.
  *  Departure and arrival of a journey can be picked on the map or searched, to search connections between them.
  */
 Kirigami.Page {
@@ -194,6 +195,127 @@ Kirigami.Page {
         });
     }
 
+    /** The place tapped on the map whose details are shown, a candidate as found by MapPlaceLookup. */
+    property var selection
+    /** Several places found at a tapped place, to choose from. */
+    property var candidates: []
+
+    /** Find out what is at @p position on the map: a point of interest such as a shop. */
+    function lookupAt(position: point): void {
+        // points of interest are shown from zoom level 15 on, below that a tap would just hit something random
+        if (map.zoomLevel < 15) {
+            return;
+        }
+        // within a finger's width
+        const coord = map.toCoordinate(position);
+        const radius = coord.distanceTo(map.toCoordinate(Qt.point(position.x + Kirigami.Units.gridUnit * 1.5, position.y)));
+        placeLookup.lookup(coord, Math.max(radius, 10));
+    }
+
+    /** Show what was found at a tapped place: details if there is one obvious match, a list to choose from otherwise. */
+    function showCandidates(candidates: var): void {
+        if (candidates.length === 0) {
+            // tapping on the empty map closes the details
+            root.clearSelection();
+            return;
+        }
+        if (candidates.length === 1 || candidates[0].distance < candidates[1].distance * 0.35) {
+            root.select(candidates[0]);
+            return;
+        }
+        root.selection = undefined;
+        sheetLoader.source = "";
+        root.candidates = candidates.slice(0, 8);
+        root.focusLater(placeLookup.coordinate);
+    }
+
+    function select(candidate: var): void {
+        root.candidates = [];
+        root.selection = candidate;
+        // a new sheet for each selection, so nothing of the previous one is left
+        sheetLoader.source = "";
+        sheetLoader.setSource(Qt.resolvedUrl("MapPlaceSheet.qml"), {
+            place: candidate,
+            maximumListHeight: root.sheetListHeight,
+        });
+        root.focusLater(QtPositioning.coordinate(candidate.latitude, candidate.longitude));
+    }
+
+    function clearSelection(): void {
+        placeLookup.cancel();
+        root.focusTarget = undefined;
+        root.selection = undefined;
+        root.candidates = [];
+        sheetLoader.source = "";
+    }
+
+    /** Height available for lists in the sheet with details of a tapped place. */
+    readonly property real sheetListHeight: Math.max(Kirigami.Units.gridUnit * 4,
+        (root.height - (plannerPane.visible ? plannerPane.height : 0)) * 0.5 - Kirigami.Units.gridUnit * 8)
+
+    /** What to keep in view while the size of the sheet at the bottom changes, e.g. when its content is loaded:
+     *  a coordinate. Until the user moves the map.
+     */
+    property var focusTarget
+
+    function focusLater(what: var): void {
+        root.focusTarget = what;
+        focusTimer.restart();
+    }
+
+    Timer {
+        id: focusTimer
+        interval: 200
+        onTriggered: root.applyFocus()
+    }
+
+    /** Top of the part of the map not hidden by the planner. */
+    readonly property real visibleTop: plannerPane.visible ? plannerPane.height : 0
+    /** Bottom of the part of the map not hidden by the pane at the bottom, and the attribution of the map above it. */
+    readonly property real visibleBottom: root.height - root.bottomPaneHeight - map.attribution.height - Kirigami.Units.largeSpacing
+
+    /** Center the map on @p coord within the part of it that is not hidden. */
+    function centerOn(coord: var): void {
+        root.followPosition = false;
+        map.alignCoordinateToPoint(coord, Qt.point(map.width / 2, (root.visibleTop + root.visibleBottom) / 2));
+    }
+
+    /** Move the map so that what was selected isn't hidden behind the planner at the top or the sheet at the bottom. */
+    function applyFocus(): void {
+        const what = root.focusTarget;
+        if (what === undefined) {
+            return;
+        }
+        const top = root.visibleTop;
+        const bottom = root.visibleBottom;
+        const margin = Kirigami.Units.gridUnit;
+        const pos = map.fromCoordinate(what, false);
+        if (pos.y < top + margin || pos.y > bottom - margin) {
+            root.centerOn(what);
+        }
+    }
+
+    /** The selected place as departure or arrival of a journey, or as navigation destination. */
+    function selectionLocation(): var {
+        return helper.locationAt(root.selection.latitude, root.selection.longitude, root.selection.name);
+    }
+
+    function setJourneyEndpointToSelection(endpoint: string): void {
+        const location = root.selectionLocation();
+        if (endpoint === "from") {
+            root.journeyFrom = location;
+        } else {
+            root.journeyTo = location;
+        }
+        root.plannerShown = true;
+        root.clearSelection();
+    }
+
+    MapPlaceLookup {
+        id: placeLookup
+        onFinished: (candidates) => root.showCandidates(candidates)
+    }
+
     function navigateToPickedPlace(mode: int): void {
         root.startNavigation(helper.locationAt(root.pickedCoordinate.latitude, root.pickedCoordinate.longitude, i18nc("@info a place picked on the map", "Selected place")), mode);
     }
@@ -293,11 +415,15 @@ Kirigami.Page {
         id: map
         anchors.fill: parent
         zoomLevel: 15
-        coveringItems: [plannerPane, routePane]
+        coveringItems: [plannerPane, routePane, selectionPane]
+        // keep the attribution visible above the pane at the bottom, using as little height as possible there
+        attribution.anchors.bottomMargin: root.bottomPaneHeight + Kirigami.Units.largeSpacing
+        attribution.width: Math.min(Kirigami.Units.gridUnit * 22, map.width - Kirigami.Units.largeSpacing * 2)
 
         onUserInteractingChanged: {
             if (map.userInteracting) {
                 root.followPosition = false;
+                root.focusTarget = undefined;
             }
         }
 
@@ -349,6 +475,46 @@ Kirigami.Page {
             z: 6
         }
 
+        // what was found at a tapped place, to choose from
+        QtLocation.MapItemView {
+            model: root.candidates
+            z: 7
+            delegate: MapCircle {
+                id: candidateDelegate
+                required property var modelData
+                coordinate: QtPositioning.coordinate(candidateDelegate.modelData.latitude, candidateDelegate.modelData.longitude)
+                size: 12
+                color: Kirigami.Theme.highlightColor
+                textColor: "#eff0f1"
+                onClicked: root.select(candidateDelegate.modelData)
+            }
+        }
+
+        // the place whose details are shown
+        MapPin {
+            visible: root.selection !== undefined
+            coordinate: root.selection ? QtPositioning.coordinate(root.selection.latitude, root.selection.longitude) : QtPositioning.coordinate()
+            color: "#3daee9"
+            textColor: "#eff0f1"
+            iconName: root.selection?.iconSource ?? ""
+            z: 8
+        }
+
+        // a tapped place, while looking up what is there
+        QtLocation.MapQuickItem {
+            visible: placeLookup.running
+            coordinate: placeLookup.coordinate
+            anchorPoint.x: lookupIndicator.width / 2
+            anchorPoint.y: lookupIndicator.height / 2
+            z: 9
+            sourceItem: QQC2.BusyIndicator {
+                id: lookupIndicator
+                running: placeLookup.running
+                width: Kirigami.Units.iconSizes.medium
+                height: Kirigami.Units.iconSizes.medium
+            }
+        }
+
         // the marked route shown
         QtLocation.MapPolyline {
             visible: markedRoutes.hasRoute
@@ -372,6 +538,7 @@ Kirigami.Page {
             }
             onLongPressed: {
                 singleTapTimer.stop();
+                placeLookup.cancel();
                 root.pickedCoordinate = map.toCoordinate(point.position);
                 routeMenu.popup();
             }
@@ -386,7 +553,11 @@ Kirigami.Page {
     }
 
     function handleTap(position: point): void {
-        if (root.overlay === "" || markedRoutes.hasRoute) {
+        if (root.overlay === "") {
+            root.lookupAt(position);
+            return;
+        }
+        if (markedRoutes.hasRoute) {
             return;
         }
         // routes within a finger's width
@@ -793,6 +964,88 @@ Kirigami.Page {
         }
     }
 
+    /** Height of the pane at the bottom, if any. */
+    readonly property real bottomPaneHeight: routePane.visible ? routePane.height : (selectionPane.visible ? selectionPane.height : 0)
+
+    // details of a place tapped on the map, or a list to choose from if several were found there
+    QQC2.Pane {
+        id: selectionPane
+        visible: root.selection !== undefined || root.candidates.length > 0
+        z: map.z + 3
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        Kirigami.Theme.colorSet: Kirigami.Theme.View
+        Kirigami.Theme.inherit: false
+        // the map can only be moved to show the selection once the size of this is known
+        onHeightChanged: {
+            if (root.focusTarget !== undefined) {
+                focusTimer.restart();
+            }
+        }
+
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+
+            RowLayout {
+                visible: root.selection === undefined
+                Layout.fillWidth: true
+                Kirigami.Heading {
+                    level: 3
+                    text: i18nc("@title places found where the map was tapped", "Places Here")
+                    elide: Text.ElideRight
+                    Layout.fillWidth: true
+                }
+                QQC2.ToolButton {
+                    icon.name: "window-close-symbolic"
+                    text: i18nc("@action:button", "Close")
+                    display: QQC2.AbstractButton.IconOnly
+                    onClicked: root.clearSelection()
+                }
+            }
+            ListView {
+                id: candidateView
+                visible: root.selection === undefined
+                model: root.candidates
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.min(candidateView.contentHeight, root.sheetListHeight)
+                delegate: MapPlaceDelegate {
+                    id: candidateRow
+                    onClicked: root.select(candidateRow.modelData)
+                }
+            }
+
+            Loader {
+                id: sheetLoader
+                visible: root.selection !== undefined
+                Layout.fillWidth: true
+            }
+            Binding {
+                target: sheetLoader.item
+                property: "maximumListHeight"
+                value: root.sheetListHeight
+                when: sheetLoader.item !== null
+            }
+            Connections {
+                target: sheetLoader.item
+                ignoreUnknownSignals: true
+                function onCloseRequested(): void {
+                    root.clearSelection();
+                }
+                function onNavigationRequested(mode: int): void {
+                    root.startNavigation(root.selectionLocation(), mode);
+                }
+                function onJourneyEndpointRequested(endpoint: string): void {
+                    root.setJourneyEndpointToSelection(endpoint);
+                }
+            }
+        }
+    }
+
     Components.FloatingButton {
         icon.name: "mark-location-symbolic"
         text: i18nc("@action:button", "Follow my location")
@@ -806,9 +1059,10 @@ Kirigami.Page {
         }
         anchors {
             right: parent.right
-            bottom: routePane.visible ? routePane.top : parent.bottom
+            bottom: parent.bottom
             margins: Kirigami.Units.largeSpacing
-            bottomMargin: routePane.visible ? Kirigami.Units.largeSpacing : Kirigami.Units.gridUnit * 5
+            // above the attribution of the map
+            bottomMargin: root.bottomPaneHeight + Kirigami.Units.gridUnit * 5
         }
     }
 }
