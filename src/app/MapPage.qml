@@ -442,6 +442,7 @@ Kirigami.Page {
      */
     function showJourney(journey: var, resultsPage: var): void {
         root.prepareJourneyDisplay();
+        root.saveViewport();
         previewModel.running = false;
         previewModel.cancel();
         root.shownJourneyMode = -1;
@@ -465,6 +466,7 @@ Kirigami.Page {
             return;
         }
         root.prepareJourneyDisplay();
+        root.saveViewport();
         root.previewFrom = from;
         root.previewTo = to;
         root.shownJourneyMode = mode;
@@ -487,6 +489,13 @@ Kirigami.Page {
     function closeJourney(): void {
         previewModel.running = false;
         previewModel.cancel();
+        // back to where the planner was, or to the map from before
+        if (root.plannerShown && root.journeyTo) {
+            root.savedViewport = undefined;
+            root.showJourneyEndpoints();
+        } else {
+            root.restoreViewport();
+        }
         root.journeyPaneShown = false;
         root.shownJourney = undefined;
         root.previewFrom = undefined;
@@ -1074,7 +1083,42 @@ Kirigami.Page {
 
     MapPlaceSearch {
         id: placeSearch
-        onFinished: root.focusLater("results")
+        onFinished: {
+            root.saveViewport();
+            root.focusLater("results");
+        }
+        onActiveChanged: {
+            if (!placeSearch.active && !root.journeyPaneShown) {
+                root.restoreViewport();
+            }
+        }
+    }
+
+    /** Where the map was before it was moved to show search results, a journey or a route preview, to go back there
+     *  when they are closed: center, zoomLevel and followPosition.
+     */
+    property var savedViewport
+
+    function saveViewport(): void {
+        if (root.savedViewport === undefined) {
+            // a copy, map.center would be a reference to the property, changing with it
+            const center = QtPositioning.coordinate(map.center.latitude, map.center.longitude);
+            root.savedViewport = { center: center, zoomLevel: map.zoomLevel, followPosition: root.followPosition };
+        }
+    }
+
+    function restoreViewport(): void {
+        const viewport = root.savedViewport;
+        if (viewport === undefined) {
+            return;
+        }
+        root.savedViewport = undefined;
+        if (root.focusTarget === "results" || root.focusTarget === "journey") {
+            root.focusTarget = undefined;
+        }
+        map.zoomLevel = viewport.zoomLevel;
+        map.center = viewport.center;
+        root.followPosition = viewport.followPosition;
     }
     /** Details of the found places loaded so far, by OSM element id, see MapSearchResultDelegate. */
     property var amenityCache: ({})
