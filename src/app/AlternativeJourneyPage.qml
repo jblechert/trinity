@@ -45,7 +45,7 @@ JourneyQueryPage {
             if (rapidTransitModeAction.checked)
                 lineModes.push(Line.RapidTransit, Line.Metro, Line.Tramway, Line.RailShuttle, Line.Funicular, Line.AerialLift);
             if (busModeAction.checked)
-                lineModes.push(Line.Bus, Line.Coach);
+                lineModes.push(Line.Bus, Line.Coach, Line.Shuttle, Line.Taxi);
             if (ferryModeAction.checked)
                 lineModes.push(Line.Ferry, Line.Boat);
             if (aircraftModeAction.checked)

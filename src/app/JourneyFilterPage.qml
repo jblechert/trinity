@@ -19,7 +19,7 @@ FormCard.FormCardPage {
     readonly property var longDistanceModes: [Line.LongDistanceTrain, Line.Train]
     readonly property var localTrainModes: [Line.LocalTrain]
     readonly property var rapidTransitModes: [Line.RapidTransit, Line.Metro, Line.Tramway, Line.RailShuttle, Line.Funicular, Line.AerialLift]
-    readonly property var busModes: [Line.Bus, Line.Coach]
+    readonly property var busModes: [Line.Bus, Line.Coach, Line.Shuttle, Line.Taxi]
     readonly property var ferryModes: [Line.Ferry, Line.Boat]
     readonly property var aircraftModes: [Line.Air]
 

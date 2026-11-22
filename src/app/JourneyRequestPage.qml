@@ -34,7 +34,7 @@ FormCard.FormCardPage {
         Line.LongDistanceTrain, Line.Train,
         Line.LocalTrain,
         Line.RapidTransit, Line.Metro, Line.Tramway, Line.RailShuttle, Line.Funicular, Line.AerialLift,
-        Line.Bus, Line.Coach,
+        Line.Bus, Line.Coach, Line.Shuttle, Line.Taxi,
         Line.Ferry, Line.Boat,
     ].concat(Settings.includeFlights ? [Line.Air] : [])
 
