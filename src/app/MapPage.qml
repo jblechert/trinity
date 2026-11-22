@@ -1438,6 +1438,17 @@ Kirigami.Page {
         }
     }
 
+    /** The name of departure or arrival @p location in the planner, with the town for addresses found by a search,
+     *  as their name is just the street.
+     */
+    function endpointName(location: var): string {
+        const locality = location.locality ?? "";
+        if (location.type !== KPublicTransport.Location.Address || locality === "" || location.name.includes(locality)) {
+            return location.name;
+        }
+        return i18nc("@info a place in the journey planner, %1 is a street address, %2 a town", "%1, %2", location.name, locality);
+    }
+
     // departure and arrival of a journey to search
     QQC2.Pane {
         id: plannerPane
@@ -1494,7 +1505,7 @@ Kirigami.Page {
                     Layout.fillWidth: true
                     EndpointDelegate {
                         label: i18nc("departure train station", "From:")
-                        placeName: root.journeyFrom ? root.journeyFrom.name
+                        placeName: root.journeyFrom ? root.endpointName(root.journeyFrom)
                             : root.hasPosition ? i18nc("@info start of navigation", "Current location")
                             : i18nc("@info:placeholder", "Search, or tap and hold on the map")
                         flagColor: "#27ae60"
@@ -1503,7 +1514,7 @@ Kirigami.Page {
                     Kirigami.Separator { Layout.fillWidth: true }
                     EndpointDelegate {
                         label: i18nc("arrival train station", "To:")
-                        placeName: root.journeyTo ? root.journeyTo.name : i18nc("@info:placeholder", "Search, or tap and hold on the map")
+                        placeName: root.journeyTo ? root.endpointName(root.journeyTo) : i18nc("@info:placeholder", "Search, or tap and hold on the map")
                         flagColor: "#da4453"
                         onClicked: root.searchJourneyEndpoint("to")
                     }
