@@ -50,8 +50,8 @@ if ! "$QT_IOS/bin/qt-cmake" -S "$SRC" -B "$BUILD" -G Ninja \
         -DBUILD_TESTING=OFF \
         -DKF6_HOST_TOOLING="$HOST_PREFIX/lib/cmake" \
         -DBREEZEICONS_DIR="$WORK/breeze-icons" \
-        -DITINERARY_IOS_BUNDLE_IDENTIFIER="${ITINERARY_IOS_BUNDLE_IDENTIFIER:-org.example.itinerary-fork}" \
-        -DITINERARY_IOS_DISPLAY_NAME="${ITINERARY_IOS_DISPLAY_NAME:-Itinerary (unofficial)}" \
+        -DITINERARY_IOS_BUNDLE_IDENTIFIER="${ITINERARY_IOS_BUNDLE_IDENTIFIER:-at.blechert.trinity}" \
+        -DITINERARY_IOS_DISPLAY_NAME="${ITINERARY_IOS_DISPLAY_NAME:-Trinity}" \
         > "$log" 2>&1; then
     echo "!! configuring failed, last lines of $log:"
     tail -n 80 "$log"
