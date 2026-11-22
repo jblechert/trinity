@@ -63,6 +63,10 @@ tickets you set once where they are valid: a country, or within a radius of wher
   to be proposed to KDE).
 - Rental bikes in the journey search, if you like: to and from stations or all the way, shown in the timeline with
   the bike sharing system's name and color, and a button to rent the bike at the right station in its app.
+- On-demand buses (Rufbus, Anrufsammeltaxi) and shuttle buses are part of the journey search. In rural areas they're
+  often the only public transport, and leaving them out found connections hours later or none at all.
+- `geo:` links from other apps show the place on the map, with the same details as a tap: walk, cycle or drive there,
+  or use it as start or destination of a journey.
 - Flights in the journey search, if you like. They're left out by default, as flight data is only available for a few
   regions so far.
 - The journey search remembers the kind of ticket you travel with, e.g. local transport only for the
@@ -100,6 +104,9 @@ It needs Docker and a few gigabytes of disk space.
 tools/android/build-apk.sh arm64 all      # dependencies, application, APK
 tools/android/build-apk.sh arm64 install  # sign with the Android debug key and install via adb
 ```
+
+`tools/test/journey-e2e.py` runs journey searches between random places in the app on a device or emulator and writes
+a report with screenshots, see [docs/testing.md](docs/testing.md).
 
 ## Contributing
 
