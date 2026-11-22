@@ -358,6 +358,7 @@ Kirigami.Page {
         }
         root.plannerShown = true;
         root.clearSelection();
+        root.showJourneyEndpoints();
     }
 
     MapPlaceLookup {
