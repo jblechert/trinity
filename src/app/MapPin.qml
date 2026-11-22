@@ -17,7 +17,8 @@ QtLocation.MapQuickItem {
     signal clicked()
 
     anchorPoint.x: sourceItem.width / 2
-    anchorPoint.y: sourceItem.height
+    // the tip of the pin in the map-symbolic icon, which has some room below it
+    anchorPoint.y: sourceItem.height * 7 / 8
     autoFadeIn: false
 
     sourceItem: Kirigami.Icon {
