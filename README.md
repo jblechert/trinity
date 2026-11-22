@@ -49,6 +49,10 @@ tickets you set once where they are valid: a country, or within a radius of wher
   from your current location is the default, and picked places are named by their address. Then choose how to get
   there: public transport connections between them, walking all the way included where that's all it takes, or
   navigation on foot, by bike or by car.
+- Tap a shop, café or other place on the map to see what OpenStreetMap knows about it: opening hours and whether it's
+  open now, address, phone, website. Walk, cycle or drive there, or use it as start or destination of a journey.
+- Tap a bus stop or station on the map to see the lines departing there with their next departures, and tap a line to
+  see its route on the map with all its stops. Double tap the map to zoom in.
 - Ascent and descent of walks and bike rides, where the routing service provides them (KPublicTransport extension,
   to be proposed to KDE).
 - Rental bikes in the journey search, if you like: to and from stations or all the way, shown in the timeline with
