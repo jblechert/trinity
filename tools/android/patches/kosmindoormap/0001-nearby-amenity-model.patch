@@ -1,0 +1,2733 @@
+diff --git a/autotests/CMakeLists.txt b/autotests/CMakeLists.txt
+index 5f61985d..ec082a90 100644
+--- a/autotests/CMakeLists.txt
++++ b/autotests/CMakeLists.txt
+@@ -7,6 +7,7 @@ ecm_add_test(osmtypetest.cpp LINK_LIBRARIES Qt::Test KOSM)
+ ecm_add_test(o5mparsertest.cpp LINK_LIBRARIES Qt::Test KOSM)
+ ecm_add_test(oscparsertest.cpp LINK_LIBRARIES Qt::Test KOSM)
+ ecm_add_test(localizedtagtest.cpp LINK_LIBRARIES Qt::Test KOSM)
++ecm_add_test(geomathtest.cpp LINK_LIBRARIES Qt::Test KOSM)
+ 
+ add_subdirectory(data/platforms)
+ ecm_add_test(mapviewtest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+@@ -15,6 +16,7 @@ ecm_add_test(mapcssexpressiontest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(mapcssloadertest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(scenegeometrytest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(tilecachetest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
++ecm_add_test(maploadertest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(marblegeometryassemblertest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(mapleveltest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(levelparsertest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+@@ -23,6 +25,7 @@ ecm_add_test(platformfindertest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(platformmodeltest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMap)
+ ecm_add_test(osmelementinfomodeltest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMapQuick)
+ ecm_add_test(amenitymodeltest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMapQuick)
++ecm_add_test(nearbyamenitymodeltest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMapQuick)
+ ecm_add_test(openinghourscachetest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMapQuick KOpeningHours)
+ ecm_add_test(osmconditionalexpressiontest.cpp LINK_LIBRARIES Qt::Test KOSMIndoorMapQuick KOpeningHours)
+ 
+diff --git a/autotests/data/nearbyamenitymodel/nearbyamenitymodeltest.osm b/autotests/data/nearbyamenitymodel/nearbyamenitymodeltest.osm
+new file mode 100644
+index 00000000..4b64249b
+--- /dev/null
++++ b/autotests/data/nearbyamenitymodel/nearbyamenitymodeltest.osm
+@@ -0,0 +1,109 @@
++<?xml version='1.0' encoding='UTF-8'?>
++<!--
++SPDX-FileCopyrightText: none
++SPDX-License-Identifier: CC0-1.0
++-->
++<!-- Search center is at lat 52.5203991 lon 13.3992004, the center of z17 tile 70414/42985 -->
++<osm>
++    <!-- 10 m east -->
++    <node id="1" lat="52.5203991" lon="13.3993482">
++        <tag k="shop" v="bakery"/>
++        <tag k="name" v="Bakery One"/>
++        <tag k="opening_hours" v="Mo-Sa 06:00-18:00"/>
++    </node>
++    <!-- 25 m north -->
++    <node id="2" lat="52.5206239" lon="13.3992004">
++        <tag k="amenity" v="cafe"/>
++        <tag k="name" v="Cafe Two"/>
++        <tag k="cuisine" v="coffee_shop"/>
++    </node>
++    <!-- 5 m south, unnamed -->
++    <node id="3" lat="52.5203541" lon="13.3992004">
++        <tag k="amenity" v="toilets"/>
++    </node>
++    <!-- 40 m west, not in AmenityModel -->
++    <node id="4" lat="52.5203991" lon="13.3986092">
++        <tag k="amenity" v="place_of_worship"/>
++        <tag k="religion" v="christian"/>
++        <tag k="name" v="St. Example"/>
++    </node>
++    <!-- 60 m east, no translated type -->
++    <node id="5" lat="52.5203991" lon="13.4000872">
++        <tag k="craft" v="carpenter"/>
++        <tag k="name" v="Woodworks"/>
++    </node>
++    <!-- 3 m north, never listed -->
++    <node id="6" lat="52.5204261" lon="13.3992004">
++        <tag k="amenity" v="bench"/>
++    </node>
++    <!-- 8 m west, private -->
++    <node id="7" lat="52.5203991" lon="13.3990822">
++        <tag k="amenity" v="cafe"/>
++        <tag k="name" v="Private Lounge"/>
++        <tag k="access" v="private"/>
++    </node>
++    <!-- about 70.7 m north-east -->
++    <node id="8" lat="52.5208488" lon="13.3999394">
++        <tag k="shop" v="supermarket"/>
++        <tag k="name" v="Market Eight"/>
++        <tag k="brand" v="Some Brand"/>
++    </node>
++    <!-- about 28 m south-west, unnamed and no translated type -->
++    <node id="9" lat="52.5202192" lon="13.3989048">
++        <tag k="craft" v="carpenter"/>
++    </node>
++    <!-- 65 m south -->
++    <node id="10" lat="52.5198145" lon="13.3992004">
++        <tag k="historic" v="memorial"/>
++        <tag k="name" v="Old Memorial"/>
++    </node>
++    <!-- 3 m east and west, small memorials at house entrances, too dense to be useful -->
++    <node id="11" lat="52.5203991" lon="13.3992447">
++        <tag k="historic" v="memorial"/>
++        <tag k="memorial" v="stolperstein"/>
++        <tag k="name" v="Erika Mustermann"/>
++    </node>
++    <node id="12" lat="52.5203991" lon="13.3991561">
++        <tag k="historic" v="memorial"/>
++        <tag k="memorial" v="plaque"/>
++        <tag k="name" v="Some Plaque"/>
++    </node>
++    <node id="101" lat="52.5200394" lon="13.3991265"/>
++    <node id="102" lat="52.5200394" lon="13.3992743"/>
++    <node id="103" lat="52.5199494" lon="13.3992743"/>
++    <node id="104" lat="52.5199494" lon="13.3991265"/>
++    <node id="201" lat="52.5202192" lon="13.3980180"/>
++    <node id="202" lat="52.5202192" lon="13.4003828"/>
++    <node id="203" lat="52.5211186" lon="13.4003828"/>
++    <node id="204" lat="52.5211186" lon="13.3980180"/>
++    <!-- shop building centered 45 m south -->
++    <way id="100">
++        <nd ref="101"/>
++        <nd ref="102"/>
++        <nd ref="103"/>
++        <nd ref="104"/>
++        <nd ref="101"/>
++        <tag k="building" v="retail"/>
++        <tag k="shop" v="clothes"/>
++        <tag k="name" v="Fashion Hall"/>
++    </way>
++    <!-- park containing the search center, its center is 30 m north -->
++    <way id="200">
++        <nd ref="201"/>
++        <nd ref="202"/>
++        <nd ref="203"/>
++        <nd ref="204"/>
++        <nd ref="201"/>
++        <tag k="leisure" v="park"/>
++        <tag k="name" v="Central Park"/>
++    </way>
++    <!-- named linear historic feature 15 m north, not a point of interest -->
++    <node id="301" lat="52.5205340" lon="13.3987570"/>
++    <node id="302" lat="52.5205340" lon="13.3996438"/>
++    <way id="300">
++        <nd ref="301"/>
++        <nd ref="302"/>
++        <tag k="historic" v="ancient_road"/>
++        <tag k="name" v="Old Road"/>
++    </way>
++</osm>
+diff --git a/autotests/geomathtest.cpp b/autotests/geomathtest.cpp
+new file mode 100644
+index 00000000..5d78b6e3
+--- /dev/null
++++ b/autotests/geomathtest.cpp
+@@ -0,0 +1,50 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include <osm/datatypes.h>
++#include <osm/geomath.h>
++
++#include <QTest>
++
++class GeoMathTest : public QObject
++{
++    Q_OBJECT
++private Q_SLOTS:
++    void testBoundingBoxForRadius_data()
++    {
++        QTest::addColumn<double>("lat");
++        QTest::addColumn<double>("lon");
++        QTest::addColumn<double>("radius");
++
++        QTest::newRow("equator") << 0.0 << 0.0 << 1000.0;
++        QTest::newRow("berlin") << 52.52 << 13.40 << 1000.0;
++        QTest::newRow("berlin-small") << 52.52 << 13.40 << 30.0;
++        QTest::newRow("southern") << -33.86 << 151.21 << 500.0;
++        QTest::newRow("north") << 69.65 << 18.96 << 2000.0;
++    }
++
++    void testBoundingBoxForRadius()
++    {
++        QFETCH(double, lat);
++        QFETCH(double, lon);
++        QFETCH(double, radius);
++
++        const OSM::Coordinate center(lat, lon);
++        const auto bbox = OSM::boundingBoxForRadius(center, radius);
++        QVERIFY(bbox.isValid());
++        QVERIFY(OSM::contains(bbox, center));
++
++        // the box touches the circle in all four directions
++        const auto tolerance = std::max(radius * 0.005, 0.5);
++        QVERIFY(std::abs(OSM::distance(lat, lon, bbox.max.latF(), lon) - radius) < tolerance);
++        QVERIFY(std::abs(OSM::distance(lat, lon, bbox.min.latF(), lon) - radius) < tolerance);
++        QVERIFY(std::abs(OSM::distance(lat, lon, lat, bbox.max.lonF()) - radius) < tolerance);
++        QVERIFY(std::abs(OSM::distance(lat, lon, lat, bbox.min.lonF()) - radius) < tolerance);
++    }
++};
++
++QTEST_GUILESS_MAIN(GeoMathTest)
++
++#include "geomathtest.moc"
+diff --git a/autotests/maploadertest.cpp b/autotests/maploadertest.cpp
+new file mode 100644
+index 00000000..f9897321
+--- /dev/null
++++ b/autotests/maploadertest.cpp
+@@ -0,0 +1,140 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include <map/loader/maploader_p.h>
++#include <map/loader/tilecache_p.h>
++
++#include <KOSMIndoorMap/MapData>
++#include <KOSMIndoorMap/MapLoader>
++
++#include <osm/abstractwriter.h>
++#include <osm/datatypes.h>
++#include <osm/io.h>
++
++#include <QBuffer>
++#include <QDir>
++#include <QFile>
++#include <QSignalSpy>
++#include <QStandardPaths>
++#include <QTemporaryDir>
++#include <QTest>
++
++using namespace Qt::Literals::StringLiterals;
++using namespace KOSMIndoorMap;
++
++class MapLoaderTest : public QObject
++{
++    Q_OBJECT
++private:
++    QTemporaryDir m_tmpDir;
++
++    // two neighboring z17 tiles, the first one is cached, the second one can only be downloaded
++    const Tile m_cachedTile = Tile(70414, 42985, 17);
++    const Tile m_remoteTile = Tile(70415, 42985, 17);
++
++    /** Writes a tile containing a single node with id @p id at the center of @p tile into @p dir. */
++    [[nodiscard]] static bool writeTile(const QString &dir, const Tile &tile, OSM::Id id)
++    {
++        const auto c = tile.boundingBox().center();
++        const auto xml = u"<osm><node id=\"%1\" lat=\"%2\" lon=\"%3\"><tag k=\"amenity\" v=\"cafe\"/></node></osm>"_s
++            .arg(id).arg(c.latF(), 0, 'f', 7).arg(c.lonF(), 0, 'f', 7).toUtf8();
++        QBuffer buffer;
++        buffer.setData(xml);
++        if (!buffer.open(QIODevice::ReadOnly)) {
++            return false;
++        }
++        OSM::DataSet dataSet;
++        auto reader = OSM::IO::readerForFileName(u"tile.osm", &dataSet);
++        reader->read(&buffer);
++        if (dataSet.nodes.size() != 1) {
++            return false;
++        }
++
++        const auto tileDir = dir + "/17/"_L1 + QString::number(tile.x);
++        QFile f(tileDir + '/'_L1 + QString::number(tile.y) + ".o5m"_L1);
++        if (!QDir().mkpath(tileDir) || !f.open(QFile::WriteOnly)) {
++            return false;
++        }
++        auto writer = OSM::IO::writerForFileName(f.fileName());
++        writer->write(dataSet, &f);
++        return true;
++    }
++
++    /** Box well within @p tile. */
++    [[nodiscard]] static OSM::BoundingBox innerBox(const Tile &tile)
++    {
++        const auto c = tile.boundingBox().center();
++        return OSM::BoundingBox(OSM::Coordinate(c.latF() - 0.0001, c.lonF() - 0.0001), OSM::Coordinate(c.latF() + 0.0001, c.lonF() + 0.0001));
++    }
++
++private Q_SLOTS:
++    void initTestCase()
++    {
++        // make sure we neither touch the user's tile cache nor the network
++        QStandardPaths::setTestModeEnabled(true);
++        QVERIFY(m_tmpDir.isValid());
++        qputenv("KOSMINDOORMAP_CACHE_PATH", QFile::encodeName(m_tmpDir.path() + "/cache/"_L1));
++        qputenv("KOSMINDOORMAP_TILESERVER", QUrl::fromLocalFile(m_tmpDir.path() + "/server/"_L1).toEncoded());
++
++        QVERIFY(writeTile(m_tmpDir.path() + "/cache"_L1, m_cachedTile, 1));
++        QVERIFY(writeTile(m_tmpDir.path() + "/server"_L1, m_remoteTile, 2));
++    }
++
++    void testTilesForBoundingBox()
++    {
++        QCOMPARE(MapLoaderUtil::tilesForBoundingBox(innerBox(m_cachedTile)), QRect(70414, 42985, 1, 1));
++
++        // spanning the two test tiles
++        const auto box = OSM::unite(innerBox(m_cachedTile), innerBox(m_remoteTile));
++        QCOMPARE(MapLoaderUtil::tilesForBoundingBox(box), QRect(70414, 42985, 2, 1));
++
++        // north-south direction, slippy map tile y coordinates grow southwards
++        const auto northernBox = innerBox(Tile(70414, 42984, 17));
++        QCOMPARE(MapLoaderUtil::tilesForBoundingBox(OSM::unite(innerBox(m_cachedTile), northernBox)), QRect(70414, 42984, 1, 2));
++    }
++
++    // a new load started while the previous one still has queued work pending
++    // must not finish multiple times, nor use the data of the previous load
++    void testRestartWithCachedTiles()
++    {
++        MapLoader loader;
++        MapData data;
++        QSignalSpy doneSpy(&loader, &MapLoader::done);
++        connect(&loader, &MapLoader::done, this, [&loader, &data]() {
++            data = loader.takeData();
++        });
++
++        loader.loadForBoundingBox(innerBox(m_cachedTile));
++        loader.loadForBoundingBox(innerBox(m_cachedTile));
++        QVERIFY(doneSpy.wait());
++        QCoreApplication::processEvents();
++        QCOMPARE(doneSpy.size(), 1);
++        QVERIFY(!loader.hasError());
++        QVERIFY(data.dataSet().node(1));
++    }
++
++    void testRestartWithUncachedTiles()
++    {
++        MapLoader loader;
++        MapData data;
++        QSignalSpy doneSpy(&loader, &MapLoader::done);
++        connect(&loader, &MapLoader::done, this, [&loader, &data]() {
++            data = loader.takeData();
++        });
++
++        loader.loadForBoundingBox(innerBox(m_cachedTile));
++        loader.loadForBoundingBox(innerBox(m_remoteTile));
++        QVERIFY(doneSpy.wait());
++        QCoreApplication::processEvents();
++        QCOMPARE(doneSpy.size(), 1);
++        QVERIFY(!loader.hasError());
++        QVERIFY(!data.dataSet().node(1));
++        QVERIFY(data.dataSet().node(2));
++    }
++};
++
++QTEST_GUILESS_MAIN(MapLoaderTest)
++
++#include "maploadertest.moc"
+diff --git a/autotests/nearbyamenitymodeltest.cpp b/autotests/nearbyamenitymodeltest.cpp
+new file mode 100644
+index 00000000..46d50615
+--- /dev/null
++++ b/autotests/nearbyamenitymodeltest.cpp
+@@ -0,0 +1,437 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "../src/map-quick/nearbyamenitymodel.h"
++#include "../src/map-quick/osmelement.h"
++#include "../src/map-quick/osmelementinformationmodel.h"
++
++#include <map/loader/maploader_p.h>
++#include <map/loader/tilecache_p.h>
++
++#include <osm/abstractwriter.h>
++#include <osm/datatypes.h>
++#include <osm/geomath.h>
++#include <osm/io.h>
++
++#include <QAbstractItemModelTester>
++#include <QDir>
++#include <QFile>
++#include <QPointF>
++#include <QScopeGuard>
++#include <QSignalSpy>
++#include <QStandardPaths>
++#include <QTemporaryDir>
++#include <QTest>
++
++using namespace Qt::Literals::StringLiterals;
++using namespace KOSMIndoorMap;
++
++void initLocale()
++{
++    qputenv("LC_ALL", "en_US.utf-8");
++    qputenv("TZ", "UTC");
++
++    Q_INIT_RESOURCE(assets);
++}
++
++Q_CONSTRUCTOR_FUNCTION(initLocale)
++
++// center of the z17 tile containing the test data, see the comment in the test data file
++constexpr inline double CenterLat = 52.5203991;
++constexpr inline double CenterLon = 13.3992004;
++
++class NearbyAmenityModelTest : public QObject
++{
++    Q_OBJECT
++private:
++    QTemporaryDir m_tmpDir;
++
++    [[nodiscard]] static QStringList names(const NearbyAmenityModel &model)
++    {
++        QStringList l;
++        for (int i = 0; i < model.rowCount(); ++i) {
++            const auto idx = model.index(i, 0);
++            auto n = idx.data(NearbyAmenityModel::NameRole).toString();
++            l.push_back(n.isEmpty() ? idx.data(NearbyAmenityModel::TypeNameRole).toString() : n);
++        }
++        return l;
++    }
++
++    /** Writes @p dataSet as raw data tile @p tile into the tile directory structure below @p dir. */
++    [[nodiscard]] static bool writeTile(const QString &dir, const Tile &tile, const OSM::DataSet &dataSet)
++    {
++        const auto tileDir = dir + "/17/"_L1 + QString::number(tile.x);
++        QFile tileFile(tileDir + '/'_L1 + QString::number(tile.y) + ".o5m"_L1);
++        if (!QDir().mkpath(tileDir) || !tileFile.open(QFile::WriteOnly)) {
++            return false;
++        }
++        auto writer = OSM::IO::writerForFileName(tileFile.fileName());
++        if (!writer) {
++            return false;
++        }
++        writer->write(dataSet, &tileFile);
++        return tileFile.size() > 0;
++    }
++
++    /** Use the tiles in @p dir as tile server, until the returned guard goes out of scope. */
++    [[nodiscard]] static auto useTileServer(const QString &dir)
++    {
++        qputenv("KOSMINDOORMAP_TILESERVER", QUrl::fromLocalFile(dir + '/'_L1).toEncoded());
++        return qScopeGuard([]() {
++            qputenv("KOSMINDOORMAP_TILESERVER", QByteArray("file:///nonexistent/kosmindoormap-tileserver/"));
++        });
++    }
++
++    static void search(NearbyAmenityModel &model, double lat, double lon, double radius, const QString &elementId = {})
++    {
++        QSignalSpy finishedSpy(&model, &NearbyAmenityModel::finished);
++        model.setLatitude(lat);
++        model.setLongitude(lon);
++        model.setRadius(radius);
++        model.setElementId(elementId);
++        QVERIFY(finishedSpy.wait());
++        QCOMPARE(finishedSpy.size(), 1);
++        QVERIFY(!model.isLoading());
++    }
++
++private Q_SLOTS:
++    void initTestCase()
++    {
++        // make sure we neither touch the user's tile cache nor the network
++        QStandardPaths::setTestModeEnabled(true);
++        QVERIFY(m_tmpDir.isValid());
++        qputenv("KOSMINDOORMAP_CACHE_PATH", QFile::encodeName(m_tmpDir.path() + "/cache/"_L1));
++        qputenv("KOSMINDOORMAP_TILESERVER", QByteArray("file:///nonexistent/kosmindoormap-tileserver/"));
++
++        // convert the test data into a cached raw data tile
++        const QString osmFile = QStringLiteral(SOURCE_DIR "/data/nearbyamenitymodel/nearbyamenitymodeltest.osm");
++        QFile inFile(osmFile);
++        QVERIFY(inFile.open(QFile::ReadOnly));
++        OSM::DataSet dataSet;
++        auto reader = OSM::IO::readerForFileName(osmFile, &dataSet);
++        QVERIFY(reader);
++        reader->read(&inFile);
++        QVERIFY(!dataSet.nodes.empty());
++
++        const auto tile = Tile::fromCoordinate(CenterLat, CenterLon, 17);
++        QCOMPARE(tile.x, 70414u);
++        QCOMPARE(tile.y, 42985u);
++        QVERIFY(writeTile(m_tmpDir.path() + "/cache"_L1, tile, dataSet));
++
++        // the same data as a not yet cached tile further away, for testing downloads
++        QVERIFY(writeTile(m_tmpDir.path() + "/server"_L1, Tile(tile.x + 10, tile.y, 17), dataSet));
++    }
++
++    void testRadiusAndOrder_data()
++    {
++        QTest::addColumn<double>("radius");
++        QTest::addColumn<QStringList>("expected");
++
++        QTest::newRow("20m") << 20.0 << QStringList({u"Toilets"_s, u"Bakery One"_s, u"Central Park"_s});
++        QTest::newRow("28m") << 28.0 << QStringList({u"Toilets"_s, u"Bakery One"_s, u"Cafe Two"_s, u"Central Park"_s});
++        QTest::newRow("50m") << 50.0 << QStringList({u"Toilets"_s, u"Bakery One"_s, u"Cafe Two"_s, u"Central Park"_s, u"St. Example"_s, u"Fashion Hall"_s});
++        QTest::newRow("85m") << 85.0 << QStringList({u"Toilets"_s, u"Bakery One"_s, u"Cafe Two"_s, u"Central Park"_s, u"St. Example"_s, u"Fashion Hall"_s, u"Woodworks"_s, u"Old Memorial"_s, u"Market Eight"_s});
++    }
++
++    void testRadiusAndOrder()
++    {
++        QFETCH(double, radius);
++        QFETCH(QStringList, expected);
++
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        QCOMPARE(model.radius(), 30.0);
++        QCOMPARE(model.count(), 0);
++
++        QSignalSpy countSpy(&model, &NearbyAmenityModel::countChanged);
++        search(model, CenterLat, CenterLon, radius);
++        QVERIFY(model.errorMessage().isEmpty());
++        QCOMPARE(names(model), expected);
++        QCOMPARE(model.count(), expected.size());
++        QCOMPARE(countSpy.size(), 1);
++
++        double prevDistance = 0.0;
++        for (int i = 0; i < model.rowCount(); ++i) {
++            const auto dist = model.index(i, 0).data(NearbyAmenityModel::DistanceRole).toDouble();
++            QVERIFY(dist >= prevDistance);
++            prevDistance = dist;
++        }
++    }
++
++    void testRoles()
++    {
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        search(model, CenterLat, CenterLon, 85.0);
++        QCOMPARE(model.rowCount(), 9);
++
++        const auto roles = model.roleNames();
++        for (const auto &role : {"name", "typeName", "iconSource", "element", "coordinate", "openingHours", "timeZone", "regionCode",
++                                 "fallbackName", "detailsLabel", "cuisine", "group", "groupName", "level", "distance"}) {
++            QVERIFY2(roles.values().contains(QByteArray(role)), role);
++        }
++
++        // unnamed toilets
++        auto idx = model.index(0, 0);
++        QVERIFY(idx.data(NearbyAmenityModel::NameRole).toString().isEmpty());
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), "Toilets"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::GroupRole).toInt(), NearbyAmenityModel::ToiletGroup);
++        QCOMPARE(qRound(idx.data(NearbyAmenityModel::DistanceRole).toDouble()), 5);
++
++        // bakery
++        idx = model.index(1, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::NameRole).toString(), "Bakery One"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), "Bakery"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::GroupRole).toInt(), NearbyAmenityModel::FoodGroup);
++        QVERIFY(idx.data(NearbyAmenityModel::IconSourceRole).toString().endsWith("/bakery.svg"_L1));
++        QCOMPARE(idx.data(NearbyAmenityModel::OpeningHoursRole).toString(), "Mo-Sa 06:00-18:00"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::TimeZoneRole).toString(), "Europe/Berlin"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::RegionCodeRole).toString(), "DE-BE"_L1);
++        QCOMPARE(qRound(idx.data(NearbyAmenityModel::DistanceRole).toDouble()), 10);
++        const auto coord = idx.data(NearbyAmenityModel::CoordinateRole).toPointF();
++        QCOMPARE(coord.y(), 52.5203991);
++        QCOMPARE(coord.x(), 13.3993482);
++        auto elem = idx.data(NearbyAmenityModel::ElementRole).value<OSMElement>();
++        QVERIFY(!elem.isNull());
++        QCOMPARE(elem.id(), qint64(1));
++        QCOMPARE(elem.name(), "Bakery One"_L1);
++
++        // cafe, details label is the cuisine
++        idx = model.index(2, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::CuisineRole).toString(), "Coffee Shop"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::DetailsLabelRole).toString(), "Coffee Shop"_L1);
++
++        // place of worship, which AmenityModel would not show
++        idx = model.index(4, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::NameRole).toString(), "St. Example"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), "Place of Worship"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::GroupRole).toInt(), NearbyAmenityModel::AmenityGroup);
++        QVERIFY(idx.data(NearbyAmenityModel::IconSourceRole).toString().endsWith("/place_of_worship.svg"_L1));
++
++        // shop mapped as building outline
++        idx = model.index(5, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::NameRole).toString(), "Fashion Hall"_L1);
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), "Clothes"_L1);
++        QCOMPARE(qRound(idx.data(NearbyAmenityModel::DistanceRole).toDouble()), 45);
++        QCOMPARE(idx.data(NearbyAmenityModel::ElementRole).value<OSMElement>().element().type(), OSM::Type::Way);
++
++        // named craft without a translated type
++        idx = model.index(6, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::NameRole).toString(), "Woodworks"_L1);
++        QVERIFY(idx.data(NearbyAmenityModel::TypeNameRole).toString().isEmpty());
++        QCOMPARE(idx.data(NearbyAmenityModel::GroupRole).toInt(), NearbyAmenityModel::ShopGroup);
++        QCOMPARE(idx.data(NearbyAmenityModel::IconSourceRole).toString(), "map-symbolic"_L1);
++
++        // historic element
++        idx = model.index(7, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), "Memorial"_L1);
++        QVERIFY(idx.data(NearbyAmenityModel::IconSourceRole).toString().endsWith("/memorial.svg"_L1));
++
++        // brand as fallback name
++        idx = model.index(8, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::FallbackNameRole).toString(), "Some Brand"_L1);
++
++        // QML convenience accessor
++        const auto row = model.get(1);
++        QCOMPARE(row.value(u"name"_s).toString(), "Bakery One"_L1);
++        QCOMPARE(row.value(u"regionCode"_s).toString(), "DE-BE"_L1);
++        QCOMPARE(row.value(u"element"_s).value<OSMElement>().id(), qint64(1));
++        QVERIFY(model.get(42).isEmpty());
++    }
++
++    void testElementLookup_data()
++    {
++        QTest::addColumn<QString>("elementId");
++        QTest::addColumn<QString>("name");
++        QTest::addColumn<QString>("typeName");
++
++        QTest::newRow("node") << u"n4"_s << u"St. Example"_s << u"Place of Worship"_s;
++        QTest::newRow("way") << u"w100"_s << u"Fashion Hall"_s << u"Clothes"_s;
++        QTest::newRow("upper case") << u"W100"_s << u"Fashion Hall"_s << u"Clothes"_s;
++        QTest::newRow("not an amenity") << u"n6"_s << QString() << u"Bench"_s;
++        QTest::newRow("private") << u"n7"_s << u"Private Lounge"_s << u"Cafe"_s;
++        QTest::newRow("stolperstein") << u"n11"_s << u"Erika Mustermann"_s << u"Memorial"_s;
++        QTest::newRow("unknown") << u"n999"_s << QString() << QString();
++        QTest::newRow("wrong type") << u"r4"_s << QString() << QString();
++        QTest::newRow("invalid") << u"x4"_s << QString() << QString();
++    }
++
++    void testElementLookup()
++    {
++        QFETCH(QString, elementId);
++        QFETCH(QString, name);
++        QFETCH(QString, typeName);
++
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        // a search result coordinate close to the element, the element doesn't need to be within the radius
++        search(model, CenterLat + 0.0001, CenterLon, 20.0, elementId);
++        QVERIFY(model.errorMessage().isEmpty());
++
++        if (name.isEmpty() && typeName.isEmpty()) {
++            QCOMPARE(model.rowCount(), 0);
++            return;
++        }
++
++        QCOMPARE(model.rowCount(), 1);
++        const auto idx = model.index(0, 0);
++        QCOMPARE(idx.data(NearbyAmenityModel::NameRole).toString(), name);
++        QCOMPARE(idx.data(NearbyAmenityModel::TypeNameRole).toString(), typeName);
++        QCOMPARE(idx.data(NearbyAmenityModel::ElementRole).value<OSMElement>().id(), elementId.mid(1).toLongLong());
++        QCOMPARE(idx.data(NearbyAmenityModel::TimeZoneRole).toString(), "Europe/Berlin"_L1);
++        QVERIFY(idx.data(NearbyAmenityModel::DistanceRole).toDouble() > 0.0);
++    }
++
++    void testReuseLoadedData()
++    {
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        search(model, CenterLat, CenterLon, 50.0);
++        QCOMPARE(model.rowCount(), 6);
++
++        // changes within the already loaded area don't need to load anything
++        QSignalSpy loadingSpy(&model, &NearbyAmenityModel::loadingChanged);
++        search(model, CenterLat, CenterLon, 20.0);
++        QCOMPARE(model.rowCount(), 3);
++        search(model, CenterLat, CenterLon, 20.0, u"n10"_s);
++        QCOMPARE(model.rowCount(), 1);
++        QCOMPARE(model.index(0, 0).data(NearbyAmenityModel::NameRole).toString(), "Old Memorial"_L1);
++        QCOMPARE(loadingSpy.size(), 0);
++
++        // an explicit reload works as well
++        QSignalSpy finishedSpy(&model, &NearbyAmenityModel::finished);
++        model.reload();
++        QVERIFY(finishedSpy.size() == 1 || finishedSpy.wait());
++        QCOMPARE(model.rowCount(), 1);
++    }
++
++    void testElementLifetime()
++    {
++        NearbyAmenityModel model;
++        search(model, CenterLat, CenterLon, 20.0);
++        QCOMPARE(model.rowCount(), 3);
++
++        OSMElementInformationModel infoModel;
++        infoModel.setElement(model.index(1, 0).data(NearbyAmenityModel::ElementRole).value<OSMElement>());
++        QCOMPARE(infoModel.name(), "Bakery One"_L1);
++        QVERIFY(infoModel.rowCount() > 0);
++
++        // unsetting the coordinate clears the model and releases its data,
++        // the information model keeps it alive though
++        QSignalSpy countSpy(&model, &NearbyAmenityModel::countChanged);
++        model.setLatitude(NAN);
++        QVERIFY(countSpy.wait());
++        QCOMPARE(model.rowCount(), 0);
++        QCOMPARE(infoModel.name(), "Bakery One"_L1);
++        QCOMPARE(infoModel.element().name(), "Bakery One"_L1);
++    }
++
++    void testLoadingError()
++    {
++        // somewhere we have no cached tiles for, and the tile server doesn't exist
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        QSignalSpy loadingSpy(&model, &NearbyAmenityModel::loadingChanged);
++        search(model, 48.0, 11.0, 20.0);
++        QCOMPARE(loadingSpy.size(), 2);
++        QVERIFY(!model.errorMessage().isEmpty());
++        QCOMPARE(model.rowCount(), 0);
++    }
++
++    // changing the search parameters while a search is in progress
++    void testRestartWhileLoading()
++    {
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        QSignalSpy finishedSpy(&model, &NearbyAmenityModel::finished);
++        model.setLatitude(CenterLat);
++        model.setLongitude(CenterLon);
++        model.setRadius(50.0);
++        model.reload();
++        QVERIFY(model.isLoading());
++        QCOMPARE(model.rowCount(), 0);
++        model.setRadius(20.0);
++        model.reload();
++        QVERIFY(finishedSpy.wait());
++        QCoreApplication::processEvents();
++        QCOMPARE(finishedSpy.size(), 1);
++        QVERIFY(!model.isLoading());
++        QCOMPARE(names(model), QStringList({u"Toilets"_s, u"Bakery One"_s, u"Central Park"_s}));
++
++        // the old content keeps the distances to the location it has been computed for while loading for a new one
++        QCOMPARE(qRound(model.index(1, 0).data(NearbyAmenityModel::DistanceRole).toDouble()), 10);
++        model.setLatitude(48.0);
++        model.reload();
++        QVERIFY(model.isLoading());
++        QCOMPARE(qRound(model.index(1, 0).data(NearbyAmenityModel::DistanceRole).toDouble()), 10);
++        QVERIFY(finishedSpy.wait());
++    }
++
++    void testRestartIntoUncachedTile()
++    {
++        const auto server = useTileServer(m_tmpDir.path() + "/server"_L1);
++        // the center of the tile with the second copy of the test data
++        const auto remoteCenter = Tile(Tile::fromCoordinate(CenterLat, CenterLon, 17).x + 10, 42985, 17).boundingBox().center();
++
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        QSignalSpy finishedSpy(&model, &NearbyAmenityModel::finished);
++        model.setLatitude(CenterLat);
++        model.setLongitude(CenterLon);
++        model.setRadius(20.0);
++        model.reload(); // cached
++        model.setLongitude(remoteCenter.lonF());
++        model.setElementId(u"n4"_s);
++        model.reload(); // needs a download
++        QVERIFY(finishedSpy.wait());
++        QCoreApplication::processEvents();
++        QCOMPARE(finishedSpy.size(), 1);
++        QVERIFY(model.errorMessage().isEmpty());
++        QCOMPARE(model.rowCount(), 1);
++        QCOMPARE(model.index(0, 0).data(NearbyAmenityModel::NameRole).toString(), "St. Example"_L1);
++    }
++
++    void testRadiusCap()
++    {
++        // serve empty tiles for the largest possible search area around the cached tile,
++        // anything beyond that would fail to load
++        const auto center = Tile::fromCoordinate(CenterLat, CenterLon, 17);
++        OSM::DataSet emptyDataSet;
++        for (auto x = center.x - 2; x <= center.x + 2; ++x) {
++            for (auto y = center.y - 2; y <= center.y + 2; ++y) {
++                if (x != center.x || y != center.y) {
++                    QVERIFY(writeTile(m_tmpDir.path() + "/capserver"_L1, Tile(x, y, 17), emptyDataSet));
++                }
++            }
++        }
++        const auto server = useTileServer(m_tmpDir.path() + "/capserver"_L1);
++
++        // the radius used is capped to stay within those tiles
++        const auto maxRadius = NearbyAmenityModel::maximumRadius(CenterLat, CenterLon);
++        const auto tiles = MapLoaderUtil::tilesForBoundingBox(OSM::boundingBoxForRadius(OSM::Coordinate(CenterLat, CenterLon), maxRadius));
++        QVERIFY(tiles.width() <= 5);
++        QVERIFY(tiles.height() <= 5);
++        QVERIFY(QRect(center.x - 2, center.y - 2, 5, 5).contains(tiles));
++
++        NearbyAmenityModel model;
++        QAbstractItemModelTester modelTest(&model);
++        search(model, CenterLat, CenterLon, 5000.0);
++        QCOMPARE(model.radius(), 5000.0);
++        QVERIFY(model.errorMessage().isEmpty());
++        QCOMPARE(model.rowCount(), 9);
++    }
++
++    void testMaximumRadius()
++    {
++        const auto r = NearbyAmenityModel::maximumRadius(CenterLat, CenterLon);
++        QVERIFY(r > 300.0);
++        QVERIFY(r < 400.0);
++        QVERIFY(NearbyAmenityModel::maximumRadius(0.0, 0.0) > 550.0);
++    }
++};
++
++QTEST_GUILESS_MAIN(NearbyAmenityModelTest)
++
++#include "nearbyamenitymodeltest.moc"
+diff --git a/src/map-quick/CMakeLists.txt b/src/map-quick/CMakeLists.txt
+index 90660df8..51043dee 100644
+--- a/src/map-quick/CMakeLists.txt
++++ b/src/map-quick/CMakeLists.txt
+@@ -2,12 +2,14 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
+ add_library(KOSMIndoorMapQuick STATIC
++    abstractamenitymodel.cpp
+     amenitymodel.cpp
+     amenitysortfilterproxymodel.cpp
+     assets.qrc
+     floorlevelchangemodel.cpp
+     localization.cpp
+     mapitem.cpp
++    nearbyamenitymodel.cpp
+     osmaddress.cpp
+     osmelement.cpp
+     osmelementinformationmodel.cpp
+diff --git a/src/map-quick/abstractamenitymodel.cpp b/src/map-quick/abstractamenitymodel.cpp
+new file mode 100644
+index 00000000..2e60ab76
+--- /dev/null
++++ b/src/map-quick/abstractamenitymodel.cpp
+@@ -0,0 +1,262 @@
++/*
++    SPDX-FileCopyrightText: 2023 Volker Krause <vkrause@kde.org>
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "abstractamenitymodel.h"
++#include "localization.h"
++#include "logging.h"
++#include "osmelement.h"
++
++#include <style/mapcssdeclaration_p.h>
++#include <style/mapcssstate_p.h>
++
++#include <KOSMIndoorMap/MapCSSParser>
++
++#include <KCountry>
++#include <KCountrySubdivision>
++#include <KLocalizedString>
++
++#include <QDebug>
++#include <QFile>
++#include <QPointF>
++#include <QTimeZone>
++
++#include <cstring>
++
++using namespace KOSMIndoorMap;
++
++AbstractAmenityModel::AbstractAmenityModel(const QString &styleSheet, QObject *parent)
++    : QAbstractListModel(parent)
++    , m_langs(OSM::Languages::fromQLocale(QLocale()))
++    , m_styleSheet(styleSheet)
++{
++}
++
++AbstractAmenityModel::~AbstractAmenityModel() = default;
++
++bool AbstractAmenityModel::loadStyle()
++{
++    if (!m_style.isEmpty()) {
++        return true;
++    }
++
++    MapCSSParser p;
++    m_style = p.parse(m_styleSheet);
++    if (p.hasError()) {
++        qWarning() << p.errorMessage();
++        return false;
++    }
++    return true;
++}
++
++void AbstractAmenityModel::compileStyle()
++{
++    if (!m_data.isEmpty()) {
++        m_style.compile(m_data.dataSet());
++        m_layerKey = m_data.dataSet().tagKey("layer");
++    } else {
++        m_layerKey = {};
++    }
++}
++
++int AbstractAmenityModel::rowCount(const QModelIndex &parent) const
++{
++    if (parent.isValid()) {
++        return 0;
++    }
++    return (int)m_entries.size();
++}
++
++static QString groupName(AbstractAmenityModel::Group group)
++{
++    switch (group) {
++        case AbstractAmenityModel::UndefinedGroup:
++            return {};
++        case AbstractAmenityModel::FoodGroup:
++            return i18nc("amenity category", "Food & Drinks");
++        case AbstractAmenityModel::ShopGroup:
++            return i18nc("amenity category", "Shops");
++        case AbstractAmenityModel::ToiletGroup:
++            return i18nc("amenity category", "Toilets");
++        case AbstractAmenityModel::HealthcareGroup:
++            return i18nc("amenity category", "Healthcare");
++        case AbstractAmenityModel::AmenityGroup:
++            return i18nc("amenity category", "Amenities");
++        case AbstractAmenityModel::AccommodationGroup:
++            return i18nc("amenity category", "Accommodations");
++    }
++    return {};
++}
++
++QString AbstractAmenityModel::iconSource(const AbstractAmenityModel::Entry &entry)
++{
++    QString s = QLatin1String(":/org.kde.kosmindoormap/assets/icons/") + entry.icon + QLatin1String(".svg");
++    return QFile::exists(s) ? s : QStringLiteral("map-symbolic");
++}
++
++QVariant AbstractAmenityModel::data(const QModelIndex &index, int role) const
++{
++    if (!checkIndex(index)) {
++        return {};
++    }
++
++    return entryData(m_entries[index.row()], role);
++}
++
++QVariant AbstractAmenityModel::entryData(const Entry &entry, int role) const
++{
++    switch (role) {
++        case Qt::DisplayRole:
++            return QString::fromUtf8(entry.element.tagValue(m_langs, "name", "loc_name", "int_name"));
++            // TODO see name transliteration in OSM info model
++        case TypeNameRole:
++            if (entry.typeKey.isEmpty()) {
++                return QString();
++            }
++            return Localization::amenityTypes(entry.element.tagValue(entry.typeKey.constData()), Localization::ReturnEmptyOnUnknownKey);
++        case CoordinateRole:
++        {
++            const auto center = entry.element.center();
++            return QPointF(center.lonF(), center.latF());
++        }
++        case LevelRole:
++            return entry.level;
++        case ElementRole:
++            return QVariant::fromValue(OSMElement(entry.element, m_data));
++        case GroupRole:
++            return entry.group;
++        case GroupNameRole:
++            return groupName(entry.group);
++        case IconSourceRole:
++            return iconSource(entry);
++        case CuisineRole:
++        {
++            auto s = Localization::cuisineTypes(entry.element.tagValue("cuisine"), Localization::ReturnEmptyOnUnknownKey);
++            if (!s.isEmpty()) {
++                return s;
++            }
++            return Localization::amenityTypes(entry.element.tagValue("vending"), Localization::ReturnEmptyOnUnknownKey);
++        }
++        case FallbackNameRole:
++            return QString::fromUtf8(entry.element.tagValue(m_langs, "brand", "operator", "network"));
++        case OpeningHoursRole:
++            return QString::fromUtf8(entry.element.tagValue("opening_hours"));
++        case TimeZoneRole:
++            return QString::fromUtf8(m_data.timeZone().id());
++        case RegionCodeRole:
++            if (m_data.regionCode().size() > 3) {
++                return m_data.regionCode();
++            }
++            if (const auto subdiv = KCountrySubdivision::fromLocation((float)entry.element.center().latF(), (float)entry.element.center().lonF()); subdiv.isValid()) {
++                return subdiv.code();
++            }
++            if (const auto c = KCountry::fromLocation((float)entry.element.center().latF(), (float)entry.element.center().lonF()); c.isValid()) {
++                return c.alpha2();
++            }
++            return m_data.regionCode();
++        case ToiletDetailsRole:
++            return Localization::genderSegregation(entry.element);
++        case DetailsLabelRole:
++            switch (entry.group) {
++                case FoodGroup:
++                    return entryData(entry, CuisineRole);
++                case ToiletGroup:
++                    return entryData(entry, ToiletDetailsRole);
++                default:
++                    break;
++            }
++            break;
++    }
++
++    return {};
++}
++
++QHash<int, QByteArray> AbstractAmenityModel::roleNames() const
++{
++    auto r = QAbstractListModel::roleNames();
++    r.insert(NameRole, "name");
++    r.insert(TypeNameRole, "typeName");
++    r.insert(CoordinateRole, "coordinate");
++    r.insert(LevelRole, "level");
++    r.insert(ElementRole, "element");
++    r.insert(GroupRole, "group");
++    r.insert(GroupNameRole, "groupName");
++    r.insert(IconSourceRole, "iconSource");
++    r.insert(CuisineRole, "cuisine");
++    r.insert(FallbackNameRole, "fallbackName");
++    r.insert(OpeningHoursRole, "openingHours");
++    r.insert(TimeZoneRole, "timeZone");
++    r.insert(RegionCodeRole, "regionCode");
++    r.insert(ToiletDetailsRole, "toiletDetails");
++    r.insert(DetailsLabelRole, "detailsLabel");
++    return r;
++}
++
++struct {
++    const char *groupName;
++    AbstractAmenityModel::Group group;
++} constexpr const group_map[] = {
++    { "accommodation", AbstractAmenityModel::AccommodationGroup },
++    { "amenity", AbstractAmenityModel::AmenityGroup },
++    { "healthcare", AbstractAmenityModel::HealthcareGroup },
++    { "food", AbstractAmenityModel::FoodGroup },
++    { "shop", AbstractAmenityModel::ShopGroup },
++    { "toilets", AbstractAmenityModel::ToiletGroup },
++};
++
++AbstractAmenityModel::Classification AbstractAmenityModel::classify(OSM::Element element, Entry &entry) const
++{
++    MapCSSState filterState;
++    filterState.element = element;
++    m_style.initializeState(filterState);
++    m_style.evaluate(filterState, m_filterResult);
++
++    const auto &res = m_filterResult[{}];
++    if (auto prop = res.declaration(MapCSSProperty::Opacity); !prop || prop->doubleValue() < 1.0) {
++        return Classification::Excluded; // hidden element
++    }
++
++    const auto group = res.resolvedTagValue(m_layerKey, filterState);
++    if (!group) {
++        return Classification::Excluded;
++    }
++    const auto groupIt = std::find_if(std::begin(group_map), std::end(group_map), [&group](const auto &m) { return std::strcmp(m.groupName, (*group).constData()) == 0; });
++    if (groupIt == std::end(group_map)) {
++        return Classification::Excluded; // no group assigned
++    }
++
++    QByteArray typeKey;
++    if (auto prop = res.declaration(MapCSSProperty::FontFamily); prop) {
++        typeKey = prop->keyValue();
++    }
++    if (typeKey.isEmpty()) {
++        return Classification::Excluded;
++    }
++
++    entry.element = element;
++    entry.group = (*groupIt).group;
++    entry.typeKey.clear();
++    entry.icon.clear();
++
++    if (auto prop = res.declaration(MapCSSProperty::IconImage); prop) {
++        entry.icon = prop->stringValue();
++        if (entry.icon.isEmpty()) {
++            entry.icon = QString::fromUtf8(element.tagValue(prop->keyValue().constData()));
++        }
++    }
++
++    const auto types = element.tagValue(typeKey.constData()).split(';');
++    for (const auto &type : types) {
++        if (Localization::hasAmenityTypeTranslation(type.trimmed().constData())) {
++            entry.typeKey = std::move(typeKey);
++            return Classification::Amenity;
++        }
++    }
++
++    qCDebug(Log) << "unknown type: " << types << element.url();
++    return Classification::UnknownType;
++}
++
++#include "moc_abstractamenitymodel.cpp"
+diff --git a/src/map-quick/abstractamenitymodel.h b/src/map-quick/abstractamenitymodel.h
+new file mode 100644
+index 00000000..4f8afa11
+--- /dev/null
++++ b/src/map-quick/abstractamenitymodel.h
+@@ -0,0 +1,124 @@
++/*
++    SPDX-FileCopyrightText: 2023 Volker Krause <vkrause@kde.org>
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#ifndef KOSMINDOORMAP_ABSTRACTAMENITYMODEL_H
++#define KOSMINDOORMAP_ABSTRACTAMENITYMODEL_H
++
++#include <KOSMIndoorMap/MapData>
++#include <KOSMIndoorMap/MapCSSResult>
++#include <KOSMIndoorMap/MapCSSStyle>
++
++#include <KOSM/Element>
++
++#include <QAbstractListModel>
++
++namespace KOSMIndoorMap {
++
++/** Common base class for models listing amenities.
++ *  This contains the classification of OSM elements based on a MapCSS style sheet
++ *  as well as the data access for the roles shared by all amenity models.
++ *  @since 27.04
++ */
++class AbstractAmenityModel : public QAbstractListModel
++{
++    Q_OBJECT
++public:
++    ~AbstractAmenityModel();
++
++    enum Role {
++        NameRole = Qt::DisplayRole,
++        CoordinateRole = Qt::UserRole,
++        LevelRole,
++        ElementRole,
++        TypeNameRole,
++        GroupRole,
++        GroupNameRole,
++        IconSourceRole,
++        CuisineRole, ///< details on entries in the FoodGroup
++        FallbackNameRole, ///< Brand/operator/network name, better than nothing but not the first choice to display
++        OpeningHoursRole, ///< opening hours expression
++        TimeZoneRole, ///< IANA timezone id this amenity is in (relevant for opening hours interpretation)
++        RegionCodeRole, ///< ISO 3166-1/2 code of the region this amenity is in (relevant for opening hours interpretation)
++        ToiletDetailsRole, ///< details information for the ToiletGroup
++        DetailsLabelRole, ///< section-dependent details label (e.g. CuisineRole or ToiletDetailsRole)
++        // new common roles go above this, sub-classes start their own roles here
++        FirstCustomRole = Qt::UserRole + 100, ///< first role id available for roles specific to a sub-class
++    };
++    Q_ENUM(Role)
++
++    enum Group {
++        UndefinedGroup,
++        FoodGroup,
++        ShopGroup,
++        ToiletGroup,
++        AmenityGroup,
++        HealthcareGroup,
++        AccommodationGroup,
++    };
++    Q_ENUM(Group)
++
++    [[nodiscard]] int rowCount(const QModelIndex &parent = {}) const override;
++    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
++    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
++
++protected:
++    /** @param styleSheet MapCSS style sheet used for selecting and classifying elements.
++     *  - opacity is used to include/exclude elements
++     *  - grouping is done via setting the layer tag to: food, shop, toilets, amenity, healthcare, accommodation
++     *  - icon-image is used for the icon
++     *  - font-family is the key of the tag containing the type
++     */
++    explicit AbstractAmenityModel(const QString &styleSheet, QObject *parent = nullptr);
++
++    struct Entry {
++        OSM::Element element;
++        int level = 0;
++        Group group = UndefinedGroup;
++        QByteArray typeKey;
++        QString icon;
++    };
++
++    /** Result of classify(). */
++    enum class Classification {
++        Excluded, ///< element is not an amenity according to the style sheet
++        Amenity, ///< element is an amenity of a type we can display
++        UnknownType, ///< element is selected by the style sheet, but its type is unknown to us
++    };
++
++    /** Loads the style sheet, if that hasn't happened yet.
++     *  @returns @c false if the style sheet could not be loaded.
++     */
++    bool loadStyle();
++    /** Prepares the style sheet for use with the data set of m_data.
++     *  Call this whenever m_data changes.
++     */
++    void compileStyle();
++
++    /** Classify @p element according to the style sheet.
++     *  In case of Classification::Amenity @p entry is filled with everything but the level,
++     *  in case of Classification::UnknownType everything but level and type key is set.
++     */
++    [[nodiscard]] Classification classify(OSM::Element element, Entry &entry) const;
++
++    /** Data for the roles of an amenity entry. */
++    [[nodiscard]] QVariant entryData(const Entry &entry, int role) const;
++
++    MapData m_data;
++    std::vector<Entry> m_entries;
++    OSM::Languages m_langs;
++
++private:
++    [[nodiscard]] static QString iconSource(const Entry &entry);
++
++    QString m_styleSheet;
++    MapCSSStyle m_style;
++    OSM::TagKey m_layerKey;
++    mutable MapCSSResult m_filterResult;
++};
++
++}
++
++#endif // KOSMINDOORMAP_ABSTRACTAMENITYMODEL_H
+diff --git a/src/map-quick/amenitymodel.cpp b/src/map-quick/amenitymodel.cpp
+index b6c19a22..305c2fa1 100644
+--- a/src/map-quick/amenitymodel.cpp
++++ b/src/map-quick/amenitymodel.cpp
+@@ -4,32 +4,12 @@
+ */
+ 
+ #include "amenitymodel.h"
+-#include "localization.h"
+ #include "logging.h"
+-#include "osmelement.h"
+-
+-#include <style/mapcssdeclaration_p.h>
+-#include <style/mapcssstate_p.h>
+-
+-#include <KOSMIndoorMap/MapCSSParser>
+-#include <KOSMIndoorMap/MapCSSResult>
+-
+-#include <KCountry>
+-#include <KCountrySubdivision>
+-#include <KLocalizedString>
+-
+-#include <QDebug>
+-#include <QFile>
+-#include <QPointF>
+-#include <QTimeZone>
+-
+-#include <limits>
+ 
+ using namespace KOSMIndoorMap;
+ 
+ AmenityModel::AmenityModel(QObject *parent)
+-    : QAbstractListModel(parent)
+-    , m_langs(OSM::Languages::fromQLocale(QLocale()))
++    : AbstractAmenityModel(QStringLiteral(":/org.kde.kosmindoormap/assets/quick/amenity-model.mapcss"), parent)
+ {
+ }
+ 
+@@ -46,21 +26,14 @@ void AmenityModel::setMapData(const MapData &data)
+         return;
+     }
+ 
+-    if (m_style.isEmpty()) {
+-        MapCSSParser p;
+-        m_style = p.parse(QStringLiteral(":/org.kde.kosmindoormap/assets/quick/amenity-model.mapcss"));
+-        if (p.hasError()) {
+-            qWarning() << p.errorMessage();
+-            return;
+-        }
++    if (!loadStyle()) {
++        return;
+     }
+ 
+     beginResetModel();
+     m_entries.clear();
+     m_data = data;
+-    if (!m_data.isEmpty()) {
+-        m_style.compile(m_data.dataSet());
+-    }
++    compileStyle();
+     endResetModel();
+     Q_EMIT mapDataChanged();
+ }
+@@ -80,197 +53,19 @@ int AmenityModel::rowCount(const QModelIndex &parent) const
+     return (int)m_entries.size();
+ }
+ 
+-static QString groupName(AmenityModel::Group group)
+-{
+-    switch (group) {
+-        case AmenityModel::UndefinedGroup:
+-            return {};
+-        case AmenityModel::FoodGroup:
+-            return i18nc("amenity category", "Food & Drinks");
+-        case AmenityModel::ShopGroup:
+-            return i18nc("amenity category", "Shops");
+-        case AmenityModel::ToiletGroup:
+-            return i18nc("amenity category", "Toilets");
+-        case AmenityModel::HealthcareGroup:
+-            return i18nc("amenity category", "Healthcare");
+-        case AmenityModel::AmenityGroup:
+-            return i18nc("amenity category", "Amenities");
+-        case AmenityModel::AccommodationGroup:
+-            return i18nc("amenity category", "Accommodations");
+-    }
+-    return {};
+-}
+-
+-QString AmenityModel::iconSource(const AmenityModel::Entry &entry)
+-{
+-    QString s = QLatin1String(":/org.kde.kosmindoormap/assets/icons/") + entry.icon + QLatin1String(".svg");
+-    return QFile::exists(s) ? s : QStringLiteral("map-symbolic");
+-}
+-
+-QVariant AmenityModel::data(const QModelIndex &index, int role) const
+-{
+-    if (!checkIndex(index)) {
+-        return {};
+-    }
+-
+-    const auto &entry = m_entries[index.row()];
+-    switch (role) {
+-        case Qt::DisplayRole:
+-            return QString::fromUtf8(entry.element.tagValue(m_langs, "name", "loc_name", "int_name"));
+-            // TODO see name transliteration in OSM info model
+-        case TypeNameRole:
+-            return Localization::amenityTypes(entry.element.tagValue(entry.typeKey.constData()), Localization::ReturnEmptyOnUnknownKey);
+-        case CoordinateRole:
+-        {
+-            const auto center = entry.element.center();
+-            return QPointF(center.lonF(), center.latF());
+-        }
+-        case LevelRole:
+-            return entry.level;
+-        case ElementRole:
+-            return QVariant::fromValue(OSMElement(entry.element));
+-        case GroupRole:
+-            return entry.group;
+-        case GroupNameRole:
+-            return groupName(entry.group);
+-        case IconSourceRole:
+-            return iconSource(entry);
+-        case CuisineRole:
+-        {
+-            auto s = Localization::cuisineTypes(entry.element.tagValue("cuisine"), Localization::ReturnEmptyOnUnknownKey);
+-            if (!s.isEmpty()) {
+-                return s;
+-            }
+-            return Localization::amenityTypes(entry.element.tagValue("vending"), Localization::ReturnEmptyOnUnknownKey);
+-        }
+-        case FallbackNameRole:
+-            return QString::fromUtf8(entry.element.tagValue(m_langs, "brand", "operator", "network"));
+-        case OpeningHoursRole:
+-            return QString::fromUtf8(entry.element.tagValue("opening_hours"));
+-        case TimeZoneRole:
+-            return QString::fromUtf8(m_data.timeZone().id());
+-        case RegionCodeRole:
+-            if (m_data.regionCode().size() > 3) {
+-                return m_data.regionCode();
+-            }
+-            if (const auto subdiv = KCountrySubdivision::fromLocation((float)entry.element.center().latF(), (float)entry.element.center().lonF()); subdiv.isValid()) {
+-                return subdiv.code();
+-            }
+-            if (const auto c = KCountry::fromLocation((float)entry.element.center().latF(), (float)entry.element.center().lonF()); c.isValid()) {
+-                return c.alpha2();
+-            }
+-            return m_data.regionCode();
+-        case ToiletDetailsRole:
+-            return Localization::genderSegregation(entry.element);
+-        case DetailsLabelRole:
+-            switch (entry.group) {
+-                case FoodGroup:
+-                    return data(index, CuisineRole);
+-                case ToiletGroup:
+-                    return data(index, ToiletDetailsRole);
+-                default:
+-                    break;
+-            }
+-            break;
+-    }
+-
+-    return {};
+-}
+-
+-QHash<int, QByteArray> AmenityModel::roleNames() const
+-{
+-    auto r = QAbstractListModel::roleNames();
+-    r.insert(NameRole, "name");
+-    r.insert(TypeNameRole, "typeName");
+-    r.insert(CoordinateRole, "coordinate");
+-    r.insert(LevelRole, "level");
+-    r.insert(ElementRole, "element");
+-    r.insert(GroupRole, "group");
+-    r.insert(GroupNameRole, "groupName");
+-    r.insert(IconSourceRole, "iconSource");
+-    r.insert(CuisineRole, "cuisine");
+-    r.insert(FallbackNameRole, "fallbackName");
+-    r.insert(OpeningHoursRole, "openingHours");
+-    r.insert(TimeZoneRole, "timeZone");
+-    r.insert(RegionCodeRole, "regionCode");
+-    r.insert(ToiletDetailsRole, "toiletDetails");
+-    r.insert(DetailsLabelRole, "detailsLabel");
+-    return r;
+-}
+-
+-struct {
+-    const char *groupName;
+-    AmenityModel::Group group;
+-} constexpr const group_map[] = {
+-    { "accommodation", AmenityModel::AccommodationGroup },
+-    { "amenity", AmenityModel::AmenityGroup },
+-    { "healthcare", AmenityModel::HealthcareGroup },
+-    { "food", AmenityModel::FoodGroup },
+-    { "shop", AmenityModel::ShopGroup },
+-    { "toilets", AmenityModel::ToiletGroup },
+-};
+-
+ void AmenityModel::populateModel()
+ {
+-    const auto layerKey = m_data.dataSet().tagKey("layer");
+-
+-    MapCSSResult filterResult;
+     for (auto it = m_data.levelMap().begin(); it != m_data.levelMap().end(); ++it) {
+         for (const auto &e : (*it).second) {
+             if (!OSM::contains(m_data.boundingBox(), e.center())) {
+                 continue;
+             }
+ 
+-            MapCSSState filterState;
+-            filterState.element = e;
+-            m_style.initializeState(filterState);
+-            m_style.evaluate(filterState, filterResult);
+-
+-            const auto &res = filterResult[{}];
+-            if (auto prop = res.declaration(MapCSSProperty::Opacity); !prop || prop->doubleValue() < 1.0) {
+-                continue; // hidden element
+-            }
+-
+-            const auto group = res.resolvedTagValue(layerKey, filterState);
+-            if (!group) {
+-                continue;
+-            }
+-            const auto groupIt = std::find_if(std::begin(group_map), std::end(group_map), [&group](const auto &m) { return std::strcmp(m.groupName, (*group).constData()) == 0; });
+-            if (groupIt == std::end(group_map)) {
+-                continue; // no group assigned
+-            }
+-
+             Entry entry;
+-            entry.element = e;
+-            entry.group = (*groupIt).group;
+-
+-            QByteArray typeKey;
+-            if (auto prop = res.declaration(MapCSSProperty::FontFamily); prop) {
+-                typeKey = prop->keyValue();
+-            }
+-            if (typeKey.isEmpty()) {
++            if (classify(e, entry) != Classification::Amenity) {
+                 continue;
+             }
+ 
+-            const auto types = e.tagValue(typeKey.constData()).split(';');
+-            for (const auto &type : types) {
+-                if (Localization::hasAmenityTypeTranslation(type.trimmed().constData())) {
+-                    entry.typeKey = std::move(typeKey);
+-                    break;
+-                }
+-            }
+-            if (entry.typeKey.isEmpty()) {
+-                qCDebug(Log) << "unknown type: " << types << e.url();
+-                continue;
+-            }
+-
+-            if (auto prop = res.declaration(MapCSSProperty::IconImage); prop) {
+-                entry.icon = prop->stringValue();
+-                if (entry.icon.isEmpty()) {
+-                    entry.icon = QString::fromUtf8(e.tagValue(prop->keyValue().constData()));
+-                }
+-            }
+-
+             entry.level = (*it).first.numericLevel(); // TODO we only need one entry, not one per level!
+             m_entries.push_back(std::move(entry));
+         }
+diff --git a/src/map-quick/amenitymodel.h b/src/map-quick/amenitymodel.h
+index f879574b..15e7de20 100644
+--- a/src/map-quick/amenitymodel.h
++++ b/src/map-quick/amenitymodel.h
+@@ -6,17 +6,12 @@
+ #ifndef KOSMINDOORMAP_AMENITYMODEL_H
+ #define KOSMINDOORMAP_AMENITYMODEL_H
+ 
+-#include <KOSMIndoorMap/MapData>
+-#include <KOSMIndoorMap/MapCSSStyle>
+-
+-#include <KOSM/Element>
+-
+-#include <QAbstractListModel>
++#include "abstractamenitymodel.h"
+ 
+ namespace KOSMIndoorMap {
+ 
+ /** List all amenities in a given data set. */
+-class AmenityModel : public QAbstractListModel
++class AmenityModel : public AbstractAmenityModel
+ {
+     Q_OBJECT
+     Q_PROPERTY(KOSMIndoorMap::MapData mapData READ mapData WRITE setMapData NOTIFY mapDataChanged)
+@@ -27,59 +22,13 @@ public:
+     [[nodiscard]] MapData mapData() const;
+     void setMapData(const MapData &data);
+ 
+-    enum Role {
+-        NameRole = Qt::DisplayRole,
+-        CoordinateRole = Qt::UserRole,
+-        LevelRole,
+-        ElementRole,
+-        TypeNameRole,
+-        GroupRole,
+-        GroupNameRole,
+-        IconSourceRole,
+-        CuisineRole, ///< details on entries in the FoodGroup
+-        FallbackNameRole, ///< Brand/operator/network name, better than nothing but not the first choice to display
+-        OpeningHoursRole, ///< opening hours expression
+-        TimeZoneRole, ///< IANA timezone id this amenity is in (relevant for opening hours interpretation)
+-        RegionCodeRole, ///< ISO 3166-1/2 code of the region this amenity is in (relevant for opening hours interpretation)
+-        ToiletDetailsRole, ///< details information for the ToiletGroup
+-        DetailsLabelRole, ///< section-dependent details label (e.g. CuisineRole or ToiletDetailsRole)
+-    };
+-    Q_ENUM(Role)
+-
+-    enum Group {
+-        UndefinedGroup,
+-        FoodGroup,
+-        ShopGroup,
+-        ToiletGroup,
+-        AmenityGroup,
+-        HealthcareGroup,
+-        AccommodationGroup,
+-    };
+-    Q_ENUM(Group)
+-
+     [[nodiscard]] int rowCount(const QModelIndex &parent = {}) const override;
+-    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
+-    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
+ 
+ Q_SIGNALS:
+     void mapDataChanged();
+ 
+ private:
+-    struct Entry {
+-        OSM::Element element;
+-        int level;
+-        Group group = UndefinedGroup;
+-        QByteArray typeKey;
+-        QString icon;
+-    };
+-
+     void populateModel();
+-    static QString iconSource(const Entry &entry);
+-
+-    MapData m_data;
+-    MapCSSStyle m_style;
+-    std::vector<Entry> m_entries;
+-    OSM::Languages m_langs;
+ };
+ 
+ }
+diff --git a/src/map-quick/assets.qrc b/src/map-quick/assets.qrc
+index bbf7d5f8..a198b717 100644
+--- a/src/map-quick/assets.qrc
++++ b/src/map-quick/assets.qrc
+@@ -5,6 +5,7 @@
+ <RCC>
+     <qresource prefix="/org.kde.kosmindoormap/assets/quick/">
+         <file>amenity-model.mapcss</file>
++        <file>nearby-amenity-model.mapcss</file>
+         <file>room-model.mapcss</file>
+     </qresource>
+ </RCC>
+diff --git a/src/map-quick/floorlevelchangemodel.cpp b/src/map-quick/floorlevelchangemodel.cpp
+index b80df4e5..6ed143b1 100644
+--- a/src/map-quick/floorlevelchangemodel.cpp
++++ b/src/map-quick/floorlevelchangemodel.cpp
+@@ -98,6 +98,7 @@ void FloorLevelChangeModel::setFloorLevelModel(FloorLevelModel *floorLevelModel)
+     connect(m_floorLevelModel, &FloorLevelModel::modelAboutToBeReset, this, [this]() {
+         beginResetModel();
+         m_element = {};
++        m_elementData = MapData();
+         m_levels.clear();
+         endResetModel();
+     });
+@@ -106,7 +107,7 @@ void FloorLevelChangeModel::setFloorLevelModel(FloorLevelModel *floorLevelModel)
+ 
+ OSMElement FloorLevelChangeModel::element() const
+ {
+-    return OSMElement(m_element);
++    return OSMElement(m_element, m_elementData);
+ }
+ 
+ void FloorLevelChangeModel::setElement(const OSMElement &element)
+@@ -117,6 +118,7 @@ void FloorLevelChangeModel::setElement(const OSMElement &element)
+ 
+     beginResetModel();
+     m_element = element.element();
++    m_elementData = element.mapData();
+     m_levels.clear();
+ 
+     if (isLevelChangeElement(m_element)) {
+diff --git a/src/map-quick/floorlevelchangemodel.h b/src/map-quick/floorlevelchangemodel.h
+index 45e73f3e..fb2d3dcf 100644
+--- a/src/map-quick/floorlevelchangemodel.h
++++ b/src/map-quick/floorlevelchangemodel.h
+@@ -89,6 +89,7 @@ private:
+     int m_currentFloorLevel = 0;
+     FloorLevelModel *m_floorLevelModel = nullptr;
+     OSM::Element m_element;
++    MapData m_elementData;
+     std::vector<MapLevel> m_levels;
+ };
+ 
+diff --git a/src/map-quick/mapitem.cpp b/src/map-quick/mapitem.cpp
+index 22ac61df..5a9ad336 100644
+--- a/src/map-quick/mapitem.cpp
++++ b/src/map-quick/mapitem.cpp
+@@ -151,7 +151,7 @@ OSMElement MapItem::elementAt(double x, double y) const
+         for (auto it = item->element.tagsBegin(); it != item->element.tagsEnd(); ++it) {
+             qDebug() << "    " << (*it).key.name() << (*it).value;
+         }
+-        return OSMElement(item->element);
++        return OSMElement(item->element, m_data);
+     }
+     return {};
+ }
+@@ -272,7 +272,7 @@ void MapItem::setTimeZoneId(const QString &tz)
+ 
+ OSMElement MapItem::hoveredElement() const
+ {
+-    return OSMElement(m_controller.hoveredElement());
++    return OSMElement(m_controller.hoveredElement(), m_data);
+ }
+ 
+ void MapItem::setHoveredElement(const OSMElement &element)
+diff --git a/src/map-quick/nearby-amenity-model.mapcss b/src/map-quick/nearby-amenity-model.mapcss
+new file mode 100644
+index 00000000..721025b6
+--- /dev/null
++++ b/src/map-quick/nearby-amenity-model.mapcss
+@@ -0,0 +1,74 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++/* Nearby amenity model content selection and classification
++ * This uses the same rules as the amenity model, see there for details.
++ * On top of that, this adds named elements that aren't useful in a list of
++ * amenities of a station or airport, but that a user might look for or tap
++ * on in an outdoor map.
++ */
++
++/* Rules before the import have lower precedence than the amenity model rules,
++ * ie. they only apply when there is no more specific classification already.
++ */
++*[historic=building][name],
++*[historic=church][name],
++*[historic=city_gate][name],
++*[historic=fort][name],
++*[historic=manor][name],
++*[historic=memorial][name],
++*[historic=monastery][name],
++*[historic=palace][name],
++*[historic=ruins][name],
++*[historic=tomb][name],
++*[historic=tower][name],
++*[historic=wayside_cross][name],
++*[historic=wayside_shrine][name]
++{
++    opacity: 1;
++    icon-image: historic;
++    font-family: historic;
++    set layer = "amenity";
++}
++
++*[craft][craft!=yes][name]
++{
++    opacity: 1;
++    icon-image: craft;
++    font-family: craft;
++    set layer = "shop";
++}
++
++/* Small memorials such as Stolpersteine or plaques are very dense in some cities, usually right at
++ * house entrances, so they would often hide the shop or cafe a user tapped on.
++ */
++*[historic=memorial][memorial=stolperstein],
++*[historic=memorial][memorial=plaque],
++*[historic=memorial][memorial=blue_plaque]
++{
++    opacity: 0;
++}
++
++@import url("amenity-model.mapcss");
++
++/* Rules after the import override the amenity model rules. */
++*[amenity=college][name],
++*[amenity=fountain][name],
++*[amenity=kindergarten][name],
++*[amenity=parking][name],
++*[amenity=place_of_worship][name],
++*[amenity=school][name],
++*[leisure=garden][name],
++*[tourism=artwork][name]
++{
++    opacity: 1;
++}
++
++/* repeated from the amenity model, as this has to take precedence over the above */
++*[access=no],
++*[access=private]
++{
++    opacity: 0;
++}
+diff --git a/src/map-quick/nearbyamenitymodel.cpp b/src/map-quick/nearbyamenitymodel.cpp
+new file mode 100644
+index 00000000..717a42f5
+--- /dev/null
++++ b/src/map-quick/nearbyamenitymodel.cpp
+@@ -0,0 +1,451 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "nearbyamenitymodel.h"
++#include "localization.h"
++#include "logging.h"
++
++#include <loader/maploader_p.h>
++#include <loader/tilecache_p.h>
++
++#include <KOSMIndoorMap/MapData>
++
++#include <osm/geomath.h>
++
++#include <KTimeZone>
++
++#include <QRegularExpression>
++#include <QTimeZone>
++
++#include <algorithm>
++#include <optional>
++
++using namespace Qt::Literals::StringLiterals;
++using namespace KOSMIndoorMap;
++
++enum {
++    MaximumTileSpan = 5, // maximum number of tiles to load in each direction
++};
++
++NearbyAmenityModel::NearbyAmenityModel(QObject *parent)
++    : AbstractAmenityModel(u":/org.kde.kosmindoormap/assets/quick/nearby-amenity-model.mapcss"_s, parent)
++{
++    connect(&m_loader, &MapLoader::done, this, &NearbyAmenityModel::loadingDone);
++
++    // coalesce changes to multiple search parameters
++    m_reloadTimer.setSingleShot(true);
++    m_reloadTimer.setInterval(0);
++    connect(&m_reloadTimer, &QTimer::timeout, this, &NearbyAmenityModel::reload);
++}
++
++NearbyAmenityModel::~NearbyAmenityModel() = default;
++
++double NearbyAmenityModel::latitude() const
++{
++    return m_lat;
++}
++
++void NearbyAmenityModel::setLatitude(double lat)
++{
++    if (m_lat == lat || (std::isnan(m_lat) && std::isnan(lat))) {
++        return;
++    }
++    m_lat = lat;
++    Q_EMIT latitudeChanged();
++    scheduleReload();
++}
++
++double NearbyAmenityModel::longitude() const
++{
++    return m_lon;
++}
++
++void NearbyAmenityModel::setLongitude(double lon)
++{
++    if (m_lon == lon || (std::isnan(m_lon) && std::isnan(lon))) {
++        return;
++    }
++    m_lon = lon;
++    Q_EMIT longitudeChanged();
++    scheduleReload();
++}
++
++double NearbyAmenityModel::radius() const
++{
++    return m_radius;
++}
++
++void NearbyAmenityModel::setRadius(double radius)
++{
++    if (m_radius == radius) {
++        return;
++    }
++    m_radius = radius;
++    Q_EMIT radiusChanged();
++    scheduleReload();
++}
++
++QString NearbyAmenityModel::elementId() const
++{
++    return m_elementId;
++}
++
++void NearbyAmenityModel::setElementId(const QString &elementId)
++{
++    if (m_elementId == elementId) {
++        return;
++    }
++    m_elementId = elementId;
++    Q_EMIT elementIdChanged();
++    scheduleReload();
++}
++
++bool NearbyAmenityModel::isLoading() const
++{
++    return m_loading;
++}
++
++int NearbyAmenityModel::count() const
++{
++    return rowCount();
++}
++
++QString NearbyAmenityModel::errorMessage() const
++{
++    return m_errorMessage;
++}
++
++double NearbyAmenityModel::maximumRadius(double lat, double lon)
++{
++    // tiles are square in Web Mercator projection, so the width also tells us the height in meter
++    // the search area spans 4 tile widths then, which can touch at most 5 tiles
++    const auto bbox = Tile::fromCoordinate(lat, lon, MapLoaderUtil::TileZoomLevel).boundingBox();
++    const auto tileWidth = OSM::distance(lat, bbox.min.lonF(), lat, bbox.max.lonF());
++    return tileWidth * (MaximumTileSpan - 1) / 2.0 * 0.95; // leave some room for the projection distortion within the area
++}
++
++static bool parseElementId(const QString &s, OSM::Type &type, OSM::Id &id)
++{
++    static const QRegularExpression rx(u"^([nwr])(\\d+)$"_s, QRegularExpression::CaseInsensitiveOption);
++    const auto match = rx.match(s.trimmed());
++    if (!match.hasMatch()) {
++        return false;
++    }
++
++    switch (match.capturedView(1).at(0).toLower().toLatin1()) {
++        case 'n':
++            type = OSM::Type::Node;
++            break;
++        case 'w':
++            type = OSM::Type::Way;
++            break;
++        case 'r':
++            type = OSM::Type::Relation;
++            break;
++    }
++    bool ok = false;
++    id = match.capturedView(2).toLongLong(&ok);
++    return ok && id > 0;
++}
++
++void NearbyAmenityModel::scheduleReload()
++{
++    m_reloadTimer.start();
++}
++
++void NearbyAmenityModel::reload()
++{
++    m_reloadTimer.stop();
++    setErrorMessage({});
++
++    Request req;
++    req.lat = m_lat;
++    req.lon = m_lon;
++    if (std::isnan(req.lat) || std::isnan(req.lon) || std::abs(req.lat) > 85.0 || std::abs(req.lon) > 180.0 || !(m_radius > 0.0)) {
++        // nothing to search for
++        clear();
++        return;
++    }
++    req.radius = std::min(m_radius, maximumRadius(req.lat, req.lon));
++
++    if (!m_elementId.isEmpty() && !parseElementId(m_elementId, req.elementType, req.elementId)) {
++        qCWarning(Log) << "invalid OSM element id:" << m_elementId;
++        clear();
++        Q_EMIT finished();
++        return;
++    }
++
++    const auto bbox = OSM::boundingBoxForRadius(OSM::Coordinate(req.lat, req.lon), req.radius);
++    const auto tiles = MapLoaderUtil::tilesForBoundingBox(bbox);
++    m_request = req;
++
++    // we already have all the data we need
++    if (!m_loading && !m_data.isEmpty() && m_loadedTiles.contains(tiles)) {
++        populateModel(req);
++        Q_EMIT finished();
++        return;
++    }
++
++    m_pendingTiles = tiles;
++    setLoading(true);
++    m_loader.loadForBoundingBox(bbox);
++}
++
++void NearbyAmenityModel::loadingDone()
++{
++    // ignore results of loads we are no longer interested in, e.g. after the search parameters got unset
++    if (!m_loading) {
++        return;
++    }
++
++    if (m_loader.hasError()) {
++        qCDebug(Log) << m_loader.errorMessage();
++        setErrorMessage(m_loader.errorMessage());
++        clear();
++        Q_EMIT finished();
++        return;
++    }
++
++    auto data = std::move(m_loader.takeData());
++    if (!data.timeZone().isValid()) {
++        data.setTimeZone(QTimeZone(KTimeZone::fromLocation((float)m_request.lat, (float)m_request.lon)));
++    }
++
++    // the old data needs to stay alive until the reset of the model content
++    const auto prevData = m_data;
++    m_data = std::move(data);
++    m_loadedTiles = m_pendingTiles;
++    if (loadStyle()) {
++        compileStyle();
++    }
++    populateModel(m_request);
++    setLoading(false);
++    Q_EMIT finished();
++}
++
++void NearbyAmenityModel::populateModel(const Request &req)
++{
++    const auto prevCount = rowCount();
++    beginResetModel();
++    m_entries.clear();
++    m_contentCenter = OSM::Coordinate(req.lat, req.lon);
++    if (!m_data.isEmpty() && loadStyle()) {
++        if (req.elementType != OSM::Type::Null) {
++            populateFromElementId(req);
++        } else {
++            populateFromArea(req);
++        }
++    }
++    endResetModel();
++    if (prevCount != rowCount()) {
++        Q_EMIT countChanged();
++    }
++}
++
++void NearbyAmenityModel::populateFromElementId(const Request &req)
++{
++    const auto &dataSet = m_data.dataSet();
++    OSM::Element element;
++    switch (req.elementType) {
++        case OSM::Type::Null:
++            return;
++        case OSM::Type::Node:
++            if (const auto node = dataSet.node(req.elementId)) {
++                element = OSM::Element(node);
++            }
++            break;
++        case OSM::Type::Way:
++            if (const auto way = dataSet.way(req.elementId)) {
++                element = OSM::Element(way);
++            }
++            break;
++        case OSM::Type::Relation:
++            if (const auto rel = dataSet.relation(req.elementId)) {
++                element = OSM::Element(rel);
++            }
++            break;
++    }
++    if (!element) {
++        qCDebug(Log) << "element not found:" << m_elementId;
++        return;
++    }
++    if (!element.boundingBox().isValid()) {
++        element.recomputeBoundingBox(dataSet);
++    }
++
++    Entry entry;
++    if (classify(element, entry) == Classification::Excluded) {
++        // something we wouldn't list on our own, but that has been explicitly asked for
++        // try to provide a type nevertheless
++        entry = {};
++        entry.element = element;
++        for (const char *key : {"amenity", "shop", "tourism", "leisure", "office", "historic", "healthcare"}) {
++            const auto value = element.tagValue(key);
++            if (!value.isEmpty() && Localization::hasAmenityTypeTranslation(value.constData())) {
++                entry.typeKey = key;
++                entry.icon = QString::fromUtf8(value);
++                break;
++            }
++        }
++    }
++    entry.level = levelForElement(element);
++    m_entries.push_back(std::move(entry));
++}
++
++void NearbyAmenityModel::populateFromArea(const Request &req)
++{
++    const OSM::Coordinate center(req.lat, req.lon);
++    const auto nameKey = m_data.dataSet().tagKey("name");
++
++    for (auto it = m_data.levelMap().begin(); it != m_data.levelMap().end(); ++it) {
++        for (const auto &e : (*it).second) {
++            const auto dist = OSM::distance(center, e.center());
++            if (dist > req.radius && (e.type() == OSM::Type::Node || !OSM::contains(e.boundingBox(), center))) {
++                continue;
++            }
++
++            Entry entry;
++            switch (classify(e, entry)) {
++                case Classification::Excluded:
++                    continue;
++                case Classification::UnknownType:
++                    // things we have no translated type name for are only useful when there is a name to display
++                    if (!e.hasTag(nameKey)) {
++                        continue;
++                    }
++                    break;
++                case Classification::Amenity:
++                    break;
++            }
++
++            entry.level = (*it).first.numericLevel();
++            m_entries.push_back(std::move(entry));
++        }
++    }
++
++    // de-duplicate multi-level entries, see AmenityModel
++    std::sort(m_entries.begin(), m_entries.end(), [](const auto &lhs, const auto &rhs) {
++        if (lhs.element == rhs.element) {
++            return std::abs(lhs.level) < std::abs(rhs.level);
++        }
++        return lhs.element < rhs.element;
++    });
++    m_entries.erase(std::unique(m_entries.begin(), m_entries.end(), [](const auto &lhs, const auto &rhs) {
++        return lhs.element == rhs.element;
++    }), m_entries.end());
++
++    // sort by distance, prefer smaller elements on equal distance (e.g. a shop over the building it is in)
++    struct SortKey {
++        double distance;
++        double area;
++    };
++    std::vector<std::pair<SortKey, Entry>> sorted;
++    sorted.reserve(m_entries.size());
++    for (auto &entry : m_entries) {
++        const auto bbox = entry.element.boundingBox();
++        sorted.push_back({{OSM::distance(center, entry.element.center()), bbox.widthF() * bbox.heightF()}, std::move(entry)});
++    }
++    std::stable_sort(sorted.begin(), sorted.end(), [](const auto &lhs, const auto &rhs) {
++        if (lhs.first.distance == rhs.first.distance) {
++            if (lhs.first.area == rhs.first.area) {
++                return lhs.second.element.type() < rhs.second.element.type();
++            }
++            return lhs.first.area < rhs.first.area;
++        }
++        return lhs.first.distance < rhs.first.distance;
++    });
++    m_entries.clear();
++    std::transform(std::make_move_iterator(sorted.begin()), std::make_move_iterator(sorted.end()), std::back_inserter(m_entries), [](auto &&e) {
++        return std::move(e.second);
++    });
++
++    qCDebug(Log) << m_entries.size() << "amenities found";
++}
++
++int NearbyAmenityModel::levelForElement(OSM::Element element) const
++{
++    std::optional<int> level;
++    for (const auto &[mapLevel, elements] : m_data.levelMap()) {
++        if (std::find(elements.begin(), elements.end(), element) != elements.end()) {
++            if (!level || std::abs(mapLevel.numericLevel()) < std::abs(*level)) {
++                level = mapLevel.numericLevel();
++            }
++        }
++    }
++    return level.value_or(0);
++}
++
++void NearbyAmenityModel::setLoading(bool loading)
++{
++    if (m_loading == loading) {
++        return;
++    }
++    m_loading = loading;
++    Q_EMIT loadingChanged();
++}
++
++void NearbyAmenityModel::setErrorMessage(const QString &msg)
++{
++    if (m_errorMessage == msg) {
++        return;
++    }
++    m_errorMessage = msg;
++    Q_EMIT errorMessageChanged();
++}
++
++void NearbyAmenityModel::clear()
++{
++    setLoading(false);
++    if (m_data.isEmpty() && m_entries.empty()) {
++        return;
++    }
++
++    const auto prevCount = rowCount();
++    beginResetModel();
++    m_entries.clear();
++    endResetModel();
++    // release the data only after there are no more references to it from the model content
++    m_data = MapData();
++    m_loadedTiles = {};
++    if (prevCount != 0) {
++        Q_EMIT countChanged();
++    }
++}
++
++QVariantMap NearbyAmenityModel::get(int row) const
++{
++    QVariantMap res;
++    if (row < 0 || row >= rowCount()) {
++        return res;
++    }
++
++    const auto idx = index(row, 0);
++    const auto roles = roleNames();
++    for (auto it = roles.begin(); it != roles.end(); ++it) {
++        res.insert(QString::fromUtf8(it.value()), data(idx, it.key()));
++    }
++    return res;
++}
++
++QVariant NearbyAmenityModel::data(const QModelIndex &index, int role) const
++{
++    if (!checkIndex(index)) {
++        return {};
++    }
++
++    if (role == DistanceRole) {
++        return OSM::distance(m_contentCenter, m_entries[index.row()].element.center());
++    }
++    return AbstractAmenityModel::data(index, role);
++}
++
++QHash<int, QByteArray> NearbyAmenityModel::roleNames() const
++{
++    auto r = AbstractAmenityModel::roleNames();
++    r.insert(DistanceRole, "distance");
++    return r;
++}
++
++#include "moc_nearbyamenitymodel.cpp"
+diff --git a/src/map-quick/nearbyamenitymodel.h b/src/map-quick/nearbyamenitymodel.h
+new file mode 100644
+index 00000000..610e333c
+--- /dev/null
++++ b/src/map-quick/nearbyamenitymodel.h
+@@ -0,0 +1,161 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#ifndef KOSMINDOORMAP_NEARBYAMENITYMODEL_H
++#define KOSMINDOORMAP_NEARBYAMENITYMODEL_H
++
++#include "abstractamenitymodel.h"
++
++#include <KOSMIndoorMap/MapLoader>
++
++#include <QRect>
++#include <QTimer>
++
++#include <cmath>
++
++namespace KOSMIndoorMap {
++
++/** Amenities and other points of interest around a given location.
++ *
++ *  This loads the raw OSM data tiles covering the search area and lists all amenities
++ *  (classified the same way as in AmenityModel) as well as other named points of interest
++ *  (such as places of worship, historic sites or craft businesses) whose center is within
++ *  @p radius around the given coordinate, ordered by distance. Areas whose bounding box contains
++ *  the coordinate are included as well, even if their center is further away.
++ *
++ *  Alternatively, when @p elementId is set, the model contains only that specific OSM element
++ *  if it is found in the data loaded for the search area, regardless of its distance or type.
++ *  This is useful for showing details for a search result from an external service.
++ *
++ *  This is meant for small search areas, such as identifying what is at a tapped location on a map.
++ *  The search area is limited to at most 5x5 tiles at zoom level 17, ie. the effective radius
++ *  is capped to a bit less than two tile widths (about 580 m at the equator, 350 m at 52° latitude).
++ *
++ *  The model keeps the loaded map data alive for as long as it contains elements, and the
++ *  elements returned by the @c element role keep their data alive as well. That is, they can
++ *  safely be passed to OSMElementInformationModel even if this model is reloaded afterwards.
++ *
++ *  Roles are the same as for AmenityModel, plus a @c distance role.
++ *
++ *  @since 27.04
++ */
++class NearbyAmenityModel : public AbstractAmenityModel
++{
++    Q_OBJECT
++    /** Latitude of the center of the search area, in degree. */
++    Q_PROPERTY(double latitude READ latitude WRITE setLatitude NOTIFY latitudeChanged)
++    /** Longitude of the center of the search area, in degree. */
++    Q_PROPERTY(double longitude READ longitude WRITE setLongitude NOTIFY longitudeChanged)
++    /** Search radius around the center coordinate, in meter.
++     *  Defaults to 30 m, which is in the order of a finger tap on a map at high zoom levels.
++     */
++    Q_PROPERTY(double radius READ radius WRITE setRadius NOTIFY radiusChanged)
++    /** Optional OSM element to look for, in the form "n123", "w123" or "r123"
++     *  (for a node, way or relation, respectively).
++     *  The element is looked up in the data loaded for the search area, so latitude and longitude
++     *  need to be set to a coordinate in its vicinity (e.g. its center) as well.
++     */
++    Q_PROPERTY(QString elementId READ elementId WRITE setElementId NOTIFY elementIdChanged)
++
++    /** @c true while map data is being loaded. */
++    Q_PROPERTY(bool loading READ isLoading NOTIFY loadingChanged)
++    /** Number of rows in this model. */
++    Q_PROPERTY(int count READ count NOTIFY countChanged)
++    /** Error message in case loading the map data failed, empty otherwise. */
++    Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
++
++public:
++    explicit NearbyAmenityModel(QObject *parent = nullptr);
++    ~NearbyAmenityModel();
++
++    enum NearbyRole {
++        DistanceRole = FirstCustomRole, ///< distance between the center coordinate and the element's center, in meter
++    };
++    Q_ENUM(NearbyRole)
++
++    [[nodiscard]] double latitude() const;
++    void setLatitude(double lat);
++    [[nodiscard]] double longitude() const;
++    void setLongitude(double lon);
++    [[nodiscard]] double radius() const;
++    void setRadius(double radius);
++    [[nodiscard]] QString elementId() const;
++    void setElementId(const QString &elementId);
++
++    [[nodiscard]] bool isLoading() const;
++    [[nodiscard]] int count() const;
++    [[nodiscard]] QString errorMessage() const;
++
++    /** Load the data for the current search parameters and update the model content.
++     *  This happens automatically when any of the search parameters change, so you usually
++     *  don't need to call this, unless you want to retry after an error.
++     */
++    Q_INVOKABLE void reload();
++
++    /** Returns all role values of the entry in row @p row, by role name.
++     *  Convenience for QML, e.g. for accessing the nearest element.
++     */
++    [[nodiscard]] Q_INVOKABLE QVariantMap get(int row) const;
++
++    [[nodiscard]] QVariant data(const QModelIndex &index, int role) const override;
++    [[nodiscard]] QHash<int, QByteArray> roleNames() const override;
++
++    /** Largest radius that can be used around the given coordinate, in meter.
++     *  @internal exposed for unit tests
++     */
++    [[nodiscard]] static double maximumRadius(double lat, double lon);
++
++Q_SIGNALS:
++    void latitudeChanged();
++    void longitudeChanged();
++    void radiusChanged();
++    void elementIdChanged();
++    void loadingChanged();
++    void countChanged();
++    void errorMessageChanged();
++    /** Emitted when the model content has been updated for the current search parameters,
++     *  or when loading failed.
++     *  This is not emitted when the search parameters are incomplete (e.g. no coordinate set),
++     *  the model is just cleared then.
++     */
++    void finished();
++
++private:
++    struct Request {
++        double lat = NAN;
++        double lon = NAN;
++        double radius = 0.0;
++        OSM::Type elementType = OSM::Type::Null;
++        OSM::Id elementId = 0;
++    };
++
++    void scheduleReload();
++    void loadingDone();
++    void populateModel(const Request &req);
++    void populateFromElementId(const Request &req);
++    void populateFromArea(const Request &req);
++    [[nodiscard]] int levelForElement(OSM::Element element) const;
++    void setLoading(bool loading);
++    void setErrorMessage(const QString &msg);
++    void clear();
++
++    double m_lat = NAN;
++    double m_lon = NAN;
++    double m_radius = 30.0;
++    QString m_elementId;
++
++    Request m_request; // the request the current content or the pending load is for
++    OSM::Coordinate m_contentCenter; // the search center the current content has been computed for
++    QRect m_loadedTiles; // tiles covered by m_data
++    QRect m_pendingTiles; // tiles covered by the currently loading data
++    MapLoader m_loader;
++    QTimer m_reloadTimer;
++    bool m_loading = false;
++    QString m_errorMessage;
++};
++
++}
++
++#endif // KOSMINDOORMAP_NEARBYAMENITYMODEL_H
+diff --git a/src/map-quick/osmelement.cpp b/src/map-quick/osmelement.cpp
+index dea1d7f4..cb81f6e6 100644
+--- a/src/map-quick/osmelement.cpp
++++ b/src/map-quick/osmelement.cpp
+@@ -17,8 +17,19 @@ OSMElement::OSMElement(OSM::Element e)
+ {
+ }
+ 
++OSMElement::OSMElement(OSM::Element e, const MapData &mapData)
++    : m_element(e)
++    , m_mapData(mapData)
++{
++}
++
+ OSMElement::~OSMElement() = default;
+ 
++bool OSMElement::operator==(const OSMElement &other) const
++{
++    return m_element == other.m_element;
++}
++
+ bool OSMElement::isNull() const
+ {
+     return m_element.type() == OSM::Type::Null;
+@@ -68,4 +79,9 @@ OSM::Element OSMElement::element() const
+     return m_element;
+ }
+ 
++MapData OSMElement::mapData() const
++{
++    return m_mapData;
++}
++
+ #include "moc_osmelement.cpp"
+diff --git a/src/map-quick/osmelement.h b/src/map-quick/osmelement.h
+index e3974b3d..bee8207e 100644
+--- a/src/map-quick/osmelement.h
++++ b/src/map-quick/osmelement.h
+@@ -7,6 +7,8 @@
+ #ifndef KOSMINDOORMAP_OSMELEMENT_H
+ #define KOSMINDOORMAP_OSMELEMENT_H
+ 
++#include <KOSMIndoorMap/MapData>
++
+ #include <osm/element.h>
+ 
+ #include <QJSValue>
+@@ -29,9 +31,15 @@ class OSMElement
+ public:
+     OSMElement();
+     explicit OSMElement(OSM::Element e);
++    /** Wrap @p e and keep @p mapData alive as long as this exists.
++     *  Use this when the element can outlive the model or item it was obtained from.
++     *  @since 27.04
++     */
++    explicit OSMElement(OSM::Element e, const MapData &mapData);
+     ~OSMElement();
+ 
+-    [[nodiscard]] bool operator==(const OSMElement&) const = default;
++    /** Compares the wrapped elements, regardless of which map data is kept alive by either. */
++    [[nodiscard]] bool operator==(const OSMElement &other) const;
+ 
+     [[nodiscard]] bool isNull() const;
+     [[nodiscard]] qint64 id() const;
+@@ -43,9 +51,15 @@ public:
+ 
+     // @internal
+     [[nodiscard]] OSM::Element element() const;
++    /** Map data @p element() belongs to, if known.
++     *  @internal
++     *  @since 27.04
++     */
++    [[nodiscard]] MapData mapData() const;
+ 
+ private:
+     OSM::Element m_element;
++    MapData m_mapData;
+ };
+ 
+ }
+diff --git a/src/map-quick/osmelementinformationmodel.cpp b/src/map-quick/osmelementinformationmodel.cpp
+index 0fa8609f..d03c05e2 100644
+--- a/src/map-quick/osmelementinformationmodel.cpp
++++ b/src/map-quick/osmelementinformationmodel.cpp
+@@ -57,7 +57,7 @@ OSMElementInformationModel::~OSMElementInformationModel() = default;
+ 
+ OSMElement OSMElementInformationModel::element() const
+ {
+-    return OSMElement(m_element);
++    return OSMElement(m_element, m_mapData);
+ }
+ 
+ void OSMElementInformationModel::setElement(const OSMElement &element)
+@@ -68,6 +68,7 @@ void OSMElementInformationModel::setElement(const OSMElement &element)
+ 
+     beginResetModel();
+     m_element = element.element();
++    m_mapData = element.mapData();
+     m_infos.clear();
+     if (m_element.type() != OSM::Type::Null) {
+         reload();
+@@ -84,6 +85,7 @@ void OSMElementInformationModel::clear()
+     beginResetModel();
+     m_infos.clear();
+     m_element = {};
++    m_mapData = MapData();
+     endResetModel();
+     Q_EMIT elementChanged();
+ }
+diff --git a/src/map-quick/osmelementinformationmodel.h b/src/map-quick/osmelementinformationmodel.h
+index 523c5813..e564832d 100644
+--- a/src/map-quick/osmelementinformationmodel.h
++++ b/src/map-quick/osmelementinformationmodel.h
+@@ -162,6 +162,7 @@ private:
+     void addEntryForLocalizedKey(const char *keyName, const KeyMapEntry(&map)[N]);
+ 
+     OSM::Element m_element;
++    MapData m_mapData; // keeps m_element alive, if set
+ 
+     struct Info {
+         Key key;
+diff --git a/src/map-quick/roommodel.cpp b/src/map-quick/roommodel.cpp
+index 40eac7ea..437ede5b 100644
+--- a/src/map-quick/roommodel.cpp
++++ b/src/map-quick/roommodel.cpp
+@@ -115,7 +115,7 @@ QVariant RoomModel::data(const QModelIndex &index, int role) const
+         case LevelRole:
+             return room.level;
+         case ElementRole:
+-            return QVariant::fromValue(OSMElement(room.element));
++            return QVariant::fromValue(OSMElement(room.element, m_data));
+         case BuildingNameRole:
+             return QString::fromUtf8(room.buildingElement.tagValue(m_langs, "name", "local_ref", "ref"));
+         case LevelLongNameRole:
+diff --git a/src/map-quick/types.h b/src/map-quick/types.h
+index b9abde5a..c89febdb 100644
+--- a/src/map-quick/types.h
++++ b/src/map-quick/types.h
+@@ -14,6 +14,7 @@
+ #include "amenitysortfilterproxymodel.h"
+ #include "floorlevelchangemodel.h"
+ #include "mapitem.h"
++#include "nearbyamenitymodel.h"
+ #include "osmelementinformationmodel.h"
+ #include "roommodel.h"
+ #include "roomsortfilterproxymodel.h"
+@@ -89,6 +90,12 @@ struct ViewForeign {
+ 
+ 
+ // from QML library
++struct AbstractAmenityModelForeign {
++    Q_GADGET
++    QML_ANONYMOUS
++    QML_FOREIGN(KOSMIndoorMap::AbstractAmenityModel)
++};
++
+ struct AmenityModelForeign {
+     Q_GADGET
+     QML_NAMED_ELEMENT(AmenityModel)
+@@ -113,6 +120,12 @@ struct MapItemForeign {
+     QML_FOREIGN(KOSMIndoorMap::MapItem)
+ };
+ 
++struct NearbyAmenityModelForeign {
++    Q_GADGET
++    QML_NAMED_ELEMENT(NearbyAmenityModel)
++    QML_FOREIGN(KOSMIndoorMap::NearbyAmenityModel)
++};
++
+ struct OSMElementForeign {
+     Q_GADGET
+     QML_NAMED_ELEMENT(osmElement)
+diff --git a/src/map/loader/maploader.cpp b/src/map/loader/maploader.cpp
+index bf499f3d..ab784a76 100644
+--- a/src/map/loader/maploader.cpp
++++ b/src/map/loader/maploader.cpp
+@@ -7,6 +7,7 @@
+ #include <config-kosmindoormap.h>
+ 
+ #include "maploader.h"
++#include "maploader_p.h"
+ #include "boundarysearch_p.h"
+ #include "logging.h"
+ #include "mapdata.h"
+@@ -33,10 +34,6 @@
+ 
+ using namespace Qt::Literals::StringLiterals;
+ 
+-enum {
+-    TileZoomLevel = 17
+-};
+-
+ inline void initResources()  // needs to be outside of a namespace
+ {
+ #if !BUILD_TOOLS_ONLY
+@@ -60,12 +57,23 @@ public:
+     std::unique_ptr<BoundarySearch> m_boundarySearcher;
+     QDateTime m_ttl;
+     std::deque<QUrl> m_pendingChangeSets;
++    // incremented on every new load, to discard queued work of previous loads
++    uint32_t m_loadSequence = 0;
+ 
+     QString m_errorMessage;
+ };
+ }
+ 
+ using namespace KOSMIndoorMap;
++using MapLoaderUtil::TileZoomLevel;
++
++QRect MapLoaderUtil::tilesForBoundingBox(const OSM::BoundingBox &bbox)
++{
++    // note that geographic and slippy map tile coordinates have a different understanding of what is "top"
++    const auto topLeftTile = Tile::fromCoordinate(bbox.max.latF(), bbox.min.lonF(), TileZoomLevel);
++    const auto bottomRightTile = Tile::fromCoordinate(bbox.min.latF(), bbox.max.lonF(), TileZoomLevel);
++    return QRect(QPoint((int)topLeftTile.x, (int)topLeftTile.y), QPoint((int)bottomRightTile.x, (int)bottomRightTile.y));
++}
+ 
+ MapLoader::MapLoader(QObject *parent)
+     : QObject(parent)
+@@ -100,7 +108,11 @@ void MapLoader::loadFromFile(const QString &fileName)
+     reader->read(data, f.size());
+     d->m_data = MapData();
+     qCDebug(Log) << "o5m loading took" << loadTime.elapsed() << "ms";
+-    QMetaObject::invokeMethod(this, &MapLoader::applyNextChangeSet, Qt::QueuedConnection);
++    QMetaObject::invokeMethod(this, [this, loadSequence = ++d->m_loadSequence]() {
++        if (loadSequence == d->m_loadSequence) {
++            applyNextChangeSet();
++        }
++    }, Qt::QueuedConnection);
+ }
+ 
+ void MapLoader::loadForCoordinate(double lat, double lon)
+@@ -110,6 +122,7 @@ void MapLoader::loadForCoordinate(double lat, double lon)
+ 
+ void MapLoader::loadForCoordinate(double lat, double lon, const QDateTime &ttl)
+ {
++    ++d->m_loadSequence;
+     d->m_tileCache.cancelPending();
+     d->m_ttl = ttl;
+     d->m_tileBbox = {};
+@@ -129,6 +142,7 @@ void MapLoader::loadForCoordinate(double lat, double lon, const QDateTime &ttl)
+ 
+ void MapLoader::loadForBoundingBox(OSM::BoundingBox box)
+ {
++    ++d->m_loadSequence;
+     d->m_tileCache.cancelPending();
+     d->m_ttl = {};
+     d->m_tileBbox = box;
+@@ -138,10 +152,9 @@ void MapLoader::loadForBoundingBox(OSM::BoundingBox box)
+     d->m_marbleMerger.setDataSet(&d->m_dataSet);
+     d->m_data = MapData();
+ 
+-    const auto topLeftTile = Tile::fromCoordinate(box.min.latF(), box.min.lonF(), TileZoomLevel);
+-    const auto bottomRightTile = Tile::fromCoordinate(box.max.latF(), box.max.lonF(), TileZoomLevel);
+-    for (auto x = topLeftTile.x; x <= bottomRightTile.x; ++x) {
+-        for (auto y = bottomRightTile.y; y <= topLeftTile.y; ++y) {
++    const auto tiles = MapLoaderUtil::tilesForBoundingBox(box);
++    for (auto x = tiles.left(); x <= tiles.right(); ++x) {
++        for (auto y = tiles.top(); y <= tiles.bottom(); ++y) {
+             d->m_pendingTiles.push_back(makeTile(x, y));
+         }
+     }
+@@ -155,6 +168,7 @@ void MapLoader::loadForBoundingBox(double minLat, double minLon, double maxLat,
+ 
+ void MapLoader::loadForTile(Tile tile)
+ {
++    ++d->m_loadSequence;
+     d->m_tileCache.cancelPending();
+     d->m_ttl = {};
+     d->m_tileBbox = tile.boundingBox();
+@@ -198,7 +212,13 @@ void MapLoader::downloadTiles()
+         // still go through the event loop when having everything cached already
+         // this makes outside behavior more identical in both cases, and avoids
+         // signal connection races etc.
+-        QMetaObject::invokeMethod(this, &MapLoader::loadTiles, Qt::QueuedConnection);
++        // this must not run anymore when another load has been started meanwhile though,
++        // as that would process the pending tiles of that load prematurely
++        QMetaObject::invokeMethod(this, [this, loadSequence = d->m_loadSequence]() {
++            if (loadSequence == d->m_loadSequence) {
++                loadTiles();
++            }
++        }, Qt::QueuedConnection);
+     } else {
+         Q_EMIT isLoadingChanged();
+     }
+@@ -321,6 +341,8 @@ QString MapLoader::errorMessage() const
+ void MapLoader::applyNextChangeSet()
+ {
+     if (d->m_pendingChangeSets.empty() || hasError()) {
++        // m_data might have been taken already by a previous load
++        d->m_data = MapData();
+         d->m_data.setDataSet(std::move(d->m_dataSet));
+         if (d->m_targetBbox.isValid()) {
+             d->m_data.setBoundingBox(d->m_targetBbox);
+@@ -344,8 +366,11 @@ void MapLoader::applyNextChangeSet()
+         QNetworkRequest req(url);
+         req.setHeader(QNetworkRequest::UserAgentHeader, KOSMIndoorMap::userAgent());
+         auto reply = d->m_nam()->get(req);
+-        connect(reply, &QNetworkReply::finished, this, [this, reply, url]() {
++        connect(reply, &QNetworkReply::finished, this, [this, reply, url, loadSequence = d->m_loadSequence]() {
+             reply->deleteLater();
++            if (loadSequence != d->m_loadSequence) {
++                return; // a new load has been started meanwhile, which will apply this change set again
++            }
+ 
+             if (reply->error() != QNetworkReply::NoError) {
+                 d->m_errorMessage = reply->errorString();
+diff --git a/src/map/loader/maploader_p.h b/src/map/loader/maploader_p.h
+new file mode 100644
+index 00000000..18d2c704
+--- /dev/null
++++ b/src/map/loader/maploader_p.h
+@@ -0,0 +1,38 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#ifndef KOSMINDOORMAP_MAPLOADER_P_H
++#define KOSMINDOORMAP_MAPLOADER_P_H
++
++#include "kosmindoormap_export.h"
++
++#include <QRect>
++
++#include <cstdint>
++
++namespace OSM {
++class BoundingBox;
++}
++
++namespace KOSMIndoorMap {
++
++/** Details on which raw data tiles MapLoader loads.
++ *  @internal only exported for use in the QML plugin and in unit tests
++ */
++namespace MapLoaderUtil {
++
++/** Zoom level of the raw data tiles loaded by MapLoader. */
++constexpr inline uint8_t TileZoomLevel = 17;
++
++/** The raw data tiles MapLoader::loadForBoundingBox loads for @p bbox.
++ *  The result is in slippy map tile coordinates at TileZoomLevel, ie. y grows southwards.
++ */
++[[nodiscard]] KOSMINDOORMAP_EXPORT QRect tilesForBoundingBox(const OSM::BoundingBox &bbox);
++
++}
++
++}
++
++#endif // KOSMINDOORMAP_MAPLOADER_P_H
+diff --git a/src/map/loader/reversegeocodingjob.cpp b/src/map/loader/reversegeocodingjob.cpp
+index 79b41ed0..ceec8ef0 100644
+--- a/src/map/loader/reversegeocodingjob.cpp
++++ b/src/map/loader/reversegeocodingjob.cpp
+@@ -55,9 +55,7 @@ void ReverseGeocodingJob::start()
+ {
+     qCDebug(Log);
+ 
+-    const auto dlat = d->radius / OSM::distance(d->lat, 0.0, d->lat, 1.0);
+-    const auto dlon = d->radius / OSM::distance(0.0, d->lon, 1.0, d->lon);
+-    d->loader.loadForBoundingBox(d->lat - dlat, d->lon - dlon, d->lat + dlat, d->lon + dlon);
++    d->loader.loadForBoundingBox(OSM::boundingBoxForRadius(OSM::Coordinate(d->lat, d->lon), d->radius));
+ }
+ 
+ bool ReverseGeocodingJob::hasError() const
+diff --git a/src/osm/geomath.cpp b/src/osm/geomath.cpp
+index 7316ff0b..58a5989c 100644
+--- a/src/osm/geomath.cpp
++++ b/src/osm/geomath.cpp
+@@ -29,6 +29,16 @@ double OSM::distance(Coordinate coord1, Coordinate coord2)
+     return distance(coord1.latF(), coord1.lonF(), coord2.latF(), coord2.lonF());
+ }
+ 
++BoundingBox OSM::boundingBoxForRadius(Coordinate center, double radius)
++{
++    // one degree of latitude has (almost) the same length everywhere, one degree of longitude shrinks towards the poles
++    const auto lat = center.latF();
++    const auto lon = center.lonF();
++    const auto dlat = radius / distance(0.0, lon, 1.0, lon);
++    const auto dlon = radius / distance(lat, 0.0, lat, 1.0);
++    return BoundingBox(Coordinate(lat - dlat, lon - dlon), Coordinate(lat + dlat, lon + dlon));
++}
++
+ double OSM::distance(OSM::Coordinate l1, OSM::Coordinate l2, OSM::Coordinate p)
+ {
+     QLineF line(l1.lonF(), l1.latF(), l2.lonF(), l2.latF());
+diff --git a/src/osm/geomath.h b/src/osm/geomath.h
+index f19abd03..7e261ca4 100644
+--- a/src/osm/geomath.h
++++ b/src/osm/geomath.h
+@@ -38,6 +38,11 @@ namespace OSM {
+ /** Distance between the given polygon and coordinate, in meter. */
+ [[nodiscard]] KOSM_EXPORT double distance(const std::vector<const OSM::Node*> &path, Coordinate coord);
+ 
++/** Bounding box enclosing a circle with @p radius meter around @p center.
++ *  @since 27.04
++ */
++[[nodiscard]] KOSM_EXPORT BoundingBox boundingBoxForRadius(Coordinate center, double radius);
++
+ }
+ 
+ #endif // OSM_GEOMATH_H

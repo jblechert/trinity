@@ -1,8 +1,27 @@
+diff --git a/.reuse/dep5 b/.reuse/dep5
+index 8c2a4c6b..27114dfa 100644
+--- a/.reuse/dep5
++++ b/.reuse/dep5
+@@ -7,6 +7,10 @@ Files: autotests/data/departures/* autotests/data/deutschebahn/* autotests/data/
+ Copyright: none
+ License: CC0-1.0
+ 
++Files: autotests/data/photon/*
++Copyright: OpenStreetMap community
++License: ODbL-1.0
++
+ Files: src/lib/networks/*.json src/lib/networks/geometry/*.geojson
+ Copyright: none
+ License: CC0-1.0
 diff --git a/autotests/CMakeLists.txt b/autotests/CMakeLists.txt
-index 9b846999..db43b45c 100644
+index 9b846999..b4163a13 100644
 --- a/autotests/CMakeLists.txt
 +++ b/autotests/CMakeLists.txt
-@@ -23,12 +23,14 @@ ecm_add_test(locationtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+@@ -20,15 +20,18 @@ ecm_add_test(uicrailwaycoachtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+ ecm_add_test(siritest.cpp ../src/lib/siri/mode.cpp TEST_NAME siritest LINK_LIBRARIES Qt::Test KPublicTransport)
+ ecm_add_test(mergeutiltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+ ecm_add_test(locationtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
++ecm_add_test(locationrequesttest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(linetest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(departuretest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(journeytest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
@@ -17,7 +36,7 @@ index 9b846999..db43b45c 100644
  ecm_add_test(networkconfigtest.cpp LINK_LIBRARIES Qt::Test)
  ecm_add_test(vehiclelayoutquerymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(locationhistorymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
-@@ -50,13 +52,13 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+@@ -50,14 +53,16 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(efarequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME efarequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  ecm_add_test(deutschebahntest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(deutschebahnparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
@@ -31,8 +50,11 @@ index 9b846999..db43b45c 100644
 -ecm_add_test(motis2parsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport KF6::I18nLocaleData)
 +ecm_add_test(motis2parsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport KF6::I18n KF6::I18nLocaleData)
  ecm_add_test(opentransportswissformationtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
++ecm_add_test(photonparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
++ecm_add_test(photonrequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME photonrequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  
  ecm_add_test(publictransportmanagertest.cpp mocknetworkaccessmanager.cpp TEST_NAME publictransportmanagertest LINK_LIBRARIES Qt::Network Qt::Test KPublicTransport)
+ set_property(TEST publictransportmanagertest PROPERTY RUN_SERIAL 1)
 diff --git a/autotests/data/db-hafas/journey-coord-based.out.json b/autotests/data/db-hafas/journey-coord-based.out.json
 index 8c5785f4..fb831c92 100644
 --- a/autotests/data/db-hafas/journey-coord-based.out.json
@@ -13683,6 +13705,624 @@ index 00000000..018787de
 +        ]
 +    }
 +]
+diff --git a/autotests/data/photon/balatonalm.in.json b/autotests/data/photon/balatonalm.in.json
+new file mode 100644
+index 00000000..42efd1f6
+--- /dev/null
++++ b/autotests/data/photon/balatonalm.in.json
+@@ -0,0 +1 @@
++{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"R","osm_id":1078573,"osm_key":"place","osm_value":"town","type":"city","name":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU","extra":{"admin_level":"8"},"extent":[17.9799388,47.0746115,18.097708,46.9531383]},"geometry":{"type":"Point","coordinates":[18.0155756,47.030277]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":2376975,"osm_key":"boundary","osm_value":"administrative","type":"city","name":"Balatonalmádi járás","county":"Veszprém","state":"Transdanubia","country":"Hungary","countrycode":"HU","extra":{"admin_level":"7"},"extent":[17.9006034,47.1233242,18.2618819,46.9531383]},"geometry":{"type":"Point","coordinates":[18.1100269,47.038183]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":9023154312,"osm_key":"railway","osm_value":"station","type":"house","name":"Balatonalmádi","street":"VasútARTjáró","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0154241,47.0283061]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":18300304,"osm_key":"boundary","osm_value":"police","type":"other","name":"Balatonalmádi Rendőrkapitányság illetékességi területe","county":"Veszprém","state":"Transdanubia","country":"Hungary","countrycode":"HU","extent":[17.9006034,47.1233242,18.2618819,46.9531383]},"geometry":{"type":"Point","coordinates":[18.1100269,47.038183]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":1878998599,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, ABC","street":"Baross Gábor út","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.01304,47.0327711]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":3469997388,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi (Káptalanfüred), Csillag tér","street":"Csillag tér","district":"Káptalanfüred","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.000245,47.014797]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":1684495248,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, strand bejárati út","street":"József Attila út","locality":"Tulipán Udvar","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0108735,47.026925]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":13905951276,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, autóbusz-állomás","street":"Jókai Mór utca","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.015303,47.030356]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":10857534819,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi (Káptalanfüred), vasúti megállóhely bejárati út","street":"Balatonfüredi út","district":"Káptalanfüred","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0040129,47.0116741]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":1878998604,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, Bauxitkutató Vállalat bejárati út","street":"Balatonfűzfői út","district":"Budatava","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.021507,47.0364286]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":4478691442,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, Szőlő utca","street":"Veszprémi út","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0082637,47.0406017]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":3277701214,"osm_key":"railway","osm_value":"stop","type":"house","name":"Balatonalmádi","street":"Véghely Dezső utca","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0157713,47.0283255]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":10003774753,"osm_key":"amenity","osm_value":"social_facility","type":"house","housenumber":"32","name":"Balatonalmádi Szociális Alapszolgáltatási Központ","street":"Baross Gábor út","locality":"Öreghegy","district":"Almádi","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.010705,47.0313929]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":10225421320,"osm_key":"amenity","osm_value":"community_centre","type":"house","housenumber":"2-6","name":"Balatonalmádi LEADER Kultúrközpont","street":"Ady Endre utca","locality":"Vöröshegy","district":"Vörösberény","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0080536,47.0457294]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":3470011815,"osm_key":"highway","osm_value":"bus_stop","type":"house","name":"Balatonalmádi, szerviz","street":"Rákóczi Ferenc utca","district":"Budatava","city":"Balatonalmádi","county":"Veszprém","state":"Transdanubia","country":"Hungary","postcode":"8220","countrycode":"HU"},"geometry":{"type":"Point","coordinates":[18.0200932,47.0403941]}}]}
+diff --git a/autotests/data/photon/balatonalm.out.json b/autotests/data/photon/balatonalm.out.json
+new file mode 100644
+index 00000000..7d17bbff
+--- /dev/null
++++ b/autotests/data/photon/balatonalm.out.json
+@@ -0,0 +1,302 @@
++[
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "r1078573"
++        },
++        "latitude": 47.030277,
++        "longitude": 18.0155756,
++        "name": "Balatonalmádi",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "tags": {
++            "place": "town"
++        }
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "r2376975"
++        },
++        "latitude": 47.038183,
++        "longitude": 18.1100269,
++        "name": "Balatonalmádi járás",
++        "tags": {
++            "boundary": "administrative"
++        }
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n9023154312"
++        },
++        "latitude": 47.0283061,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0154241,
++        "name": "Balatonalmádi",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Train"
++                }
++            ]
++        },
++        "streetAddress": "VasútARTjáró",
++        "tags": {
++            "railway": "station"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n1878998599"
++        },
++        "latitude": 47.0327711,
++        "locality": "Balatonalmádi",
++        "longitude": 18.01304,
++        "name": "Balatonalmádi, ABC",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Baross Gábor út",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n3469997388"
++        },
++        "latitude": 47.014797,
++        "locality": "Balatonalmádi",
++        "longitude": 18.000245,
++        "name": "Balatonalmádi (Káptalanfüred), Csillag tér",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Csillag tér",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n1684495248"
++        },
++        "latitude": 47.026925,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0108735,
++        "name": "Balatonalmádi, strand bejárati út",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "József Attila út",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n13905951276"
++        },
++        "latitude": 47.030356,
++        "locality": "Balatonalmádi",
++        "longitude": 18.015303,
++        "name": "Balatonalmádi, autóbusz-állomás",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Jókai Mór utca",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n10857534819"
++        },
++        "latitude": 47.0116741,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0040129,
++        "name": "Balatonalmádi (Káptalanfüred), vasúti megállóhely bejárati út",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Balatonfüredi út",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n1878998604"
++        },
++        "latitude": 47.0364286,
++        "locality": "Balatonalmádi",
++        "longitude": 18.021507,
++        "name": "Balatonalmádi, Bauxitkutató Vállalat bejárati út",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Balatonfűzfői út",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n4478691442"
++        },
++        "latitude": 47.0406017,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0082637,
++        "name": "Balatonalmádi, Szőlő utca",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Veszprémi út",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n3277701214"
++        },
++        "latitude": 47.0283255,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0157713,
++        "name": "Balatonalmádi",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Train"
++                }
++            ]
++        },
++        "streetAddress": "Véghely Dezső utca",
++        "tags": {
++            "railway": "stop"
++        },
++        "type": "Stop"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n10003774753"
++        },
++        "latitude": 47.0313929,
++        "locality": "Balatonalmádi",
++        "longitude": 18.010705,
++        "name": "Balatonalmádi Szociális Alapszolgáltatási Központ",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "streetAddress": "Baross Gábor út 32",
++        "tags": {
++            "amenity": "social_facility"
++        },
++        "type": "Address"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n10225421320"
++        },
++        "latitude": 47.0457294,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0080536,
++        "name": "Balatonalmádi LEADER Kultúrközpont",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "streetAddress": "Ady Endre utca 2-6",
++        "tags": {
++            "amenity": "community_centre"
++        },
++        "type": "Address"
++    },
++    {
++        "country": "HU",
++        "identifier": {
++            "osm": "n3470011815"
++        },
++        "latitude": 47.0403941,
++        "locality": "Balatonalmádi",
++        "longitude": 18.0200932,
++        "name": "Balatonalmádi, szerviz",
++        "postalCode": "8220",
++        "region": "HU-VE",
++        "stopInformation": {
++            "lines": [
++                {
++                    "mode": "Bus"
++                }
++            ]
++        },
++        "streetAddress": "Rákóczi Ferenc utca",
++        "tags": {
++            "highway": "bus_stop"
++        },
++        "type": "Stop"
++    }
++]
+diff --git a/autotests/data/photon/dresden.in.json b/autotests/data/photon/dresden.in.json
+new file mode 100644
+index 00000000..d1a703ce
+--- /dev/null
++++ b/autotests/data/photon/dresden.in.json
+@@ -0,0 +1 @@
++{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"R","osm_id":191645,"osm_key":"place","osm_value":"city","type":"city","name":"Dresden","state":"Saxony","country":"Germany","countrycode":"DE","extra":{"admin_level":"6"},"extent":[13.5793237,51.1776864,13.9660626,50.9749317]},"geometry":{"type":"Point","coordinates":[13.7381437,51.0493286]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":130085,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Decatur","state":"Kansas","country":"United States","postcode":"67635","countrycode":"US","extra":{"admin_level":"8"},"extent":[-100.428331,39.62875,-100.409402,39.614633]},"geometry":{"type":"Point","coordinates":[-100.4223636,39.6241709]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":175837,"osm_key":"place","osm_value":"village","type":"city","name":"Dresden","county":"Yates","state":"New York","country":"United States","countrycode":"US","extra":{"admin_level":"8"},"extent":[-76.963494,42.688383,-76.94878,42.679401]},"geometry":{"type":"Point","coordinates":[-76.9557968,42.6839586]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":3158639,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Washington","state":"New York","country":"United States","countrycode":"US","extra":{"admin_level":"7"},"extent":[-73.578989,43.699232,-73.393716,43.533738]},"geometry":{"type":"Point","coordinates":[-73.4106709,43.672564]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":197222,"osm_key":"place","osm_value":"town","type":"city","name":"Dresden","county":"Weakley","state":"Tennessee","country":"United States","countrycode":"US","extra":{"admin_level":"8"},"extent":[-88.7526499,36.3178696,-88.6402978,36.2502922]},"geometry":{"type":"Point","coordinates":[-88.7086635,36.2914648]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":17587454,"osm_key":"boundary","osm_value":"statistical","type":"other","name":"Dresden","country":"Germany","countrycode":"DE","extent":[13.1818322,51.5972821,15.0419309,50.7166867]},"geometry":{"type":"Point","coordinates":[14.124058,51.15693]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":12194303,"osm_key":"place","osm_value":"village","type":"city","name":"Dresden","county":"Lincoln","state":"Maine","country":"United States","postcode":"04342","countrycode":"US","extra":{"admin_level":"8"},"extent":[-69.8135494,44.139333,-69.6662962,44.0138108]},"geometry":{"type":"Point","coordinates":[-69.7244484,44.1076042]}},{"type":"Feature","properties":{"osm_type":"R","osm_id":182449,"osm_key":"place","osm_value":"village","type":"city","name":"Dresden","county":"Muskingum","state":"Ohio","country":"United States","postcode":"43821","countrycode":"US","extra":{"admin_level":"8"},"extent":[-82.0364459,40.1345165,-81.999359,40.1111404]},"geometry":{"type":"Point","coordinates":[-82.0106918,40.1214579]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":610966349,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","city":"Stoke-on-Trent","state":"England","country":"United Kingdom","postcode":"ST3 4BB","countrycode":"GB"},"geometry":{"type":"Point","coordinates":[-2.1436974,52.9794681]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":309029892,"osm_key":"place","osm_value":"town","type":"city","name":"Dresden","county":"Chatham-Kent (municipality)","state":"Ontario","country":"Canada","postcode":"N0P 1M0","countrycode":"CA"},"geometry":{"type":"Point","coordinates":[-82.1795314,42.5909853]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":154157137,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Coweta","state":"Georgia","country":"United States","countrycode":"US"},"geometry":{"type":"Point","coordinates":[-84.918549,33.3515055]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":151787675,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Cavalier","state":"North Dakota","country":"United States","countrycode":"US"},"geometry":{"type":"Point","coordinates":[-98.4812299,48.827503]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":154210084,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Ashe","state":"North Carolina","country":"United States","postcode":"28693","countrycode":"US"},"geometry":{"type":"Point","coordinates":[-81.5456631,36.458179]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":151335049,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","county":"Chickasaw","state":"Iowa","country":"United States","countrycode":"US"},"geometry":{"type":"Point","coordinates":[-92.3185113,42.9791431]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":151327223,"osm_key":"place","osm_value":"hamlet","type":"district","name":"Dresden","city":"Deep River Township","county":"Poweshiek","state":"Iowa","country":"United States","postcode":"52222","countrycode":"US"},"geometry":{"type":"Point","coordinates":[-92.3557397,41.5777815]}}]}
+diff --git a/autotests/data/photon/dresden.out.json b/autotests/data/photon/dresden.out.json
+new file mode 100644
+index 00000000..a81d4e36
+--- /dev/null
++++ b/autotests/data/photon/dresden.out.json
+@@ -0,0 +1,192 @@
++[
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "r191645"
++        },
++        "latitude": 51.0493286,
++        "longitude": 13.7381437,
++        "name": "Dresden",
++        "region": "DE-SN",
++        "tags": {
++            "place": "city"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r130085"
++        },
++        "latitude": 39.6241709,
++        "longitude": -100.4223636,
++        "name": "Dresden",
++        "postalCode": "67635",
++        "region": "US-KS",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r175837"
++        },
++        "latitude": 42.6839586,
++        "longitude": -76.9557968,
++        "name": "Dresden",
++        "region": "US-NY",
++        "tags": {
++            "place": "village"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r3158639"
++        },
++        "latitude": 43.672564,
++        "longitude": -73.4106709,
++        "name": "Dresden",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r197222"
++        },
++        "latitude": 36.2914648,
++        "longitude": -88.7086635,
++        "name": "Dresden",
++        "region": "US-TN",
++        "tags": {
++            "place": "town"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r12194303"
++        },
++        "latitude": 44.1076042,
++        "longitude": -69.7244484,
++        "name": "Dresden",
++        "postalCode": "04342",
++        "region": "US-ME",
++        "tags": {
++            "place": "village"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "r182449"
++        },
++        "latitude": 40.1214579,
++        "longitude": -82.0106918,
++        "name": "Dresden",
++        "postalCode": "43821",
++        "region": "US-OH",
++        "tags": {
++            "place": "village"
++        }
++    },
++    {
++        "country": "GB",
++        "identifier": {
++            "osm": "n610966349"
++        },
++        "latitude": 52.9794681,
++        "locality": "Stoke-on-Trent",
++        "longitude": -2.1436974,
++        "name": "Dresden",
++        "postalCode": "ST3 4BB",
++        "region": "GB-ENG",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "CA",
++        "identifier": {
++            "osm": "n309029892"
++        },
++        "latitude": 42.5909853,
++        "longitude": -82.1795314,
++        "name": "Dresden",
++        "postalCode": "N0P 1M0",
++        "region": "CA-ON",
++        "tags": {
++            "place": "town"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "n154157137"
++        },
++        "latitude": 33.3515055,
++        "longitude": -84.918549,
++        "name": "Dresden",
++        "region": "US-GA",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "n151787675"
++        },
++        "latitude": 48.827503,
++        "longitude": -98.4812299,
++        "name": "Dresden",
++        "region": "US-ND",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "n154210084"
++        },
++        "latitude": 36.458179,
++        "longitude": -81.5456631,
++        "name": "Dresden",
++        "postalCode": "28693",
++        "region": "US-NC",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "n151335049"
++        },
++        "latitude": 42.9791431,
++        "longitude": -92.3185113,
++        "name": "Dresden",
++        "region": "US-IA",
++        "tags": {
++            "place": "hamlet"
++        }
++    },
++    {
++        "country": "US",
++        "identifier": {
++            "osm": "n151327223"
++        },
++        "latitude": 41.5777815,
++        "locality": "Deep River Township",
++        "longitude": -92.3557397,
++        "name": "Dresden",
++        "postalCode": "52222",
++        "region": "US-IA",
++        "tags": {
++            "place": "hamlet"
++        }
++    }
++]
+diff --git a/autotests/data/photon/gelnhausen-bakeries.in.json b/autotests/data/photon/gelnhausen-bakeries.in.json
+new file mode 100644
+index 00000000..232f33bb
+--- /dev/null
++++ b/autotests/data/photon/gelnhausen-bakeries.in.json
+@@ -0,0 +1 @@
++{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"N","osm_id":352676029,"osm_key":"shop","osm_value":"bakery","type":"house","housenumber":"16","name":"Pappert","street":"Hailerer Straße","district":"Gelnhausen-Mitte","city":"Gelnhausen","county":"Main-Kinzig-Kreis","state":"Hessen","country":"Deutschland","postcode":"63571","countrycode":"DE"},"geometry":{"type":"Point","coordinates":[9.1876628,50.1970378]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":12919015101,"osm_key":"shop","osm_value":"bakery","type":"house","name":"Naumann","street":"Lagerhausstraße","city":"Altenhaßlau","county":"Main-Kinzig-Kreis","state":"Hessen","country":"Deutschland","postcode":"63571","countrycode":"DE"},"geometry":{"type":"Point","coordinates":[9.1916336,50.196275]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":10942031661,"osm_key":"shop","osm_value":"bakery","type":"house","name":"Altstadtbäckerei Pfeifer","street":"Schmidtgasse","district":"Gelnhausen-Mitte","city":"Gelnhausen","county":"Main-Kinzig-Kreis","state":"Hessen","country":"Deutschland","postcode":"63571","countrycode":"DE"},"geometry":{"type":"Point","coordinates":[9.192289,50.2017061]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":4000802895,"osm_key":"shop","osm_value":"bakery","type":"house","name":"Pappert","city":"Altenhaßlau","county":"Main-Kinzig-Kreis","state":"Hessen","country":"Deutschland","postcode":"63589","countrycode":"DE"},"geometry":{"type":"Point","coordinates":[9.1979705,50.1954957]}},{"type":"Feature","properties":{"osm_type":"N","osm_id":3909605989,"osm_key":"shop","osm_value":"bakery","type":"house","housenumber":"9","name":"Pappert","street":"Lützelhäuser Weg","district":"Hailer","city":"Gelnhausen","county":"Main-Kinzig-Kreis","state":"Hessen","country":"Deutschland","postcode":"63571","countrycode":"DE"},"geometry":{"type":"Point","coordinates":[9.1846044,50.1890908]}}]}
+diff --git a/autotests/data/photon/gelnhausen-bakeries.out.json b/autotests/data/photon/gelnhausen-bakeries.out.json
+new file mode 100644
+index 00000000..45d16464
+--- /dev/null
++++ b/autotests/data/photon/gelnhausen-bakeries.out.json
+@@ -0,0 +1,85 @@
++[
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "n352676029"
++        },
++        "latitude": 50.1970378,
++        "locality": "Gelnhausen",
++        "longitude": 9.1876628,
++        "name": "Pappert",
++        "postalCode": "63571",
++        "region": "DE-HE",
++        "streetAddress": "Hailerer Straße 16",
++        "tags": {
++            "shop": "bakery"
++        },
++        "type": "PointOfInterest"
++    },
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "n12919015101"
++        },
++        "latitude": 50.196275,
++        "locality": "Altenhaßlau",
++        "longitude": 9.1916336,
++        "name": "Naumann",
++        "postalCode": "63571",
++        "region": "DE-HE",
++        "streetAddress": "Lagerhausstraße",
++        "tags": {
++            "shop": "bakery"
++        },
++        "type": "PointOfInterest"
++    },
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "n10942031661"
++        },
++        "latitude": 50.2017061,
++        "locality": "Gelnhausen",
++        "longitude": 9.192289,
++        "name": "Altstadtbäckerei Pfeifer",
++        "postalCode": "63571",
++        "region": "DE-HE",
++        "streetAddress": "Schmidtgasse",
++        "tags": {
++            "shop": "bakery"
++        },
++        "type": "PointOfInterest"
++    },
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "n4000802895"
++        },
++        "latitude": 50.1954957,
++        "locality": "Altenhaßlau",
++        "longitude": 9.1979705,
++        "name": "Pappert",
++        "postalCode": "63589",
++        "region": "DE-HE",
++        "tags": {
++            "shop": "bakery"
++        },
++        "type": "PointOfInterest"
++    },
++    {
++        "country": "DE",
++        "identifier": {
++            "osm": "n3909605989"
++        },
++        "latitude": 50.1890908,
++        "locality": "Gelnhausen",
++        "longitude": 9.1846044,
++        "name": "Pappert",
++        "postalCode": "63571",
++        "streetAddress": "Lützelhäuser Weg 9",
++        "tags": {
++            "shop": "bakery"
++        },
++        "type": "PointOfInterest"
++    }
++]
 diff --git a/autotests/journeytest.cpp b/autotests/journeytest.cpp
 index b6709cba..bf29d516 100644
 --- a/autotests/journeytest.cpp
@@ -14000,6 +14640,115 @@ index b6709cba..bf29d516 100644
  };
  
  QTEST_GUILESS_MAIN(JourneyTest)
+diff --git a/autotests/locationrequesttest.cpp b/autotests/locationrequesttest.cpp
+new file mode 100644
+index 00000000..b557f76f
+--- /dev/null
++++ b/autotests/locationrequesttest.cpp
+@@ -0,0 +1,45 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include <KPublicTransport/LocationRequest>
++
++#include <QJsonArray>
++#include <QJsonObject>
++#include <QTest>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++class LocationRequestTest : public QObject
++{
++    Q_OBJECT
++private Q_SLOTS:
++    void testOsmTags()
++    {
++        LocationRequest req;
++        req.setCoordinate(50.1966, 9.1886);
++        req.setTypes(Location::PointOfInterest);
++        QVERIFY(req.isValid());
++        QVERIFY(req.osmTags().isEmpty());
++        QVERIFY(!LocationRequest::toJson(req).contains("osmTags"_L1));
++        const auto cacheKey = req.cacheKey();
++
++        req.setOsmTags({u"shop=bakery"_s, u"amenity"_s});
++        QVERIFY(req.isValid());
++        QCOMPARE(req.osmTags(), QStringList({u"shop=bakery"_s, u"amenity"_s}));
++        QCOMPARE(LocationRequest::toJson(req).value("osmTags"_L1).toArray(), QJsonArray({u"shop=bakery"_s, u"amenity"_s}));
++        QCOMPARE(LocationRequest::toJson(req).value("types"_L1).toString(), u"PointOfInterest"_s);
++        QVERIFY(req.cacheKey() != cacheKey);
++
++        LocationRequest req2(req);
++        req2.setOsmTags({u"shop=bakeryamenity"_s});
++        QVERIFY(req.cacheKey() != req2.cacheKey());
++        QCOMPARE(req.osmTags().size(), 2);
++    }
++};
++
++QTEST_GUILESS_MAIN(LocationRequestTest)
++
++#include "locationrequesttest.moc"
+diff --git a/autotests/locationtest.cpp b/autotests/locationtest.cpp
+index f08caf0a..bc097360 100644
+--- a/autotests/locationtest.cpp
++++ b/autotests/locationtest.cpp
+@@ -6,6 +6,7 @@
+ 
+ #include <KPublicTransport/Location>
+ 
++#include <QJsonObject>
+ #include <QTest>
+ 
+ #include <cmath>
+@@ -160,6 +161,45 @@ private Q_SLOTS:
+         QVERIFY(Location::isSame(l2, r2));
+         QVERIFY(Location::isSame(r2, l2));
+     }
++
++    void testTags()
++    {
++        Location l;
++        l.setTagValue(s("shop"), s("bakery"));
++        Location r(l);
++        r.setTagValue(s("shop"), s("butcher"));
++        QCOMPARE(l.tagValue(s("shop")), s("bakery"));
++        QCOMPARE(r.tagValue(s("shop")), s("butcher"));
++    }
++
++    void testPointOfInterest()
++    {
++        Location l;
++        l.setType(Location::PointOfInterest);
++        l.setName(s("Pappert"));
++        l.setCoordinate(50.1970378, 9.1876628);
++        l.setIdentifier(s("osm"), s("n352676029"));
++        l.setTagValue(s("shop"), s("bakery"));
++
++        const auto obj = Location::toJson(l);
++        QCOMPARE(obj.value(QLatin1String("type")).toString(), s("PointOfInterest"));
++        const auto l2 = Location::fromJson(obj);
++        QCOMPARE(l2.type(), Location::PointOfInterest);
++        QCOMPARE(l2.tagValue(s("shop")), s("bakery"));
++        QCOMPARE(l2.tagKeys(), QStringList{s("shop")});
++        QVERIFY(Location::isSame(l, l2));
++
++        // different POIs at the same place are not merged
++        Location r(l);
++        r.setName(s("Naumann"));
++        r.setIdentifier(s("osm"), s("n12919015101"));
++        QVERIFY(!Location::isSame(l, r));
++
++        // POIs are not merged with stops or addresses
++        r = l;
++        r.setType(Location::Address);
++        QVERIFY(!Location::isSame(l, r));
++    }
+ };
+ 
+ QTEST_GUILESS_MAIN(LocationTest)
 diff --git a/autotests/motis2parsertest.cpp b/autotests/motis2parsertest.cpp
 index 9474235c..75451cca 100644
 --- a/autotests/motis2parsertest.cpp
@@ -15314,6 +16063,409 @@ index 00000000..01ef9563
 +QTEST_GUILESS_MAIN(PathTest)
 +
 +#include "pathtest.moc"
+diff --git a/autotests/photonparsertest.cpp b/autotests/photonparsertest.cpp
+new file mode 100644
+index 00000000..58efedc2
+--- /dev/null
++++ b/autotests/photonparsertest.cpp
+@@ -0,0 +1,85 @@
++/*
++    SPDX-FileCopyrightText: 2026 Volker Krause <vkrause@kde.org>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "testhelpers.h"
++#include "backends/photonparser.cpp"
++#include "geo/geojson.cpp"
++
++#include <KPublicTransport/Location>
++
++#include <QFile>
++#include <QJsonObject>
++#include <QJsonDocument>
++#include <QJsonValue>
++#include <QTest>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++class PhotonParserTest : public QObject
++{
++    Q_OBJECT
++private Q_SLOTS:
++    void initTestCase()
++    {
++        qputenv("TZ", "UTC");
++    }
++
++    void testLocationParse_data()
++    {
++        QTest::addColumn<QString>("inFileName");
++        QTest::addColumn<QString>("outFileName");
++        QTest::addColumn<Location::Types>("types");
++
++        QTest::newRow("balatonalm")
++            << u"" SOURCE_DIR "/data/photon/balatonalm.in.json"_s
++            << u"" SOURCE_DIR "/data/photon/balatonalm.out.json"_s
++            << Location::Types(Location::Stop | Location::Address);
++        QTest::newRow("dresden")
++            << u"" SOURCE_DIR "/data/photon/dresden.in.json"_s
++            << u"" SOURCE_DIR "/data/photon/dresden.out.json"_s
++            << Location::Types(Location::Stop | Location::Address);
++        QTest::newRow("gelnhausen-bakeries")
++            << u"" SOURCE_DIR "/data/photon/gelnhausen-bakeries.in.json"_s
++            << u"" SOURCE_DIR "/data/photon/gelnhausen-bakeries.out.json"_s
++            << Location::Types(Location::PointOfInterest);
++    }
++
++    void testLocationParse()
++    {
++        QFETCH(QString, inFileName);
++        QFETCH(QString, outFileName);
++        QFETCH(Location::Types, types);
++
++        const auto locs = KPublicTransport::PhotonParser::parseLocations(Test::readFile(inFileName), types);
++        const auto locsRef = QJsonDocument::fromJson(Test::readFile(outFileName)).array();
++        QVERIFY(Test::compareJson(outFileName, Location::toJson(locs), locsRef));
++    }
++
++    void testPointOfInterestClassification()
++    {
++        const auto data = Test::readFile(u"" SOURCE_DIR "/data/photon/balatonalm.in.json"_s);
++        const auto locs = KPublicTransport::PhotonParser::parseLocations(data, Location::Stop | Location::Address);
++        const auto poiLocs = KPublicTransport::PhotonParser::parseLocations(data, Location::Stop | Location::Address | Location::PointOfInterest);
++        QCOMPARE(poiLocs.size(), locs.size());
++
++        for (std::size_t i = 0; i < locs.size(); ++i) {
++            if (!locs[i].tagValue(u"amenity"_s).isEmpty()) {
++                // amenities with a house number are addresses unless we asked for points of interest
++                QCOMPARE(locs[i].type(), Location::Address);
++                QCOMPARE(poiLocs[i].type(), Location::PointOfInterest);
++            } else {
++                // stops, places and administrative areas are unaffected
++                QVERIFY(locs[i].type() != Location::PointOfInterest);
++                QCOMPARE(poiLocs[i].type(), locs[i].type());
++            }
++        }
++    }
++};
++
++QTEST_GUILESS_MAIN(PhotonParserTest)
++
++#include "photonparsertest.moc"
++
+diff --git a/autotests/photonrequesttest.cpp b/autotests/photonrequesttest.cpp
+new file mode 100644
+index 00000000..176c41bc
+--- /dev/null
++++ b/autotests/photonrequesttest.cpp
+@@ -0,0 +1,306 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "backends/photonbackend.h"
++#include "mocknetworkaccessmanager.h"
++#include "testhelpers.h"
++
++#include <KPublicTransport/LocationReply>
++#include <KPublicTransport/LocationRequest>
++#include <KPublicTransport/Manager>
++
++#include <QJsonArray>
++#include <QJsonDocument>
++#include <QJsonObject>
++#include <QSignalSpy>
++#include <QStandardPaths>
++#include <QTest>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++class PhotonRequestTest : public QObject
++{
++    Q_OBJECT
++private Q_SLOTS:
++    void initTestCase()
++    {
++        QStandardPaths::setTestModeEnabled(true);
++        qputenv("TZ", "UTC");
++        QLocale::setDefault(QLocale(u"en_US"_s));
++
++        m_mgr.setNetworkAccessManager(&m_nam);
++    }
++
++    void testLocationRequest_data()
++    {
++        QTest::addColumn<LocationRequest>("request");
++        QTest::addColumn<QUrl>("requestUrl");
++
++        // plain name searches as done by the stop picker
++        LocationRequest req;
++        req.setBackendIds({u"un_photon"_s});
++        req.setName(u"Gelnhausen"_s);
++        QTest::newRow("name") << req << QUrl(u"https://photon.komoot.io/api/?q=Gelnhausen&limit=10"_s);
++
++        req.setCoordinate(50.1966, 9.1886);
++        QTest::newRow("name-with-coordinate") << req << QUrl(u"https://photon.komoot.io/api/?q=Gelnhausen&lat=50.1966&lon=9.1886&limit=10"_s);
++
++        // category search within a radius
++        req = {};
++        req.setBackendIds({u"un_photon"_s});
++        req.setCoordinate(50.1966, 9.1886);
++        req.setTypes(Location::PointOfInterest);
++        req.setOsmTags({u"shop=bakery"_s});
++        req.setMaximumDistance(5000);
++        QTest::newRow("category-radius") << req << QUrl(u"https://photon.komoot.io/reverse?lat=50.1966&lon=9.1886&radius=5&include=osm.shop.bakery&limit=10"_s);
++
++        req.setOsmTags({u"shop=bakery"_s, u"amenity"_s});
++        req.setMaximumDistance(500);
++        req.setMaximumResults(100);
++        QTest::newRow("multiple-categories") << req << QUrl(u"https://photon.komoot.io/reverse?lat=50.1966&lon=9.1886&radius=0.5&include=osm.shop.bakery,osm.amenity&limit=50"_s);
++
++        // coordinates are not rounded to 6 significant digits
++        req.setCoordinate(35.6812362, 139.7671248);
++        req.setOsmTags({u"amenity=cafe"_s});
++        req.setMaximumDistance(50);
++        req.setMaximumResults(5);
++        QTest::newRow("category-precision") << req << QUrl(u"https://photon.komoot.io/reverse?lat=35.681236&lon=139.767125&radius=0.05&include=osm.amenity.cafe&limit=5"_s);
++
++        // anything around a coordinate
++        req.setCoordinate(50.1966, 9.1886);
++        req.setMaximumDistance(500);
++        req.setOsmTags({});
++        QTest::newRow("poi-radius") << req << QUrl(u"https://photon.komoot.io/reverse?lat=50.1966&lon=9.1886&radius=0.5&limit=5"_s);
++
++        // name search for points of interest near a coordinate
++        req.setOsmTags({u"shop=bakery"_s});
++        req.setName(u"Pappert"_s);
++        req.setMaximumDistance(2000);
++        QTest::newRow("poi-name-radius") << req << QUrl(u"https://photon.komoot.io/api/?q=Pappert&lat=50.1966&lon=9.1886&bbox=9.160503,50.178614,9.216697,50.214586&include=osm.shop.bakery&limit=5"_s);
++
++        // very short names are fine for searches near a coordinate
++        req.setName(u"Bä"_s);
++        QTest::newRow("poi-short-name-radius") << req << QUrl(u"https://photon.komoot.io/api/?q=B%C3%A4&lat=50.1966&lon=9.1886&bbox=9.160503,50.178614,9.216697,50.214586&include=osm.shop.bakery&limit=5"_s);
++
++        // name search for points of interest in a given area
++        req = {};
++        req.setBackendIds({u"un_photon"_s});
++        req.setName(u"Pappert"_s);
++        req.setTypes(Location::PointOfInterest);
++        req.setViewbox(QRectF(QPointF(9.1, 50.1), QPointF(9.3, 50.3)));
++        QTest::newRow("poi-name-viewbox") << req << QUrl(u"https://photon.komoot.io/api/?q=Pappert&bbox=9.1,50.1,9.3,50.3&limit=10"_s);
++    }
++
++    void testLocationRequest()
++    {
++        QFETCH(LocationRequest, request);
++        QFETCH(QUrl, requestUrl);
++
++        m_nam.requests.clear();
++        QVERIFY(request.isValid());
++
++        auto reply = m_mgr.queryLocation(request);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++        QCOMPARE(reply->error(), Reply::NetworkError);
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(m_nam.requests[0].op, QNetworkAccessManager::GetOperation);
++        QCOMPARE(m_nam.requests[0].request.url(), requestUrl);
++    }
++
++    void testNoRequest_data()
++    {
++        QTest::addColumn<LocationRequest>("request");
++
++        LocationRequest req;
++        req.setBackendIds({u"un_photon"_s});
++        req.setName(u"Bä"_s);
++        QTest::newRow("short-name") << req;
++
++        req.setCoordinate(50.1966, 9.1886);
++        QTest::newRow("short-name-with-coordinate") << req;
++
++        req.setName({});
++        QTest::newRow("coordinate-only") << req;
++
++        // tag filters that cannot be translated must not result in an unfiltered search
++        req.setTypes(Location::PointOfInterest);
++        req.setOsmTags({u"=bakery"_s, u" "_s, QString()});
++        QTest::newRow("invalid-tags") << req;
++
++        // short names need a search radius
++        req.setOsmTags({u"shop=bakery"_s});
++        req.setName(u"Bä"_s);
++        req.setMaximumDistance(0);
++        QTest::newRow("poi-short-name-without-radius") << req;
++
++        req.setViewbox(QRectF(QPointF(9.1, 50.1), QPointF(9.3, 50.3)));
++        QTest::newRow("poi-short-name-viewbox") << req;
++    }
++
++    void testReverseUrl_data()
++    {
++        QTest::addColumn<QUrl>("apiUrl");
++        QTest::addColumn<QUrl>("reverseUrl");
++
++        QTest::newRow("api-slash") << QUrl(u"https://photon.komoot.io/api/"_s) << QUrl(u"https://photon.komoot.io/reverse"_s);
++        QTest::newRow("api") << QUrl(u"https://photon.komoot.io/api"_s) << QUrl(u"https://photon.komoot.io/reverse"_s);
++        QTest::newRow("prefix-api-slash") << QUrl(u"https://example.org/photon/api/"_s) << QUrl(u"https://example.org/photon/reverse"_s);
++        QTest::newRow("prefix-api") << QUrl(u"https://example.org/photon/api"_s) << QUrl(u"https://example.org/photon/reverse"_s);
++        QTest::newRow("port") << QUrl(u"http://localhost:2322/api"_s) << QUrl(u"http://localhost:2322/reverse"_s);
++    }
++
++    void testReverseUrl()
++    {
++        QFETCH(QUrl, apiUrl);
++        QFETCH(QUrl, reverseUrl);
++        QCOMPARE(PhotonBackend::reverseUrl(apiUrl), reverseUrl);
++    }
++
++    void testNoRequest()
++    {
++        QFETCH(LocationRequest, request);
++
++        m_nam.requests.clear();
++        QVERIFY(request.isValid());
++
++        auto reply = m_mgr.queryLocation(request);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++        QCOMPARE(m_nam.requests.size(), 0);
++    }
++
++    void testBackendSelection()
++    {
++        LocationRequest req;
++        req.setCoordinate(50.1966, 9.1886);
++        req.setTypes(Location::Stop | Location::Address | Location::PointOfInterest);
++
++        // without tag filters, other backends are queried as well
++        m_nam.requests.clear();
++        auto reply = m_mgr.queryLocation(req);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++        QVERIFY(m_nam.requests.size() > 1);
++        QVERIFY(std::any_of(m_nam.requests.begin(), m_nam.requests.end(), [](const auto &r) {
++            return r.request.url().host() != "photon.komoot.io"_L1;
++        }));
++
++        // only backends supporting OSM tag filters are queried
++        req.setOsmTags({u"shop=bakery"_s});
++        m_nam.requests.clear();
++        reply = m_mgr.queryLocation(req);
++        QSignalSpy finishedSpy2(reply, &Reply::finished);
++        QVERIFY(finishedSpy2.wait());
++        reply->deleteLater();
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(m_nam.requests[0].request.url().host(), u"photon.komoot.io"_s);
++        QCOMPARE(m_nam.requests[0].request.url().path(), u"/reverse"_s);
++    }
++
++    void testReverseResult()
++    {
++        m_nam.requests.clear();
++        m_nam.replies.push({
++            .error = QNetworkReply::NoError,
++            .statusCode = 200,
++            .data = reversedReply(),
++        });
++
++        LocationRequest req;
++        req.setBackendIds({u"un_photon"_s});
++        req.setCoordinate(50.1966, 9.1886);
++        req.setTypes(Location::PointOfInterest);
++        req.setOsmTags({u"shop=bakery"_s});
++        req.setMaximumDistance(700);
++
++        auto reply = m_mgr.queryLocation(req);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++        QCOMPARE(reply->error(), Reply::NoError);
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(m_nam.requests[0].request.url().path(), u"/reverse"_s);
++
++        // results further away than requested are dropped, the rest is sorted by distance
++        const auto &res = reply->result();
++        QCOMPARE(res.size(), 4);
++        QCOMPARE(res[0].name(), u"Pappert"_s);
++        QCOMPARE(res[0].type(), Location::PointOfInterest);
++        QCOMPARE(res[0].identifier(u"osm"_s), u"n352676029"_s);
++        QCOMPARE(res[0].tagValue(u"shop"_s), u"bakery"_s);
++        QCOMPARE(res[0].streetAddress(), u"Hailerer Straße 16"_s);
++        QCOMPARE(res[1].name(), u"Naumann"_s);
++        QCOMPARE(res[1].type(), Location::PointOfInterest);
++        QCOMPARE(res[1].identifier(u"osm"_s), u"n12919015101"_s);
++        QCOMPARE(res[2].name(), u"Altstadtbäckerei Pfeifer"_s);
++        QCOMPARE(res[3].name(), u"Pappert"_s);
++        double prevDist = 0.0;
++        for (const auto &loc : res) {
++            const auto dist = Location::distance(req.latitude(), req.longitude(), loc.latitude(), loc.longitude());
++            QVERIFY(dist <= req.maximumDistance());
++            QVERIFY(dist >= prevDist);
++            prevDist = dist;
++        }
++    }
++
++    void testNameResult()
++    {
++        m_nam.requests.clear();
++        m_nam.replies.push({
++            .error = QNetworkReply::NoError,
++            .statusCode = 200,
++            .data = reversedReply(),
++        });
++
++        LocationRequest req;
++        req.setBackendIds({u"un_photon"_s});
++        req.setCoordinate(50.1966, 9.1886);
++        req.setName(u"Pappert"_s);
++        req.setTypes(Location::PointOfInterest);
++        req.setMaximumDistance(600);
++
++        auto reply = m_mgr.queryLocation(req);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++        QCOMPARE(reply->error(), Reply::NoError);
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(m_nam.requests[0].request.url().path(), u"/api/"_s);
++
++        // results outside of the search radius are dropped, also those inside the
++        // corners of the bounding box (Altstadtbäckerei Pfeifer, 626m away)
++        const auto &res = reply->result();
++        QCOMPARE(res.size(), 2);
++        QCOMPARE(res[0].name(), u"Pappert"_s);
++        QCOMPARE(res[0].identifier(u"osm"_s), u"n352676029"_s);
++        QCOMPARE(res[1].name(), u"Naumann"_s);
++    }
++
++private:
++    // the recorded reply in reverse order, i.e. not sorted by distance
++    [[nodiscard]] static QByteArray reversedReply()
++    {
++        auto doc = QJsonDocument::fromJson(Test::readFile(u"" SOURCE_DIR "/data/photon/gelnhausen-bakeries.in.json"_s)).object();
++        const auto features = doc.value("features"_L1).toArray();
++        QJsonArray reversed;
++        for (auto i = features.size() - 1; i >= 0; --i) {
++            reversed.push_back(features.at(i));
++        }
++        doc.insert("features"_L1, reversed);
++        return QJsonDocument(doc).toJson(QJsonDocument::Compact);
++    }
++
++    MockNetworkAccessManager m_nam;
++    Manager m_mgr;
++};
++
++QTEST_GUILESS_MAIN(PhotonRequestTest)
++
++#include "photonrequesttest.moc"
 diff --git a/autotests/ticketshoptest.cpp b/autotests/ticketshoptest.cpp
 new file mode 100644
 index 00000000..529642f7
@@ -16528,10 +17680,18 @@ index 58abc191..4b09dd50 100644
 +msgid "Arrive at %1"
 +msgstr "Ankunft: %1"
 diff --git a/src/lib/CMakeLists.txt b/src/lib/CMakeLists.txt
-index 4705b17f..afc06fea 100644
+index 4705b17f..3b25f30c 100644
 --- a/src/lib/CMakeLists.txt
 +++ b/src/lib/CMakeLists.txt
-@@ -78,6 +78,7 @@ target_sources(KPublicTransport PRIVATE
+@@ -69,6 +69,7 @@ target_sources(KPublicTransport PRIVATE
+     backends/opentripplannerrestbackend.cpp
+     backends/otp/otp.qrc
+     backends/photonbackend.cpp
++    backends/photonparser.cpp
+     backends/scopedxmlstreamreader.cpp
+     backends/srbijavozbackend.cpp
+ 
+@@ -78,6 +79,7 @@ target_sources(KPublicTransport PRIVATE
      datatypes/classutil.cpp
      datatypes/coveragearea.cpp
      datatypes/disruption.cpp
@@ -16539,7 +17699,7 @@ index 4705b17f..afc06fea 100644
      datatypes/equipment.cpp
      datatypes/equipmentutil.cpp
      datatypes/feature.cpp
-@@ -96,6 +97,7 @@ target_sources(KPublicTransport PRIVATE
+@@ -96,6 +98,7 @@ target_sources(KPublicTransport PRIVATE
      datatypes/mergeutil.cpp
      datatypes/notesutil.cpp
      datatypes/path.cpp
@@ -16547,7 +17707,7 @@ index 4705b17f..afc06fea 100644
      datatypes/platform.cpp
      datatypes/platformutils.cpp
      datatypes/rentalvehicle.cpp
-@@ -136,6 +138,7 @@ target_sources(KPublicTransport PRIVATE
+@@ -136,6 +139,7 @@ target_sources(KPublicTransport PRIVATE
      knowledgedb/asset-attributions.qrc
      knowledgedb/countryboundingbox.cpp
      knowledgedb/linemetadata.cpp
@@ -16555,7 +17715,7 @@ index 4705b17f..afc06fea 100644
  
      layout/platformlayout.cpp
  
-@@ -150,6 +153,7 @@ target_sources(KPublicTransport PRIVATE
+@@ -150,6 +154,7 @@ target_sources(KPublicTransport PRIVATE
      models/vehiclelayoutquerymodel.cpp
  
      networks/networks.qrc
@@ -16563,6 +17723,27 @@ index 4705b17f..afc06fea 100644
      networks/certs/network_certs.qrc
      networks/gbfs/gbfs.qrc
      networks/geometry/geometry.qrc
+diff --git a/src/lib/backends/abstractbackend.h b/src/lib/backends/abstractbackend.h
+index da22afcd..2f21bbb5 100644
+--- a/src/lib/backends/abstractbackend.h
++++ b/src/lib/backends/abstractbackend.h
+@@ -147,12 +147,15 @@ public:
+         CanQueryNextDeparture = 8, ///< supports querying for later departures
+         CanQueryPreviousDeparture = 16, ///< supports query for earlier departures
+         CanQueryArrivals = 32, ///< supports querying arrival stopovers at a given location
++        CanFilterLocationsByOsmTags = 64, ///< supports filtering location queries by OSM tags, see LocationRequest::osmTags
+     };
+     Q_DECLARE_FLAGS(Capabilities, Capability)
+ 
+     /** Returns the capabilities of this backend.
+      *  Reporting the correct values here is important for stopover and journey result paging
+-     *  to work correctly.
++     *  to work correctly, and for selecting the backends to query for location requests
++     *  with OSM tag filters (see LocationRequest::osmTags), which are only sent to backends
++     *  reporting CanFilterLocationsByOsmTags.
+      */
+     [[nodiscard]] virtual Capabilities capabilities() const;
+     /** Checks if this backend has @p capability. */
 diff --git a/src/lib/backends/deutschebahnparser.cpp b/src/lib/backends/deutschebahnparser.cpp
 index f6dbb1e6..8450aac0 100644
 --- a/src/lib/backends/deutschebahnparser.cpp
@@ -16925,6 +18106,464 @@ index 8ea8cad7..f90624e1 100644
              }
          }
          prevDateTime
+diff --git a/src/lib/backends/photonbackend.cpp b/src/lib/backends/photonbackend.cpp
+index 67086133..3a7c7502 100644
+--- a/src/lib/backends/photonbackend.cpp
++++ b/src/lib/backends/photonbackend.cpp
+@@ -7,23 +7,19 @@
+ #include "photonbackend.h"
+ 
+ #include "backends/abstractbackend.h"
+-#include "datatypes/line.h"
+-#include "datatypes/stopinformation.h"
+-#include "geo/geojson_p.h"
+ #include "http/useragent_p.h"
+ #include "locationreply.h"
+ #include "locationrequest.h"
+-#include "reply.h"
++#include "photonparser.h"
+ 
+-#include <QJsonArray>
+ #include <QNetworkAccessManager>
+ #include <QNetworkReply>
+ #include <QNetworkRequest>
+ #include <QString>
+ #include <QUrlQuery>
+ 
++#include <algorithm>
+ #include <utility>
+-#include <vector>
+ 
+ using namespace KPublicTransport;
+ 
+@@ -31,28 +27,132 @@ using namespace Qt::StringLiterals;
+ 
+ AbstractBackend::Capabilities KPublicTransport::PhotonBackend::capabilities() const
+ {
+-    return m_url.scheme() == "https"_L1 ? Secure : NoCapability;
++    return (m_url.scheme() == "https"_L1 ? Secure : NoCapability) | CanFilterLocationsByOsmTags;
++}
++
++// Photon's limit for the number of results
++constexpr auto MaximumResults = 50;
++
++// converts "key=value" or "key" OSM tag filters into Photon's "include" parameter
++// format, see https://github.com/komoot/photon/blob/master/docs/api-v1.md
++[[nodiscard]] static QString includeFilter(const QStringList &osmTags)
++{
++    QStringList filters;
++    for (const auto &tag : osmTags) {
++        const auto idx = tag.indexOf('='_L1);
++        const auto key = QStringView(tag).left(idx).trimmed();
++        const auto value = idx < 0 ? QStringView() : QStringView(tag).mid(idx + 1).trimmed();
++        if (key.isEmpty()) {
++            continue;
++        }
++        filters.push_back(value.isEmpty() ? QString("osm."_L1 + key) : QString("osm."_L1 + key + '.'_L1 + value));
++    }
++    return filters.join(','_L1);
++}
++
++// coordinate values with 6 decimals (about 0.1m), QString::number() defaults to
++// 6 significant digits, which can be off by up to 50m
++[[nodiscard]] static QString coordinateValue(double value)
++{
++    auto s = QString::number(value, 'f', 6);
++    while (s.endsWith('0'_L1)) {
++        s.chop(1);
++    }
++    if (s.endsWith('.'_L1)) {
++        s.chop(1);
++    }
++    return s;
++}
++
++// bounding box in Photon's "minLon,minLat,maxLon,maxLat" format
++[[nodiscard]] static QString boundingBox(double minLat, double minLon, double maxLat, double maxLon)
++{
++    return coordinateValue(std::clamp(minLon, -180.0, 180.0)) + ','_L1 + coordinateValue(std::clamp(minLat, -90.0, 90.0)) + ','_L1
++        + coordinateValue(std::clamp(maxLon, -180.0, 180.0)) + ','_L1 + coordinateValue(std::clamp(maxLat, -90.0, 90.0));
++}
++
++QUrl PhotonBackend::reverseUrl(const QUrl &apiUrl)
++{
++    // the search endpoint is <base>/api, the reverse geocoding endpoint is <base>/reverse
++    auto url = apiUrl;
++    auto path = url.path();
++    while (path.endsWith('/'_L1)) {
++        path.chop(1);
++    }
++    if (path.endsWith("/api"_L1)) {
++        path.chop(3);
++    } else {
++        path.push_back('/'_L1);
++    }
++    url.setPath(path + "reverse"_L1);
++    url.setQuery(QString());
++    return url;
+ }
+ 
+ bool PhotonBackend::queryLocation(const LocationRequest &request,
+                                   LocationReply *reply,
+                                   QNetworkAccessManager *nam) const
+ {
+-    if (request.name().size() <= 3) {
++    // searching for points of interest, either by category or by name around a given location
++    const bool poiSearch = !request.osmTags().isEmpty() || (request.types() & Location::PointOfInterest);
++    const bool proximitySearch = poiSearch && request.hasCoordinate();
++    const bool filterByDistance = proximitySearch && request.maximumDistance() > 0;
++
++    // tag filters we cannot translate would result in an unfiltered search
++    const auto include = includeFilter(request.osmTags());
++    if (!request.osmTags().isEmpty() && include.isEmpty()) {
+         return false;
+     }
+ 
+-    QUrl url = m_url;
++    QUrl url;
+     QUrlQuery query;
+-    query.addQueryItem(u"q"_s, request.name());
+-    if (request.location().hasCoordinate()) {
+-        query.addQueryItem(u"lat"_s, QString::number(request.location().latitude()));
+-        query.addQueryItem(u"lon"_s, QString::number(request.location().longitude()));
++    if (proximitySearch && request.name().isEmpty()) {
++        // without a name we can only search by distance, which needs the reverse geocoding endpoint
++        url = reverseUrl(m_url);
++        query.addQueryItem(u"lat"_s, coordinateValue(request.latitude()));
++        query.addQueryItem(u"lon"_s, coordinateValue(request.longitude()));
++        if (request.maximumDistance() > 0) {
++            query.addQueryItem(u"radius"_s, QString::number(request.maximumDistance() / 1000.0));
++        }
++    } else {
++        QString bbox;
++        if (filterByDistance) {
++            const auto dlat = request.maximumDistance() / Location::distance(request.latitude(), request.longitude(), request.latitude() + 1.0, request.longitude());
++            const auto dlon = request.maximumDistance() / Location::distance(request.latitude(), request.longitude(), request.latitude(), request.longitude() + 1.0);
++            bbox = boundingBox(request.latitude() - dlat, request.longitude() - dlon, request.latitude() + dlat, request.longitude() + dlon);
++        } else if (poiSearch && request.viewbox().isValid()) {
++            const auto box = request.viewbox().normalized();
++            bbox = boundingBox(box.top(), box.left(), box.bottom(), box.right());
++        }
++
++        // very short names produce too many results to be useful, unless restricted
++        // to a search radius (a viewbox might be derived from the country and thus be large)
++        if (request.name().size() <= 3 && !filterByDistance) {
++            return false;
++        }
++
++        url = m_url;
++        query.addQueryItem(u"q"_s, request.name());
++        if (request.hasCoordinate()) {
++            query.addQueryItem(u"lat"_s, coordinateValue(request.latitude()));
++            query.addQueryItem(u"lon"_s, coordinateValue(request.longitude()));
++        }
++        if (!bbox.isEmpty()) {
++            query.addQueryItem(u"bbox"_s, bbox);
++        }
++    }
++
++    if (!include.isEmpty()) {
++        query.addQueryItem(u"include"_s, include);
+     }
++    query.addQueryItem(u"limit"_s, QString::number(poiSearch ? std::min(request.maximumResults(), MaximumResults) : request.maximumResults()));
+     url.setQuery(query);
+ 
+     QNetworkRequest req(url);
+-    req.setHeader(QNetworkRequest::KnownHeaders::UserAgentHeader, Http::userAgent().toUtf8());
++    applyUserAgent(req);
++    req.setRawHeader("Accept-Language", preferredLanguages().join(", "_L1).toUtf8());
++    logRequest(request, req);
++    qDebug() << url;
+ 
+     auto *netReply = nam->get(req);
+     QObject::connect(netReply, &QNetworkReply::finished, reply, [=, this]() {
+@@ -62,79 +162,18 @@ bool PhotonBackend::queryLocation(const LocationRequest &request,
+         }
+ 
+         const auto body = netReply->readAll();
+-        const auto geojson = QJsonDocument::fromJson(body).object();
+-        const auto features = geojson.value("features"_L1).toArray();
+-
+-        std::vector<Location> locations;
+-        for (const auto feature : features) {
+-            const auto featureObj = feature.toObject();
+-            const auto geo = featureObj.value("geometry"_L1).toObject();
+-            const auto properties = featureObj.value("properties"_L1).toObject();
+-
+-            Location loc;
+-
+-            if (properties.contains("name"_L1)) {
+-                loc.setName(properties.value("name"_L1).toString());
+-            }
+-            if (properties.contains("countrycode"_L1)) {
+-                loc.setCountry(properties.value("countrycode"_L1).toString());
+-            }
+-            if (properties.contains("postcode"_L1)) {
+-                loc.setPostalCode(properties.value("postcode"_L1).toString());
+-            }
+-            if (properties.contains("city"_L1)) {
+-                loc.setLocality(properties.value("city"_L1).toString());
+-            }
+-
+-            StopInformation stop;
+-            Line line;
+-
+-            if (properties.contains("osm_key"_L1) && properties.contains("osm_value"_L1)) {
+-                auto const key = properties.value("osm_key"_L1).toStringView();
+-                auto const value = properties.value("osm_value"_L1).toStringView();
+-
+-                if (key == "railway") {
+-                    if (value == "station" || value == "halt" || value == "stop"
+-                        || value == "platform") {
+-                        loc.setType(Location::Stop);
+-                        line.setMode(Line::Mode::Train);
+-                    } else if (value == "tram_stop") {
+-                        loc.setType(Location::Stop);
+-                        line.setMode(Line::Mode::Tramway);
+-                    }
+-                }
+-                if (key == "building" && value == "train_station") {
+-                    loc.setType(Location::Stop);
+-                    line.setMode(Line::Mode::Train);
+-                } else if (key == "highway" && value == "bus_stop") {
+-                    loc.setType(Location::Stop);
+-                    line.setMode(Line::Mode::Bus);
+-                } else if (key == "aerialway" && value == "station") {
+-                    loc.setType(Location::Stop);
+-                    line.setMode(Line::Mode::AerialLift);
+-                } else if (key == "aeroway" && value == "aerodrome") {
+-                    loc.setType(Location::Stop);
+-                    line.setMode(Line::Mode::Air);
+-                } else if (key == "aeroway" && value == "terminal") {
+-                    loc.setType(Location::Stop);
+-                    line.setMode(Line::Mode::Air);
+-                } else if (loc.type() == Location::Place && properties.contains("housenumber"_L1)) {
+-                    loc.setType(Location::Address);
+-                }
+-            }
+-
+-            if (loc.type() == Location::Stop) {
+-                stop.addLine(line);
+-                loc.setData(stop);
+-            }
+-
+-            if (geo.value("type"_L1) == "Point"_L1) {
+-                const auto point = GeoJson::readPoint(geo);
+-
+-                loc.setCoordinate(point.y(), point.x());
+-            }
+-
+-            locations.push_back(std::move(loc));
++        logReply(reply, netReply, body);
++        qDebug() << body;
++        // results are only classified as points of interest if those were requested, otherwise
++        // e.g. a shop with a house number remains an address, matching the requested types
++        auto locations = PhotonParser::parseLocations(body, request.types());
++
++        // ensure all results are within the requested radius,
++        // the bounding box for name searches covers a larger area
++        if (filterByDistance) {
++            locations.erase(std::remove_if(locations.begin(), locations.end(), [&request](const auto &loc) {
++                return Location::distance(request.latitude(), request.longitude(), loc.latitude(), loc.longitude()) > request.maximumDistance();
++            }), locations.end());
+         }
+ 
+         addResult(reply, std::move(locations));
+@@ -146,5 +185,5 @@ bool PhotonBackend::queryLocation(const LocationRequest &request,
+ 
+ Location::Types PhotonBackend::supportedLocationTypes() const
+ {
+-    return Location::Type::Address | Location::Type::Place | Location::Type::Stop;
++    return Location::Type::Address | Location::Type::Place | Location::Type::Stop | Location::Type::PointOfInterest;
+ }
+diff --git a/src/lib/backends/photonbackend.h b/src/lib/backends/photonbackend.h
+index 14c83b13..28894738 100644
+--- a/src/lib/backends/photonbackend.h
++++ b/src/lib/backends/photonbackend.h
+@@ -25,6 +25,11 @@ public:
+                                      QNetworkAccessManager *nam) const override;
+     [[nodiscard]] Location::Types supportedLocationTypes() const override;
+ 
++    /** URL of the reverse geocoding endpoint for the search endpoint at @p apiUrl.
++     *  Exported for unit tests only.
++     */
++    [[nodiscard]] KPUBLICTRANSPORT_EXPORT static QUrl reverseUrl(const QUrl &apiUrl);
++
+ private:
+     QUrl m_url;
+ };
+diff --git a/src/lib/backends/photonparser.cpp b/src/lib/backends/photonparser.cpp
+new file mode 100644
+index 00000000..4378b66f
+--- /dev/null
++++ b/src/lib/backends/photonparser.cpp
+@@ -0,0 +1,134 @@
++/*
++    SPDX-FileCopyrightText: 2026 Jonah Brüchert <jbb@kaidan.im>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "photonparser.h"
++
++#include "geo/geojson_p.h"
++
++#include <KPublicTransport/Line>
++#include <KPublicTransport/StopInformation>
++
++#include <QJsonArray>
++#include <QJsonDocument>
++#include <QJsonObject>
++#include <QPointF>
++
++#include <algorithm>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++// checks whether a result with the OSM main tag @p key can be a point of interest,
++// as opposed to streets, buildings, settlements or administrative areas
++[[nodiscard]] static bool isPointOfInterestKey(QAnyStringView key)
++{
++    constexpr const QLatin1StringView nonPoiKeys[] = {
++        "boundary"_L1,
++        "building"_L1,
++        "highway"_L1,
++        "landuse"_L1,
++        "place"_L1,
++        "railway"_L1,
++        "waterway"_L1,
++    };
++    return std::none_of(std::begin(nonPoiKeys), std::end(nonPoiKeys), [key](auto k) { return k == key; });
++}
++
++std::vector<Location> PhotonParser::parseLocations(const QByteArray &data, Location::Types types)
++{
++    std::vector<Location> locations;
++
++    const auto geojson = QJsonDocument::fromJson(data).object();
++    const auto features = geojson.value("features"_L1).toArray();
++
++    for (const auto feature : features) {
++        const auto featureObj = feature.toObject();
++        const auto geo = featureObj.value("geometry"_L1).toObject();
++        const auto properties = featureObj.value("properties"_L1).toObject();
++
++        Location loc;
++
++        if (properties.contains("name"_L1)) {
++            loc.setName(properties.value("name"_L1).toString());
++        }
++        if (properties.contains("countrycode"_L1)) {
++            loc.setCountry(properties.value("countrycode"_L1).toString());
++        }
++        if (properties.contains("postcode"_L1)) {
++            loc.setPostalCode(properties.value("postcode"_L1).toString());
++        }
++        if (properties.contains("city"_L1)) {
++            loc.setLocality(properties.value("city"_L1).toString());
++        }
++        if (const auto street = properties.value("street"_L1).toString(); !street.isEmpty()) {
++            loc.setStreetAddress(QString(street + ' '_L1 + properties.value("housenumber"_L1).toString()).trimmed());
++        }
++
++        StopInformation stop;
++        Line line;
++
++        if (properties.contains("osm_key"_L1) && properties.contains("osm_value"_L1)) {
++            auto const key = properties.value("osm_key"_L1).toStringView();
++            auto const value = properties.value("osm_value"_L1).toStringView();
++
++            // drop everything referring to non-administrative boundaries
++            // (statistical/clerical/voting/police districts etc)
++            if (key == "boundary" && properties.value("type"_L1) == "other"_L1) {
++                continue;
++            }
++
++            if (key == "railway") {
++                if (value == "station" || value == "halt" || value == "stop"
++                    || value == "platform") {
++                    loc.setType(Location::Stop);
++                    line.setMode(Line::Mode::Train);
++                } else if (value == "tram_stop") {
++                    loc.setType(Location::Stop);
++                    line.setMode(Line::Mode::Tramway);
++                }
++            }
++            if (key == "building" && value == "train_station") {
++                loc.setType(Location::Stop);
++                line.setMode(Line::Mode::Train);
++            } else if (key == "highway" && value == "bus_stop") {
++                loc.setType(Location::Stop);
++                line.setMode(Line::Mode::Bus);
++            } else if (key == "aerialway" && value == "station") {
++                loc.setType(Location::Stop);
++                line.setMode(Line::Mode::AerialLift);
++            } else if (key == "aeroway" && value == "aerodrome") {
++                loc.setType(Location::Stop);
++                line.setMode(Line::Mode::Air);
++            } else if (key == "aeroway" && value == "terminal") {
++                loc.setType(Location::Stop);
++                line.setMode(Line::Mode::Air);
++            } else if (loc.type() == Location::Place && properties.contains("housenumber"_L1)) {
++                loc.setType(Location::Address);
++            }
++
++            if ((types & Location::PointOfInterest) && loc.type() != Location::Stop && isPointOfInterestKey(key)) {
++                loc.setType(Location::PointOfInterest);
++            }
++
++            loc.setTagValue(key.toString(), value.toString());
++        }
++
++        if (loc.type() == Location::Stop) {
++            stop.addLine(line);
++            loc.setData(stop);
++        }
++
++        if (geo.value("type"_L1) == "Point"_L1) {
++            const auto point = GeoJson::readPoint(geo);
++
++            loc.setCoordinate(point.y(), point.x());
++        }
++
++        loc.setIdentifier(u"osm"_s, properties.value("osm_type"_L1).toString().toLower() + QString::number(properties.value("osm_id"_L1).toInteger()));
++        locations.push_back(std::move(loc));
++    }
++
++    return locations;
++}
+diff --git a/src/lib/backends/photonparser.h b/src/lib/backends/photonparser.h
+new file mode 100644
+index 00000000..19cffe1e
+--- /dev/null
++++ b/src/lib/backends/photonparser.h
+@@ -0,0 +1,26 @@
++/*
++    SPDX-FileCopyrightText: 2026 Jonah Brüchert <jbb@kaidan.im>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#ifndef KPUBLICTRANSPORT_PHOTONPARSER_H
++#define KPUBLICTRANSPORT_PHOTONPARSER_H
++
++#include <KPublicTransport/Location>
++
++namespace KPublicTransport {
++
++class PhotonParser
++{
++public:
++    /** Parse a Photon GeoJSON response.
++     *  @param types The location types that were requested. If this contains
++     *  Location::PointOfInterest, results that are not stops, streets, buildings,
++     *  settlements or administrative areas are returned as points of interest.
++     */
++    [[nodiscard]] static std::vector<Location> parseLocations(const QByteArray &data, Location::Types types = {});
++};
++
++}
++
++#endif
 diff --git a/src/lib/backends/srbijavozbackend.cpp b/src/lib/backends/srbijavozbackend.cpp
 index 2cbe879f..497736a2 100644
 --- a/src/lib/backends/srbijavozbackend.cpp
@@ -17535,6 +19174,179 @@ index 07b4208f..fe3f43fb 100644
      /** Set a static operator URL wherever missing/needed. */
      void applyOperatorUrl(Journey &jny, const QUrl &operatorUrl);
      void applyOperatorUrl(JourneySection &section, const QUrl &operatorUrl);
+diff --git a/src/lib/datatypes/location.cpp b/src/lib/datatypes/location.cpp
+index 3299f537..d7ba1305 100644
+--- a/src/lib/datatypes/location.cpp
++++ b/src/lib/datatypes/location.cpp
+@@ -23,6 +23,7 @@
+ #include <KCountrySubdivision>
+ 
+ #include <QDebug>
++#include <QFile>
+ #include <QHash>
+ #include <QJsonArray>
+ #include <QJsonObject>
+@@ -54,6 +55,7 @@ public:
+ 
+     int floorLevel = std::numeric_limits<int>::lowest();
+ 
++    QHash<QString, QString> tags;
+     QVariant data;
+ };
+ 
+@@ -177,6 +179,24 @@ QStringList Location::identifierTypes() const
+     return d->ids.identifierTypes();
+ }
+ 
++QString Location::tagValue(const QString& tagKey) const
++{
++    return d->tags.value(tagKey);
++}
++
++void Location::setTagValue(const QString &tagKey, const QString &tagValue)
++{
++    d.detach();
++    d->tags[tagKey] = tagValue;
++}
++
++QStringList Location::tagKeys() const
++{
++    auto keys = d->tags.keys();
++    std::sort(keys.begin(), keys.end());
++    return keys;
++}
++
+ StopInformation Location::stopInformation() const
+ {
+     return d->data.value<StopInformation>();
+@@ -335,6 +355,7 @@ static int isSameDistanceThreshold(Location::Type type, const StopInformation &s
+         case Location::Address:
+             return 25; // meter
+         case Location::CarpoolPickupDropoff:
++        case Location::PointOfInterest:
+             return 10;
+         case Location::RentedVehicleStation:
+             return 5;
+@@ -475,6 +496,7 @@ Location Location::merge(const Location &lhs, const Location &rhs)
+         case Place:
+         case CarpoolPickupDropoff:
+         case Address:
++        case PointOfInterest:
+             break;
+         case Stop:
+             l.setData(StopInformation::merge(lhs.stopInformation(), rhs.stopInformation()));
+@@ -490,6 +512,7 @@ Location Location::merge(const Location &lhs, const Location &rhs)
+             break;
+     }
+ 
++    l.d->tags.insert(rhs.d->tags);
+     return l;
+ }
+ 
+@@ -528,12 +551,21 @@ QJsonObject Location::toJson(const Location &loc)
+         obj.insert("identifier"_L1, loc.d->ids.toJson());
+     }
+ 
++    if (!loc.d->tags.empty()) {
++        QJsonObject tags;
++        for (const auto& [key, value] : loc.d->tags.asKeyValueRange()) {
++            tags.insert(key, value);
++        }
++        obj.insert("tags"_L1, tags);
++    }
++
+     switch (loc.type()) {
+         case Place:
+             obj.remove("type"_L1);
+             [[fallthrough]];
+         case Address:
+         case CarpoolPickupDropoff:
++        case PointOfInterest:
+             break;
+         case Stop:
+             if (const auto infoObj = StopInformation::toJson(loc.stopInformation()); !infoObj.isEmpty()) {
+@@ -576,7 +608,19 @@ QString Location::iconName() const
+             return u"qrc:///org.kde.kpublictransport/assets/images/transport-mode-car.svg"_s;
+         case Location::Address:
+         case Location::Place:
++        case Location::PointOfInterest:
++        {
++            static bool hasKosm = QFile::exists(u":/org.kde.kosmindoormap/assets/icons"_s);
++            if (hasKosm) {
++                for (const auto key : {"amenity"_L1, "shop"_L1, "tourism"_L1, "historic"_L1}) {
++                    const auto value = tagValue(key);
++                    if (const auto name = ":/org.kde.kosmindoormap/assets/icons/"_L1 + value + ".svg"_L1; QFile::exists(name)) {
++                        return name;
++                    }
++                }
++            }
+             break;
++        }
+     }
+     return u"map-symbolic"_s;
+ }
+@@ -591,10 +635,16 @@ Location Location::fromJson(const QJsonObject &obj)
+ 
+     loc.d->ids.fromJson(obj.value("identifier"_L1).toObject());
+ 
++    const auto tags = obj.value("tags"_L1).toObject();
++    for (const auto &[key, value]: tags.asKeyValueRange()) {
++        loc.d->tags.insert(key.toString(), value.toString());
++    }
++
+     switch (loc.type()) {
+         case Place:
+         case Address:
+         case CarpoolPickupDropoff:
++        case PointOfInterest:
+             break;
+         case Stop:
+             loc.setData(StopInformation::fromJson(obj.value("stopInformation"_L1).toObject()));
+diff --git a/src/lib/datatypes/location.h b/src/lib/datatypes/location.h
+index 35e1e9ab..928197ba 100644
+--- a/src/lib/datatypes/location.h
++++ b/src/lib/datatypes/location.h
+@@ -40,7 +40,8 @@ public:
+         RentedVehicle = 4, ///< a free-floating rental bike/scooter
+         Equipment = 8, ///< elevator/escalator
+         CarpoolPickupDropoff = 16, ///< a pickup or dropoff location for a carpool trip
+-        Address = 32 ///< postal addresses
++        Address = 32, ///< postal addresses
++        PointOfInterest = 64, ///< a point of interest such as a shop, restaurant or museum, see tagValue() for its OSM category. @since 27.04
+     };
+     Q_ENUM(Type)
+     Q_DECLARE_FLAGS(Types, Type)
+@@ -98,6 +99,12 @@ public:
+     /** Identifier types set on this location. */
+     Q_PROPERTY(QStringList identifierTypes READ identifierTypes STORED false)
+ 
++    /** Keys of the OSM tags set on this location, sorted alphabetically.
++     *  @see tagValue()
++     *  @since 27.04
++     */
++    Q_PROPERTY(QStringList tagKeys READ tagKeys STORED false)
++
+ public:
+     void setCoordinate(double latitude, double longitude);
+     [[nodiscard]] bool hasCoordinate() const;
+@@ -118,6 +125,17 @@ public:
+     [[nodiscard]] bool hasIdentifier(QAnyStringView identifierType) const;
+     [[nodiscard]] QStringList identifierTypes() const;
+ 
++    /** Value of the OSM tag @p tagKey, empty if not set.
++     *  Invokable from QML since 27.04.
++     */
++    Q_INVOKABLE [[nodiscard]] QString tagValue(const QString& tagKey) const;
++    /** Set the OSM tag @p tagKey to @p tagValue. */
++    void setTagValue(const QString &tagKey, const QString &tagValue);
++    /** Keys of all OSM tags set on this location, sorted alphabetically.
++     *  @since 27.04
++     */
++    [[nodiscard]] QStringList tagKeys() const;
++
+     /** Checks if to instances refer to the same location (which does not necessarily mean they are exactly equal). */
+     [[nodiscard]] static bool isSame(const Location &lhs, const Location &rhs);
+     /** Checks if two location names refer to the same location. */
 diff --git a/src/lib/datatypes/path.cpp b/src/lib/datatypes/path.cpp
 index e536c6f5..8f80c08a 100644
 --- a/src/lib/datatypes/path.cpp
@@ -19553,8 +21365,79 @@ index 00000000..6156ccdd
 +}
 +
 +#endif // KPUBLICTRANSPORT_TICKETSHOP_P_H
+diff --git a/src/lib/locationrequest.cpp b/src/lib/locationrequest.cpp
+index 952086f4..2e0873b5 100644
+--- a/src/lib/locationrequest.cpp
++++ b/src/lib/locationrequest.cpp
+@@ -31,6 +31,7 @@ public:
+     Location::Types types = Location::Stop | Location::Address;
+     QRectF viewbox;
+     bool downloadAssets = false;
++    QStringList osmTags;
+ };
+ }
+ 
+@@ -39,6 +40,7 @@ KPUBLICTRANSPORT_MAKE_PROPERTY(LocationRequest, int, maximumDistance, setMaximum
+ KPUBLICTRANSPORT_MAKE_PROPERTY(LocationRequest, int, maximumResults, setMaximumResults)
+ KPUBLICTRANSPORT_MAKE_PROPERTY(LocationRequest, Location::Types, types, setTypes)
+ KPUBLICTRANSPORT_MAKE_PROPERTY(LocationRequest, bool, downloadAssets, setDownloadAssets)
++KPUBLICTRANSPORT_MAKE_PROPERTY(LocationRequest, QStringList, osmTags, setOsmTags)
+ 
+ LocationRequest::LocationRequest(const Location &locaction)
+     : d(new LocationRequestPrivate)
+@@ -137,6 +139,10 @@ QString LocationRequest::cacheKey() const
+         d->viewbox.getRect(&data[0], &data[1], &data[2], &data[3]);
+         hash.addData(QByteArrayView(reinterpret_cast<uint8_t*>(data), sizeof(data)));
+     }
++    for (const auto &tag : d->osmTags) {
++        hash.addData(tag.toUtf8());
++        hash.addData("\n");
++    }
+     return QString::fromUtf8(hash.result().toHex());
+ }
+ 
+diff --git a/src/lib/locationrequest.h b/src/lib/locationrequest.h
+index 501d6967..6f605557 100644
+--- a/src/lib/locationrequest.h
++++ b/src/lib/locationrequest.h
+@@ -15,6 +15,7 @@
+ #include <QMetaType>
+ #include <QRectF>
+ #include <QSharedDataPointer>
++#include <QStringList>
+ 
+ class QJsonObject;
+ 
+@@ -66,6 +67,27 @@ class KPUBLICTRANSPORT_EXPORT LocationRequest
+      */
+     KPUBLICTRANSPORT_PROPERTY(bool, downloadAssets, setDownloadAssets)
+ 
++    /** OSM tags the resulting locations should have.
++     *  Each entry is either a "key=value" pair (e.g. "shop=bakery") or just a key
++     *  (e.g. "shop") to match any value of that tag. A location matches if it has
++     *  any of the given tags.
++     *
++     *  This is mainly useful for searching points of interest by category, and
++     *  works without a name: a request with a coordinate and OSM tags but without
++     *  a name searches for matching locations within maximumDistance around that
++     *  coordinate.
++     *
++     *  Results are only returned as Location::PointOfInterest if that is included
++     *  in types, so for a category search set types to Location::PointOfInterest.
++     *
++     *  When this is set only backends supporting filtering by OSM tags are queried.
++     *  Default: empty, i.e. no filtering by OSM tags.
++     *
++     *  @see Location::PointOfInterest, Location::tagValue()
++     *  @since 27.04
++     */
++    KPUBLICTRANSPORT_PROPERTY(QStringList, osmTags, setOsmTags)
++
+ public:
+     /** Create a LocationRequest from @p locaction.
+      *  Whatever fields set in @p location will be used for the search request.
 diff --git a/src/lib/manager.cpp b/src/lib/manager.cpp
-index f09767ea..6ecac06a 100644
+index f09767ea..6792570e 100644
 --- a/src/lib/manager.cpp
 +++ b/src/lib/manager.cpp
 @@ -27,6 +27,7 @@
@@ -19565,7 +21448,51 @@ index f09767ea..6ecac06a 100644
  #include "update/updatejob_p.h"
  #include "update/updatestate_p.h"
  
-@@ -1052,6 +1053,7 @@ void Manager::reload()
+@@ -785,6 +786,16 @@ int ManagerPrivate::queryLocationOnBackend(const LocationRequest &req, LocationR
+     return 0;
+ }
+ 
++// location types that can be queried from @p backend for @p req
++[[nodiscard]] static Location::Types queryableLocationTypes(const AbstractBackend *backend, const LocationRequest &req)
++{
++    // backends unable to filter by OSM tags would return unrelated results
++    if (!req.osmTags().isEmpty() && !backend->hasCapability(AbstractBackend::CanFilterLocationsByOsmTags)) {
++        return {};
++    }
++    return backend->supportedLocationTypes() & req.types();
++}
++
+ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+ {
+     auto reply = d->makeReply<LocationReply>(req);
+@@ -810,7 +821,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+                 if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
+                     continue;
+                 }
+-                const auto backendTypes = BackendPrivate::impl(backend)->supportedLocationTypes() & req.types();
++                const auto backendTypes = queryableLocationTypes(BackendPrivate::impl(backend), req);
+                 if (backendTypes == 0) {
+                     continue;
+                 }
+@@ -840,7 +851,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+                 if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
+                     continue;
+                 }
+-                const auto backendTypes = BackendPrivate::impl(backend)->supportedLocationTypes() & req.types();
++                const auto backendTypes = queryableLocationTypes(BackendPrivate::impl(backend), req);
+                 if (backendTypes == 0) {
+                     continue;
+                 }
+@@ -865,7 +876,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+             if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
+                 continue;
+             }
+-            const auto backendTypes = BackendPrivate::impl(backend)->supportedLocationTypes() & req.types();
++            const auto backendTypes = queryableLocationTypes(BackendPrivate::impl(backend), req);
+             if (backendTypes == 0) {
+                 continue;
+             }
+@@ -1052,6 +1063,7 @@ void Manager::reload()
  {
      HafasAttributeMap::reload();
      GBFSServiceRepository::reload();
