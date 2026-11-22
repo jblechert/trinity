@@ -7,9 +7,10 @@ Picks random pairs of places about a given distance apart within a region (Germa
 snaps them to nearby addresses with Photon reverse geocoding, and for each pair lets the app search
 public transport connections between them through a page:///map URL. It waits for the app to log the
 result of the search, takes screenshots of the best connection on the map and of the result list,
-and writes an HTML report.
+and writes an HTML report. With --modes the routes on foot, by bike or by car between the same places
+are tested as well, through the route preview on the map.
 
-A pair passes when at least one connection was found.
+A pair passes a mode when at least one connection or route was found.
 
 Example:
     tools/test/journey-e2e.py --serial emulator-5554 --pairs 10 --seed 1 --out /tmp/e2e-report
@@ -279,7 +280,7 @@ class Device:
         # the URL is percent-encoded, so single quotes protect it from the device's shell
         self.adb("shell", f"am start -a android.intent.action.VIEW -n {self.package}/{ACTIVITY} -d '{url}'")
 
-    def wait_for_log(self, pattern, timeout, since_pid=None):
+    def wait_for_log(self, pattern, timeout):
         """Poll the log until a line matches @p pattern, return the match or None on timeout."""
         regex = re.compile(pattern)
         end = time.monotonic() + timeout
@@ -294,6 +295,8 @@ class Device:
 
 
 FINISHED = r"journey search finished: results=(\d+) shown=(\d+) error=(\"(?:[^\"\\]|\\.)*\") best: (.*)$"
+PREVIEW_FINISHED = r"route preview finished: mode=(\w+) results=(\d+) error=(\"(?:[^\"\\]|\\.)*\") best: (.*)$"
+MODES = ("transit", "walk", "bike", "car")
 
 
 def parse_best(summary):
@@ -302,7 +305,7 @@ def parse_best(summary):
     best = {}
     for key, value in re.findall(r'(\w+)=("(?:[^"\\]|\\.)*"|\S+)', summary):
         best[key] = json.loads(value) if value.startswith('"') else value
-    for key in ("duration", "changes"):
+    for key in ("duration", "changes", "distance"):
         if key in best:
             best[key] = int(best[key])
     return best
@@ -316,21 +319,60 @@ def default_time():
     return f"{day.isoformat()}T09:00"
 
 
-def page_url(pair, search_time):
-    query = urllib.parse.urlencode({
+def page_url(pair, search_time, mode="transit"):
+    items = {
         "from": f"{pair['from']['lat']},{pair['from']['lon']}",
         "fromName": pair["from"]["name"],
         "to": f"{pair['to']['lat']},{pair['to']['lon']}",
         "toName": pair["to"]["name"],
-        "search": "transit",
-        "time": search_time,
-        "show": "best",
-    }, quote_via=urllib.parse.quote, safe="")
+        "search": mode,
+    }
+    if mode == "transit":
+        items.update(time=search_time, show="best")
+    query = urllib.parse.urlencode(items, quote_via=urllib.parse.quote, safe="")
     return f"page:///map?{query}"
 
 
+def run_preview(device, index, pair, mode, out, timeout, settle, slow_hours):
+    """A route on foot, by bike or by car, as shown by the route preview on the map."""
+    result = {"index": index, "mode": mode, **pair, "screenshots": {}}
+    device.adb("logcat", "-c", check=False)
+    started = time.monotonic()
+    device.open_url(page_url(pair, None, mode))
+    m = device.wait_for_log(PREVIEW_FINISHED, timeout)
+    result["searchSeconds"] = round(time.monotonic() - started, 1)
+    prefix = f"pair-{index:02d}-{mode}"
+    if not m:
+        result.update(status="timeout", results=None)
+    else:
+        result["results"] = int(m.group(2))
+        result["error"] = json.loads(m.group(3))
+        result["best"] = parse_best(m.group(4))
+        result["status"] = "pass" if result["best"] else "fail"
+        best = result["best"]
+        if best and best.get("duration", 0) > slow_hours * 3600:
+            # expected for long distances on foot or by bike, worth a look by car
+            result["note"] = f"long: the route takes more than {slow_hours:g} hours" + ("" if mode == "car" else ", expected for this distance")
+        # let the map load its tiles
+        time.sleep(settle)
+    device.screenshot(os.path.join(out, f"{prefix}-map.png"))
+    result["screenshots"]["map"] = f"{prefix}-map.png"
+    save_log(device, out, prefix, result)
+    return result
+
+
+def save_log(device, out, prefix, result):
+    """The app's log of this test, to see what went wrong."""
+    pid = device.pid()
+    if pid:
+        log_text = device.adb("logcat", "-d", "-v", "time", f"--pid={pid}", check=False)
+        with open(os.path.join(out, f"{prefix}.log"), "w") as f:
+            f.write(log_text)
+        result["log"] = f"{prefix}.log"
+
+
 def run_pair(device, index, pair, search_time, out, timeout, settle, slow_hours):
-    result = {"index": index, **pair, "time": search_time, "screenshots": {}}
+    result = {"index": index, "mode": "transit", **pair, "time": search_time, "screenshots": {}}
     device.adb("logcat", "-c", check=False)
     started = time.monotonic()
     device.open_url(page_url(pair, search_time))
@@ -363,13 +405,7 @@ def run_pair(device, index, pair, search_time, out, timeout, settle, slow_hours)
             time.sleep(2)
         device.screenshot(os.path.join(out, f"{prefix}-results.png"))
         result["screenshots"]["results"] = f"{prefix}-results.png"
-    # the app's log of this search, to see what went wrong
-    pid = device.pid()
-    if pid:
-        log_text = device.adb("logcat", "-d", "-v", "time", f"--pid={pid}", check=False)
-        with open(os.path.join(out, f"{prefix}.log"), "w") as f:
-            f.write(log_text)
-        result["log"] = f"{prefix}.log"
+    save_log(device, out, prefix, result)
     return result
 
 
@@ -392,7 +428,9 @@ def write_report(out, meta, results):
     for r in results:
         best = r.get("best") or {}
         details = ""
-        if best:
+        if best and r["mode"] != "transit":
+            details = f'{fmt_duration(best.get("duration"))}, {best.get("distance", 0) / 1000:.1f} km'
+        elif best:
             details = (f'{html.escape(best.get("departure", "")[11:])} → {html.escape(best.get("arrival", "")[11:])}, '
                        f'{fmt_duration(best.get("duration"))}, {best.get("changes", "?")} changes<br>'
                        f'<small>{html.escape(best.get("sections", ""))}</small>')
@@ -405,7 +443,7 @@ def write_report(out, meta, results):
             for kind, path in (("map", r["screenshots"].get("map")), ("results", r["screenshots"].get("results"))) if path)
         log_link = f'<br><a href="{html.escape(r["log"])}">log</a>' if r.get("log") else ""
         rows.append(f"""<tr class="{r['status']}">
-<td>{r['index']}</td><td>{osm_link(r['from'])}</td><td>{osm_link(r['to'])}</td>
+<td>{r['index']}</td><td>{html.escape(r['mode'])}</td><td>{osm_link(r['from'])}</td><td>{osm_link(r['to'])}</td>
 <td>{r['distance'] / 1000:.0f} km</td>
 <td class="status">{r['status']}{log_link}</td>
 <td>{'' if r.get('results') is None else r['results']}</td><td>{details}</td><td>{r['searchSeconds']} s</td>
@@ -427,9 +465,9 @@ tr.fail .status, tr.timeout .status {{ color: #c62828; font-weight: bold; }}
 @media (prefers-color-scheme: dark) {{ body {{ background: #1e1e1e; color: #ddd; }} a {{ color: #8ab4f8; }} th, td {{ border-color: #444; }} }}
 </style></head><body>
 <h1>Journey end-to-end test</h1>
-<p><strong>{passed} of {len(results)} passed</strong> (pass: at least one connection found)</p>
+<p><strong>{passed} of {len(results)} passed</strong> (pass: at least one connection or route found)</p>
 <ul>{meta_items}</ul>
-<div class="table"><table><tr><th>#</th><th>From</th><th>To</th><th>Distance</th><th>Status</th><th>Journeys</th><th>Best connection</th><th>Search</th><th>Screenshots</th></tr>
+<div class="table"><table><tr><th>#</th><th>Mode</th><th>From</th><th>To</th><th>Distance</th><th>Status</th><th>Journeys</th><th>Best connection or route</th><th>Search</th><th>Screenshots</th></tr>
 {''.join(rows)}
 </table></div></body></html>
 """
@@ -449,7 +487,9 @@ def main():
     ap.add_argument("--distance", type=float, default=100, help="distance between the places in km (default: 100)")
     ap.add_argument("--tolerance", type=float, default=20, help="allowed deviation from the distance in km (default: 20)")
     ap.add_argument("--pairs-file", help="test the pairs in this file (pairs.json of an earlier run) instead of random ones")
-    ap.add_argument("--only", help="with --pairs-file: test only these pairs, e.g. 3,4 (numbered from 1)")
+    ap.add_argument("--only", help="with --pairs-file: test only these pairs, e.g. 3,4 (numbered from 1, kept in the report)")
+    ap.add_argument("--modes", default="transit",
+                    help=f"what to test for each pair, comma separated: {', '.join(MODES)} (default: transit)")
     ap.add_argument("--slow", type=float, default=6, help="mark connections taking longer than this many hours (default: 6)")
     ap.add_argument("--time", default=None, help="departure time, ISO 8601 local time (default: next weekday 09:00)")
     ap.add_argument("--timeout", type=float, default=180, help="seconds to wait for a search (default: 180)")
@@ -463,18 +503,22 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     search_time = args.time or default_time()
     region = Region.parse(args.region)
+    modes = [m.strip() for m in args.modes.split(",") if m.strip()]
+    if not modes or any(m not in MODES for m in modes):
+        raise SystemExit(f"Unknown mode in --modes {args.modes!r}, use {', '.join(MODES)}")
 
     if args.pairs_file:
         with open(args.pairs_file) as f:
             pairs = json.load(f)
-        if args.only:
-            pairs = [pairs[int(i) - 1] for i in args.only.split(",")]
+        indices = [int(i) for i in args.only.split(",")] if args.only else range(1, len(pairs) + 1)
+        numbered = [(i, pairs[i - 1]) for i in indices]
     else:
         seed = args.seed if args.seed is not None else random.randrange(1 << 30)
         args.seed = seed
         log(f"Picking {args.pairs} pairs in {region.name}, about {args.distance:.0f} km apart, seed {seed}")
         photon = Photon(args.photon, delay=1.0)
         pairs = make_pairs(args.pairs, region, random.Random(seed), photon, args.distance * 1000, args.tolerance * 1000)
+        numbered = list(enumerate(pairs, start=1))
     with open(os.path.join(args.out, "pairs.json"), "w") as f:
         json.dump(pairs, f, indent=2, ensure_ascii=False)
 
@@ -487,20 +531,25 @@ def main():
         "distance": f"{args.distance:.0f} ± {args.tolerance:.0f} km",
         "seed": args.seed if not args.pairs_file else f"pairs from {args.pairs_file}",
         "departure": search_time,
+        "modes": ", ".join(modes),
     }
     results = []
-    for i, pair in enumerate(pairs, start=1):
-        log(f"[{i}/{len(pairs)}] {pair['from']['name']} -> {pair['to']['name']}")
-        r = run_pair(device, i, pair, search_time, args.out, args.timeout, args.settle, args.slow)
-        best = r.get("best") or {}
-        log(f"  {r['status']}: {r.get('results')} journeys in {r['searchSeconds']} s"
-            + (f" ({r['note']})" if r.get("note") else "")
-            + (f", best {fmt_duration(best.get('duration'))} {best.get('sections', '')}" if best else "")
-            + (f", error {r['error']}" if r.get("error") else ""))
-        results.append(r)
-        with open(os.path.join(args.out, "results.json"), "w") as f:
-            json.dump({"meta": meta, "results": results}, f, indent=2, ensure_ascii=False)
-        write_report(args.out, meta, results)
+    for n, (i, pair) in enumerate(numbered, start=1):
+        log(f"[{n}/{len(numbered)}] pair {i}: {pair['from']['name']} -> {pair['to']['name']}")
+        for mode in modes:
+            if mode == "transit":
+                r = run_pair(device, i, pair, search_time, args.out, args.timeout, args.settle, args.slow)
+            else:
+                r = run_preview(device, i, pair, mode, args.out, args.timeout, args.settle, args.slow)
+            best = r.get("best") or {}
+            log(f"  {mode} {r['status']}: {r.get('results')} results in {r['searchSeconds']} s"
+                + (f" ({r['note']})" if r.get("note") else "")
+                + (f", best {fmt_duration(best.get('duration'))} {best.get('sections', '')}" if best else "")
+                + (f", error {r['error']}" if r.get("error") else ""))
+            results.append(r)
+            with open(os.path.join(args.out, "results.json"), "w") as f:
+                json.dump({"meta": meta, "results": results}, f, indent=2, ensure_ascii=False)
+            write_report(args.out, meta, results)
     passed = sum(1 for r in results if r["status"] == "pass")
     log(f"{passed} of {len(results)} passed, report: {os.path.join(args.out, 'index.html')}")
     return 0 if passed == len(results) else 1

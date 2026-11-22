@@ -35,8 +35,13 @@ For each test it
 A test passes when at least one connection was found. Connections taking more than 6 hours (`--slow`) are marked, as
 they often point to a missing service or data source, like the on-demand buses that were once left out.
 
+`--modes` tests routes on foot, by bike or by car between the same places as well, e.g. `--modes transit,walk,car`.
+For these the app opens the route preview on the map; the report has a screenshot of it, the duration and length of
+the route, or a failure when none was found. Routes taking longer than `--slow` are marked too, which is expected on
+foot or by bike at the default distance.
+
 The pairs are saved to `pairs.json`; `--pairs-file` runs the same pairs again, e.g. after a fix, and `--only 3,5`
-picks some of them. `--seed` makes the random pairs reproducible as long as the map data used by Photon doesn't change.
+picks some of them, keeping their numbers in file names and the report. `--seed` makes the random pairs reproducible as long as the map data used by Photon doesn't change.
 
 ### Other regions
 
@@ -84,7 +89,13 @@ journey search finished: results=10 shown=10 error="" best: departure=2026-11-23
 ```
 
 The best connection is the one arriving first of those departing at or after the requested time. When it is shown
-on the map the app logs `map: showing a journey with N sections`.
+on the map the app logs `map: showing a journey with N sections`. A route preview logs
+
+```
+route preview finished: mode=car results=1 error="" best: duration=2220 distance=41230
+```
+
+or `best: none` when no route was found. These lines are logged in the `org.kde.itinerary.journeysearch` category.
 
 ### Finding out why a test failed
 
