@@ -1403,7 +1403,8 @@ Kirigami.Page {
     function zoomInAt(position: point): void {
         const coord = map.toCoordinate(position);
         root.followPosition = false;
-        map.zoomLevel = Math.min(map.maximumZoomLevel, Math.floor(map.zoomLevel + 1));
+        // a whole level more, rounding to a whole level would hardly zoom at all at times, e.g. from 15.9 to 16
+        map.zoomLevel = Math.min(map.maximumZoomLevel, map.zoomLevel + 1);
         map.alignCoordinateToPoint(coord, position);
     }
 
