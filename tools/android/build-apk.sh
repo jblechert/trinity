@@ -20,6 +20,7 @@
 #              git -C kpublictransport apply ../itinary/tools/android/patches/kpublictransport/*.patch
 #   kirigami rebuild Kirigami at the version Craft uses with our patches from tools/android/patches/kirigami
 #            (run 'app' afterwards, and again after 'deps')
+#   kosm     the same for KOSMIndoorMap, with the patches from tools/android/patches/kosmindoormap
 #
 # Workspace (craft root, downloads, build dirs) lives next to the checkout in ../itinary-craft (override with ITINERARY_CRAFT_DIR); it must stay outside the source tree, as packaging scans the tree for AndroidManifest files.
 set -euo pipefail
@@ -70,6 +71,19 @@ cm() {
     --target "$TARGET" "$@"
 }
 OPTS=(--options itinerary.srcDir=/src)
+# build a package at the version Craft uses, with our patches from tools/android/patches/<name>
+patched() {
+  local name="$1" package="$2" repo="$3" v
+  v="$(cm -c -q --get version "$package" | tail -1)"
+  rm -rf "/craft/src/$name"
+  git clone --quiet --depth 1 --branch "v$v" "$repo" "/craft/src/$name"
+  for patch in "/src/tools/android/patches/$name"/*.patch; do
+    if [ -f "$patch" ]; then
+      git -C "/craft/src/$name" apply "$patch"
+    fi
+  done
+  cm -c --no-cache --compile --install --qmerge --options "$package.srcDir=/craft/src/$name" "$package"
+}
 case "$STEP" in
   deps)    cm --setup; cm -c -i craft; cm -c --install-deps itinerary ;;
   app)     cm -c --no-cache --compile --install --qmerge "${OPTS[@]}" itinerary ;;
@@ -83,13 +97,8 @@ case "$STEP" in
            [ -d /craft/src/ki18n ] || git clone --depth 1 --branch "v$(cm -c -q --get version kde/frameworks/tier1/ki18n | tail -1)" \
                https://invent.kde.org/frameworks/ki18n.git /craft/src/ki18n
            cm -c --no-cache --compile --install --qmerge --options kde/frameworks/tier1/ki18n.srcDir=/craft/src/ki18n kde/frameworks/tier1/ki18n ;;
-  kirigami) v="$(cm -c -q --get version kde/frameworks/tier1/kirigami | tail -1)"
-           rm -rf /craft/src/kirigami
-           git clone --quiet --depth 1 --branch "v$v" https://invent.kde.org/frameworks/kirigami.git /craft/src/kirigami
-           for patch in /src/tools/android/patches/kirigami/*.patch; do
-               git -C /craft/src/kirigami apply "$patch"
-           done
-           cm -c --no-cache --compile --install --qmerge --options kde/frameworks/tier1/kirigami.srcDir=/craft/src/kirigami kde/frameworks/tier1/kirigami ;;
+  kirigami) patched kirigami kde/frameworks/tier1/kirigami https://invent.kde.org/frameworks/kirigami.git ;;
+  kosm)    patched kosmindoormap kde/libs/kosmindoormap https://invent.kde.org/libraries/kosmindoormap.git ;;
   kpt)     cm -c --no-cache --compile --install --qmerge --options kde/libs/kpublictransport.srcDir=/kpublictransport kde/libs/kpublictransport ;;
   shell)   bash ;;
   *) echo "unknown step: $STEP" >&2; exit 2 ;;
