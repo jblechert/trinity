@@ -121,13 +121,93 @@ Kirigami.Page {
     }
 
     function searchConnection(): void {
+        root.searchConnectionAt(undefined, false);
+    }
+
+    /** Search public transport connections departing at @p dateTime, or now if undefined.
+     *  With @p showBest the best connection found is shown on the map once the search is done.
+     */
+    function searchConnectionAt(dateTime: var, showBest: bool): void {
         const from = root.journeyFrom ?? root.currentLocation();
-        const page = root.QQC2.ApplicationWindow.window.pageStack.push(Qt.resolvedUrl("JourneyRequestPage.qml"), {
+        let properties = {
             publicTransportManager: LiveDataManager.publicTransportManager,
             departureStop: from,
             arrivalStop: root.journeyTo,
-        });
-        page.searchJourney();
+        };
+        if (dateTime) {
+            properties.initialDateTime = dateTime;
+        }
+        const page = root.QQC2.ApplicationWindow.window.pageStack.push(Qt.resolvedUrl("JourneyRequestPage.qml"), properties);
+        const queryPage = page.searchJourney();
+        queryPage.showBestOnMap = showBest;
+    }
+
+    /** A location at the coordinate given as "latitude,longitude" in @p coord, named @p name.
+     *  Undefined if @p coord is not a valid coordinate.
+     */
+    function parseLocation(coord: var, name: var): var {
+        const parts = (coord ?? "").split(",");
+        if (parts.length !== 2) {
+            return undefined;
+        }
+        const lat = parseFloat(parts[0]);
+        const lon = parseFloat(parts[1]);
+        if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+            return undefined;
+        }
+        return helper.locationAt(lat, lon, name ? name : i18nc("@info a place picked on the map", "Selected place"));
+    }
+
+    /** Plan a journey given by @p args, the query items of a page:///map URL (see ApplicationController::handlePageUrl()),
+     *  e.g. from another app or for automated tests:
+     *  - from, to: departure and arrival as "latitude,longitude", the current location if from is missing
+     *  - fromName, toName: their names, otherwise they are named by their address
+     *  - search: "transit" to search public transport connections, "walk", "bike" or "car" to preview a route
+     *  - time: departure time of the connections to search, as ISO 8601 local time, e.g. 2026-11-23T09:00, now if missing
+     *  - show: "best" to show the best connection found on the map once the search is done
+     */
+    function openRequest(args: var): void {
+        const from = root.parseLocation(args.from, args.fromName);
+        const to = root.parseLocation(args.to, args.toName);
+        if (!from && !to) {
+            console.warn("No valid departure or arrival given to open the map with:", JSON.stringify(args));
+            return;
+        }
+        root.closeJourney();
+        root.prepareJourneyDisplay();
+        root.journeyFrom = from;
+        root.journeyTo = to;
+        root.plannerShown = true;
+        if (from && !args.fromName) {
+            root.geocode(fromGeocoder, QtPositioning.coordinate(from.latitude, from.longitude));
+        }
+        if (to && !args.toName) {
+            root.geocode(toGeocoder, QtPositioning.coordinate(to.latitude, to.longitude));
+        }
+        root.showJourneyEndpoints();
+        if (!to) {
+            return;
+        }
+        switch (args.search) {
+        case "transit": {
+            const time = args.time ? new Date(args.time) : undefined;
+            if (time && isNaN(time.getTime())) {
+                console.warn("Invalid departure time:", args.time);
+                return;
+            }
+            root.searchConnectionAt(time, args.show === "best");
+            break;
+        }
+        case "walk":
+            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Walk);
+            break;
+        case "bike":
+            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Bike);
+            break;
+        case "car":
+            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Car);
+            break;
+        }
     }
 
     QtLocation.GeocodeModel {
@@ -277,6 +357,7 @@ Kirigami.Page {
         root.journeyPaneShown = true;
         root.focusedSection = -1;
         root.focusLater("journey");
+        console.info("map: showing a journey with", journey.sections.length, "sections");
     }
 
     /** Show the route from @p from (undefined for the current location) to @p to, on foot, by bike or by car,

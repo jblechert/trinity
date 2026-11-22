@@ -172,6 +172,13 @@ Kirigami.ApplicationWindow {
                     root.showPassiveNotification(i18nc("@info:status", "No onboard information available."));
                 }
                 break;
+            case "map": {
+                const map = pagepool.loadPage(Qt.resolvedUrl("MapPage.qml"));
+                pageStack.clear();
+                pageStack.push(map);
+                map.openRequest(properties);
+                break;
+            }
             case "journeyRequest":
                 properties["publicTransportManager"] = LiveDataManager.publicTransportManager;
                 pageStack.push(pagepool.loadPage(Qt.resolvedUrl("JourneyRequestPage.qml")), properties);
