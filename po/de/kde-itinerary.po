@@ -6429,3 +6429,73 @@ msgstr "KDE Itinerary"
 msgctxt "@info:credit"
 msgid "The digital travel assistant by the KDE Community, which Trinity is based on."
 msgstr "Der digitale Reiseassistent der KDE-Community, auf dem Trinity basiert."
+
+#: fork
+msgctxt "@title places found where the map was tapped"
+msgid "Places Here"
+msgstr "Orte hier"
+
+#: fork
+msgctxt "@action:button"
+msgid "Close"
+msgstr "Schließen"
+
+#: fork
+msgctxt "@info a place on the map"
+msgid "Public transport stop"
+msgstr "Haltestelle"
+
+#: fork
+msgctxt "@action:button"
+msgid "Show on OpenStreetMap"
+msgstr "Auf OpenStreetMap anzeigen"
+
+#: fork
+msgctxt "@action:button search public transport connections starting here"
+msgid "From Here"
+msgstr "Von hier"
+
+#: fork
+msgctxt "@action:button search public transport connections to here"
+msgid "To Here"
+msgstr "Hierher"
+
+#: fork
+msgctxt "@info day of the week and time of a departure"
+msgid "%1 %2"
+msgstr "%1 %2"
+
+#: fork
+msgctxt "@action:button"
+msgid "Back to the lines"
+msgstr "Zurück zu den Linien"
+
+#: fork
+msgctxt "@title direction of a public transport line"
+msgid "To %1"
+msgstr "Richtung %1"
+
+#: fork
+msgctxt "@info"
+msgid "From %1"
+msgstr "Ab %1"
+
+#: fork
+msgctxt "@action:button show all departures at a stop"
+msgid "Departures"
+msgstr "Abfahrten"
+
+#: fork
+msgctxt "@info"
+msgid "No departures found."
+msgstr "Keine Abfahrten gefunden."
+
+#: fork
+msgctxt "@action:button"
+msgid "Trip Details"
+msgstr "Fahrtdetails"
+
+#: fork
+msgctxt "@info type of a place and its distance"
+msgid "%1 · %2"
+msgstr "%1 · %2"
