@@ -184,12 +184,16 @@ void ApplicationController::handleIntent(const KAndroidExtras::Intent &intent)
 void ApplicationController::handlePageUrl(const QUrl &url)
 {
     qCDebug(Log) << url;
+    const auto page = url.path().mid(1);
     QVariantMap properties;
-    const auto items = QUrlQuery(url).queryItems(QUrl::FullyDecoded);
-    for (const auto &[key, value] : items) {
-        properties.insert(key, value);
+    // only for pages that check what they are given, page: URLs can be opened by any other app
+    if (page == "map"_L1) {
+        const auto items = QUrlQuery(url).queryItems(QUrl::FullyDecoded);
+        for (const auto &[key, value] : items) {
+            properties.insert(key, value);
+        }
     }
-    requestOpenPage(url.path().mid(1), properties);
+    requestOpenPage(page, properties);
 }
 
 void ApplicationController::handleGeoUrl(const QUrl &url)

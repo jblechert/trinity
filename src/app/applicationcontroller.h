@@ -78,7 +78,7 @@ public:
     void handleIntent(const KAndroidExtras::Intent &intent);
     void handleGeoUrl(const QUrl &url);
     /** Open the page named by the path of a page: URL, e.g. page:///stats.
-     *  Query items are passed to the page as properties, e.g. page:///map?to=50.11,8.68.
+     *  Query items are passed as properties to pages that check them, so far only the map, e.g. page:///map?to=50.11,8.68.
      */
     void handlePageUrl(const QUrl &url);
 
