@@ -80,7 +80,8 @@ Kirigami.ScrollablePage {
         map.showJourney(journey, root);
         pageStack.layers.clear();
         // the map goes on top of these results, so going back returns to them, also when it was open before
-        // (going back to it would close the pages after it)
+        // (going back to it would close the pages after it); if the search was started on the map, going back
+        // from the first page returns to it then, see JourneyRequestPage.returnsToMap
         if (pageStack.columnView.containsItem(map)) {
             pageStack.removePage(map);
         }

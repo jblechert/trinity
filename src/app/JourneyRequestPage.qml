@@ -49,6 +49,30 @@ FormCard.FormCardPage {
 
     title: i18n("Select Journey")
 
+    /** The search was started on the map. When this becomes the first page, after a connection found was shown
+     *  on the map (see JourneyQueryPage.showOnMap()), going back returns to the map.
+     */
+    property bool returnsToMap: false
+
+    function returnToMap(): void {
+        const pageStack = applicationWindow().pageStack;
+        pageStack.clear();
+        pageStack.push(pagepool.loadPage(Qt.resolvedUrl("MapPage.qml")));
+    }
+
+    // the page stack doesn't go back from its first page
+    readonly property bool isFirstPage: root.Kirigami.ColumnView.index === 0
+    Keys.onShortcutOverride: (event) => {
+        event.accepted = event.key === Qt.Key_Back && root.returnsToMap && root.isFirstPage;
+    }
+    Keys.onPressed: (event) => {
+        if (event.key === Qt.Key_Back && root.returnsToMap && root.isFirstPage) {
+            event.accepted = true;
+            // not while handling an event of this page, which is gone then
+            Qt.callLater(root.returnToMap);
+        }
+    }
+
     actions: [
         Kirigami.Action {
             icon.name: "map-symbolic"

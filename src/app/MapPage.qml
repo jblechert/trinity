@@ -138,6 +138,7 @@ Kirigami.Page {
             publicTransportManager: LiveDataManager.publicTransportManager,
             departureStop: from,
             arrivalStop: root.journeyTo,
+            returnsToMap: true,
         };
         if (dateTime) {
             properties.initialDateTime = dateTime;
