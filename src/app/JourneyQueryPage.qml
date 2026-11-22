@@ -421,6 +421,17 @@ Kirigami.ScrollablePage {
 
             title: i18nc("@title", "Connection Details")
 
+            // also at the end of the details, which can be long
+            actions: [
+                Kirigami.Action {
+                    icon.name: "map-symbolic"
+                    text: i18nc("@action:button show a journey on the map", "Show on Map")
+                    // rather than in the overflow menu, as an icon when the title leaves no room for the text
+                    displayHint: Kirigami.DisplayHint.KeepVisible
+                    onTriggered: root.showOnMap(detailsPage.journey)
+                }
+            ]
+
             FormCard.FormCard {
                 Layout.topMargin: Kirigami.Units.largeSpacing
 
