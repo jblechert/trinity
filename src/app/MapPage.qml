@@ -21,6 +21,8 @@ import org.kde.itinerary
  *  Tapping a marked route shows its course and elevation profile, and allows to follow it.
  *  Without overlay, tapping a shop, restaurant or other point of interest shows its details such as opening hours,
  *  and tapping a public transport stop shows the lines departing there and their routes.
+ *  Places can be searched by name or category (such as bakeries or pharmacies) around the current location
+ *  or the center of the map.
  *  Departure and arrival of a journey can be picked on the map or searched, to search connections between them.
  */
 Kirigami.Page {
@@ -44,6 +46,19 @@ Kirigami.Page {
     property var journeyTo
     /** The journey planner is shown. */
     property bool plannerShown: false
+    /** The place search is shown. */
+    property bool searchShown: false
+    // there is room for only one of them at the top
+    onPlannerShownChanged: {
+        if (root.plannerShown) {
+            root.searchShown = false;
+        }
+    }
+    onSearchShownChanged: {
+        if (root.searchShown) {
+            root.plannerShown = false;
+        }
+    }
     readonly property bool hasPosition: positionSource.valid && positionSource.position.latitudeValid && positionSource.position.longitudeValid
     /** The journey starts where we are, so navigating there on foot, by bike or by car is possible. */
     readonly property bool journeyStartsHere: root.hasPosition && (!root.journeyFrom
@@ -256,7 +271,7 @@ Kirigami.Page {
 
     /** Height available for lists in the sheet with details of a tapped place. */
     readonly property real sheetListHeight: Math.max(Kirigami.Units.gridUnit * 4,
-        (root.height - (plannerPane.visible ? plannerPane.height : 0)) * 0.5 - Kirigami.Units.gridUnit * 8)
+        (root.height - root.visibleTop) * 0.5 - Kirigami.Units.gridUnit * 8)
 
     /** What to keep in view while the size of the sheet at the bottom changes, e.g. when its content is loaded:
      *  a coordinate, or "trip" for the shown trip. Until the user moves the map.
@@ -274,8 +289,8 @@ Kirigami.Page {
         onTriggered: root.applyFocus()
     }
 
-    /** Top of the part of the map not hidden by the planner. */
-    readonly property real visibleTop: plannerPane.visible ? plannerPane.height : 0
+    /** Top of the part of the map not hidden by the planner or the search. */
+    readonly property real visibleTop: plannerPane.visible ? plannerPane.height : (searchPane.visible ? searchPane.height : 0)
     /** Bottom of the part of the map not hidden by the pane at the bottom, and the attribution of the map above it. */
     readonly property real visibleBottom: root.height - root.bottomPaneHeight - map.attribution.height - Kirigami.Units.largeSpacing
 
@@ -304,8 +319,24 @@ Kirigami.Page {
             root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
             return;
         }
+        if (what === "results") {
+            // the found places, and where they were searched from
+            let coords = placeSearch.results.map((r) => QtPositioning.coordinate(r.latitude, r.longitude));
+            coords.push(placeSearch.center);
+            const lats = coords.map((c) => c.latitude);
+            const lons = coords.map((c) => c.longitude);
+            const minLat = Math.min(...lats);
+            const minLon = Math.min(...lons);
+            const bbox = Qt.rect(minLon, minLat, Math.max(...lons) - minLon, Math.max(...lats) - minLat);
+            if (bbox.width > 0 || bbox.height > 0) {
+                map.zoomLevel = Math.min(KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, bottom - top - margin * 2), 17);
+            }
+            root.centerOn(QtPositioning.coordinate(minLat + bbox.height / 2, minLon + bbox.width / 2));
+            return;
+        }
         const pos = map.fromCoordinate(what, false);
-        if (pos.y < top + margin || pos.y > bottom - margin) {
+        // the pin marking the selection is drawn above the coordinate
+        if (pos.y < top + margin + Kirigami.Units.iconSizes.huge || pos.y > bottom - margin) {
             root.centerOn(what);
         }
     }
@@ -333,6 +364,53 @@ Kirigami.Page {
         id: placeLookup
         onFinished: (candidates) => root.showCandidates(candidates)
     }
+
+    function openSearch(): void {
+        root.searchShown = true;
+        // the pane at the bottom is needed for the search results
+        markedRoutes.clearRoute();
+        root.routeListShown = false;
+        root.routeShown = false;
+        if (placeSearch.active) {
+            root.focusLater("results");
+        } else {
+            searchPane.focusSearchField();
+        }
+    }
+
+    function closeSearch(): void {
+        root.searchShown = false;
+        placeSearch.clear();
+        if (root.selection?.osmId !== undefined) {
+            root.clearSelection();
+        }
+    }
+
+    /** Search the text entered in the search pane, or the category @p categoryId if not empty. */
+    function runSearch(categoryId: string): void {
+        const text = searchPane.text.trim();
+        if (text === "") {
+            return;
+        }
+        root.clearSelection();
+        root.amenityCache = {};
+        const center = searchPane.aroundMe ? positionSource.position.coordinate
+            : map.toCoordinate(Qt.point(map.width / 2, (root.visibleTop + root.visibleBottom) / 2), false);
+        placeSearch.search(text, categoryId, center, searchPane.radius);
+    }
+
+    /** Show the details of a search result. */
+    function selectSearchResult(result: var): void {
+        const amenity = root.amenityCache[result.osmId];
+        root.select(amenity ? Object.assign({}, result, { amenity: amenity }) : result);
+    }
+
+    MapPlaceSearch {
+        id: placeSearch
+        onFinished: root.focusLater("results")
+    }
+    /** Details of the found places loaded so far, by OSM element id, see MapSearchResultDelegate. */
+    property var amenityCache: ({})
 
     function navigateToPickedPlace(mode: int): void {
         root.startNavigation(helper.locationAt(root.pickedCoordinate.latitude, root.pickedCoordinate.longitude, i18nc("@info a place picked on the map", "Selected place")), mode);
@@ -374,6 +452,14 @@ Kirigami.Page {
     actions: [
         Kirigami.Action {
             icon.name: "search"
+            text: i18nc("@action:button search places such as shops or restaurants on the map", "Find Places")
+            // the search icon tells what it is, leaving room for the journey planner
+            displayHint: Kirigami.DisplayHint.IconOnly | Kirigami.DisplayHint.KeepVisible
+            visible: !root.searchShown
+            onTriggered: root.openSearch()
+        },
+        Kirigami.Action {
+            icon.source: KPublicTransport.LineMode.iconName(KPublicTransport.Line.LocalTrain)
             text: i18nc("@action:button search a public transport connection between two places", "Plan Journey")
             visible: !root.plannerShown
             onTriggered: root.plannerShown = true
@@ -433,7 +519,7 @@ Kirigami.Page {
         id: map
         anchors.fill: parent
         zoomLevel: 15
-        coveringItems: [plannerPane, routePane, selectionPane]
+        coveringItems: [plannerPane, searchPane, routePane, selectionPane]
         // keep the attribution visible above the pane at the bottom, using as little height as possible there
         attribution.anchors.bottomMargin: root.bottomPaneHeight + Kirigami.Units.largeSpacing
         attribution.width: Math.min(Kirigami.Units.gridUnit * 22, map.width - Kirigami.Units.largeSpacing * 2)
@@ -519,6 +605,31 @@ Kirigami.Page {
                     root.centerOn(tripStopDelegate.coordinate);
                 }
             }
+        }
+
+        // places found by a search, and where they were searched from
+        QtLocation.MapItemView {
+            model: root.searchShown ? placeSearch.results : []
+            z: 6
+            delegate: MapCircle {
+                id: resultDelegate
+                required property var modelData
+                coordinate: QtPositioning.coordinate(resultDelegate.modelData.latitude, resultDelegate.modelData.longitude)
+                size: 24
+                color: "#3daee9"
+                textColor: "#eff0f1"
+                iconName: resultDelegate.modelData.iconSource
+                onClicked: root.selectSearchResult(resultDelegate.modelData)
+            }
+        }
+        MapCircle {
+            visible: root.searchShown && placeSearch.active && !(placeSearch.center.distanceTo(positionSource.position.coordinate) < 1)
+            coordinate: placeSearch.center
+            color: "#232629"
+            textColor: "#eff0f1"
+            iconName: "crosshairs"
+            size: 20
+            z: 5
         }
 
         // what was found at a tapped place, to choose from
@@ -794,6 +905,26 @@ Kirigami.Page {
         }
     }
 
+    // searching places by name or category
+    MapSearchPane {
+        id: searchPane
+        visible: root.searchShown
+        z: map.z + 3
+        anchors {
+            left: parent.left
+            right: parent.right
+            top: parent.top
+        }
+        hasPosition: root.hasPosition
+        onSearchRequested: (categoryId) => root.runSearch(categoryId)
+        onAreaEdited: {
+            if (placeSearch.active) {
+                root.runSearch(placeSearch.category.id ?? "");
+            }
+        }
+        onCloseRequested: root.closeSearch()
+    }
+
     QtLocation.Plugin {
         id: emptyOverlayPlugin
         name: "itemsoverlay"
@@ -837,7 +968,7 @@ Kirigami.Page {
     QQC2.Label {
         anchors {
             left: parent.left
-            top: plannerPane.visible ? plannerPane.bottom : parent.top
+            top: plannerPane.visible ? plannerPane.bottom : (searchPane.visible ? searchPane.bottom : parent.top)
             margins: Kirigami.Units.largeSpacing
         }
         visible: root.overlay !== ""
@@ -1013,10 +1144,14 @@ Kirigami.Page {
     /** Height of the pane at the bottom, if any. */
     readonly property real bottomPaneHeight: routePane.visible ? routePane.height : (selectionPane.visible ? selectionPane.height : 0)
 
-    // details of a place or stop tapped on the map, or a list to choose from if several were found there
+    /** Search results are shown in the pane at the bottom. */
+    readonly property bool searchResultsShown: root.searchShown && placeSearch.active && root.selection === undefined && root.candidates.length === 0
+
+    // details of a place or stop tapped on the map or found by a search, a list to choose from if several were found
+    // at a tapped place, or the search results
     QQC2.Pane {
         id: selectionPane
-        visible: root.selection !== undefined || root.candidates.length > 0
+        visible: !routePane.visible && (root.selection !== undefined || root.candidates.length > 0 || root.searchResultsShown)
         z: map.z + 3
         anchors {
             left: parent.left
@@ -1035,8 +1170,106 @@ Kirigami.Page {
         contentItem: ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
 
+            // search results
             RowLayout {
-                visible: root.selection === undefined
+                visible: root.searchResultsShown
+                spacing: Kirigami.Units.largeSpacing
+                Layout.fillWidth: true
+                Kirigami.Icon {
+                    source: placeSearch.category.iconSource ?? "search"
+                    isMask: true
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                }
+                ColumnLayout {
+                    spacing: 0
+                    Layout.fillWidth: true
+                    Kirigami.Heading {
+                        level: 3
+                        text: placeSearch.category.name ?? i18nc("@title search results for a name, %1 is the name", "“%1”", placeSearch.text)
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+                    QQC2.Label {
+                        text: {
+                            const count = placeSearch.results.length;
+                            const radius = CoreAddons.Format.formatDistance(placeSearch.radius, Settings.distanceFormat);
+                            if (placeSearch.loading) {
+                                return i18nc("@info", "Searching…");
+                            }
+                            if (placeSearch.errorMessage !== "" || count === 0) {
+                                return "";
+                            }
+                            if (placeSearch.limitReached) {
+                                return placeSearch.radius > 0 ? i18ncp("@info", "The nearest place within %2", "The nearest %1 places within %2", count, radius)
+                                    : i18ncp("@info", "The nearest place", "The nearest %1 places", count);
+                            }
+                            return placeSearch.radius > 0 ? i18ncp("@info", "One place within %2", "%1 places within %2", count, radius)
+                                : i18ncp("@info", "One place nearby", "%1 places nearby", count);
+                        }
+                        visible: text !== ""
+                        elide: Text.ElideRight
+                        font: Kirigami.Theme.smallFont
+                        opacity: 0.7
+                        Layout.fillWidth: true
+                    }
+                }
+                QQC2.BusyIndicator {
+                    running: placeSearch.loading
+                    visible: running
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                }
+                QQC2.ToolButton {
+                    icon.name: "window-close-symbolic"
+                    text: i18nc("@action:button", "Close")
+                    display: QQC2.AbstractButton.IconOnly
+                    onClicked: root.closeSearch()
+                }
+            }
+            QQC2.Label {
+                visible: root.searchResultsShown && !placeSearch.loading && placeSearch.unnamedPlacesRadius > 0
+                    && (placeSearch.radius === 0 || placeSearch.radius > placeSearch.unnamedPlacesRadius)
+                text: i18nc("@info %1 is a distance", "Places without a name are only included within %1.",
+                    CoreAddons.Format.formatDistance(placeSearch.unnamedPlacesRadius, Settings.distanceFormat))
+                wrapMode: Text.WordWrap
+                font: Kirigami.Theme.smallFont
+                opacity: 0.7
+                Layout.fillWidth: true
+            }
+            QQC2.Label {
+                visible: root.searchResultsShown && !placeSearch.loading && placeSearch.results.length === 0
+                text: {
+                    if (placeSearch.errorMessage !== "") {
+                        return placeSearch.errorMessage;
+                    }
+                    return placeSearch.radius > 0 && placeSearch.radius < 16000 ? i18nc("@info", "Nothing found. Try a larger search area.")
+                        : i18nc("@info", "Nothing found.");
+                }
+                color: placeSearch.errorMessage !== "" ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+            ListView {
+                id: resultView
+                visible: root.searchResultsShown
+                model: placeSearch.results
+                clip: true
+                // only load details for the places actually shown
+                cacheBuffer: 0
+                boundsBehavior: Flickable.StopAtBounds
+                Layout.fillWidth: true
+                Layout.preferredHeight: Math.min(resultView.contentHeight, (root.height - root.visibleTop) * 0.5 - Kirigami.Units.gridUnit * 3)
+                QQC2.ScrollBar.vertical: QQC2.ScrollBar {}
+                delegate: MapSearchResultDelegate {
+                    id: resultRow
+                    amenityCache: root.amenityCache
+                    onClicked: root.selectSearchResult(resultRow.modelData)
+                }
+            }
+
+            RowLayout {
+                visible: root.selection === undefined && root.candidates.length > 0
                 Layout.fillWidth: true
                 Kirigami.Heading {
                     level: 3
@@ -1053,7 +1286,7 @@ Kirigami.Page {
             }
             ListView {
                 id: candidateView
-                visible: root.selection === undefined
+                visible: root.selection === undefined && root.candidates.length > 0
                 model: root.candidates
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
