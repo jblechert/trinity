@@ -19,7 +19,8 @@ import org.kde.itinerary
 /** A map centered on the current location, with optional overlays for marked hiking, cycling and
  *  mountain bike routes, and routes on foot, by bike or by car to any place picked on the map.
  *  Tapping a marked route shows its course and elevation profile, and allows to follow it.
- *  Without overlay, tapping a shop, restaurant or other point of interest shows its details such as opening hours.
+ *  Without overlay, tapping a shop, restaurant or other point of interest shows its details such as opening hours,
+ *  and tapping a public transport stop shows the lines departing there and their routes.
  *  Departure and arrival of a journey can be picked on the map or searched, to search connections between them.
  */
 Kirigami.Page {
@@ -195,12 +196,14 @@ Kirigami.Page {
         });
     }
 
-    /** The place tapped on the map whose details are shown, a candidate as found by MapPlaceLookup. */
+    /** The place or stop tapped on the map whose details are shown, a candidate as found by MapPlaceLookup. */
     property var selection
-    /** Several places found at a tapped place, to choose from. */
+    /** Several places or stops found at a tapped place, to choose from. */
     property var candidates: []
+    /** The route of a public transport trip shown on the map, from a tapped stop. */
+    readonly property bool tripShown: sheetLoader.item?.hasTrip ?? false
 
-    /** Find out what is at @p position on the map: a point of interest such as a shop. */
+    /** Find out what is at @p position on the map: a point of interest or a public transport stop. */
     function lookupAt(position: point): void {
         // points of interest are shown from zoom level 15 on, below that a tap would just hit something random
         if (map.zoomLevel < 15) {
@@ -215,8 +218,10 @@ Kirigami.Page {
     /** Show what was found at a tapped place: details if there is one obvious match, a list to choose from otherwise. */
     function showCandidates(candidates: var): void {
         if (candidates.length === 0) {
-            // tapping on the empty map closes the details
-            root.clearSelection();
+            // tapping on the empty map closes the details, unless a route is shown that would be lost then
+            if (!root.tripShown) {
+                root.clearSelection();
+            }
             return;
         }
         if (candidates.length === 1 || candidates[0].distance < candidates[1].distance * 0.35) {
@@ -234,7 +239,7 @@ Kirigami.Page {
         root.selection = candidate;
         // a new sheet for each selection, so nothing of the previous one is left
         sheetLoader.source = "";
-        sheetLoader.setSource(Qt.resolvedUrl("MapPlaceSheet.qml"), {
+        sheetLoader.setSource(Qt.resolvedUrl(candidate.type === "stop" ? "MapStopSheet.qml" : "MapPlaceSheet.qml"), {
             place: candidate,
             maximumListHeight: root.sheetListHeight,
         });
@@ -254,7 +259,7 @@ Kirigami.Page {
         (root.height - (plannerPane.visible ? plannerPane.height : 0)) * 0.5 - Kirigami.Units.gridUnit * 8)
 
     /** What to keep in view while the size of the sheet at the bottom changes, e.g. when its content is loaded:
-     *  a coordinate. Until the user moves the map.
+     *  a coordinate, or "trip" for the shown trip. Until the user moves the map.
      */
     property var focusTarget
 
@@ -289,14 +294,27 @@ Kirigami.Page {
         const top = root.visibleTop;
         const bottom = root.visibleBottom;
         const margin = Kirigami.Units.gridUnit;
+        if (what === "trip") {
+            if (!root.tripShown) {
+                return;
+            }
+            const bbox = KPublicTransportUi.MapUtils.boundingBox(sheetLoader.item.trip);
+            const center = KPublicTransportUi.MapUtils.center(bbox);
+            map.zoomLevel = Math.min(KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, bottom - top - margin * 2), 17);
+            root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
+            return;
+        }
         const pos = map.fromCoordinate(what, false);
         if (pos.y < top + margin || pos.y > bottom - margin) {
             root.centerOn(what);
         }
     }
 
-    /** The selected place as departure or arrival of a journey, or as navigation destination. */
+    /** The selected place or stop as departure or arrival of a journey, or as navigation destination. */
     function selectionLocation(): var {
+        if (root.selection.type === "stop") {
+            return root.selection.location;
+        }
         return helper.locationAt(root.selection.latitude, root.selection.longitude, root.selection.name);
     }
 
@@ -475,6 +493,34 @@ Kirigami.Page {
             z: 6
         }
 
+        // the route of the trip selected at a stop
+        QtLocation.MapPolyline {
+            visible: root.tripShown
+            line.width: 8
+            line.color: sheetLoader.item?.tripColor ?? "#232629"
+            path: root.tripShown ? KPublicTransportUi.MapUtils.polyline(sheetLoader.item.trip) : []
+            z: 4
+        }
+        QtLocation.MapItemView {
+            model: root.tripShown ? sheetLoader.item.tripStops : []
+            z: 5
+            delegate: MapCircle {
+                id: tripStopDelegate
+                required property var modelData
+                required property int index
+                readonly property bool isEnd: tripStopDelegate.index === 0 || tripStopDelegate.index === sheetLoader.item.tripStops.length - 1
+                coordinate: QtPositioning.coordinate(tripStopDelegate.modelData.stopPoint.latitude, tripStopDelegate.modelData.stopPoint.longitude)
+                size: tripStopDelegate.isEnd ? 15 : 10
+                borderWidth: tripStopDelegate.isEnd ? 2 : 1
+                color: sheetLoader.item?.tripColor ?? "#232629"
+                textColor: "#eff0f1"
+                onClicked: {
+                    root.focusTarget = undefined;
+                    root.centerOn(tripStopDelegate.coordinate);
+                }
+            }
+        }
+
         // what was found at a tapped place, to choose from
         QtLocation.MapItemView {
             model: root.candidates
@@ -490,7 +536,7 @@ Kirigami.Page {
             }
         }
 
-        // the place whose details are shown
+        // the place or stop whose details are shown
         MapPin {
             visible: root.selection !== undefined
             coordinate: root.selection ? QtPositioning.coordinate(root.selection.latitude, root.selection.longitude) : QtPositioning.coordinate()
@@ -967,7 +1013,7 @@ Kirigami.Page {
     /** Height of the pane at the bottom, if any. */
     readonly property real bottomPaneHeight: routePane.visible ? routePane.height : (selectionPane.visible ? selectionPane.height : 0)
 
-    // details of a place tapped on the map, or a list to choose from if several were found there
+    // details of a place or stop tapped on the map, or a list to choose from if several were found there
     QQC2.Pane {
         id: selectionPane
         visible: root.selection !== undefined || root.candidates.length > 0
@@ -1041,6 +1087,13 @@ Kirigami.Page {
                 }
                 function onJourneyEndpointRequested(endpoint: string): void {
                     root.setJourneyEndpointToSelection(endpoint);
+                }
+                function onTripReady(): void {
+                    root.focusLater("trip");
+                }
+                function onTripStopSelected(stopover: var): void {
+                    root.focusTarget = undefined;
+                    root.centerOn(QtPositioning.coordinate(stopover.stopPoint.latitude, stopover.stopPoint.longitude));
                 }
             }
         }
