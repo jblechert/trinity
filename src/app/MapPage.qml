@@ -78,6 +78,7 @@ Kirigami.Page {
         }
         root.pickedCoordinate = undefined;
         root.plannerShown = true;
+        root.showJourneyEndpoints();
         // name the place by its address
         root.geocode(endpoint === "from" ? fromGeocoder : toGeocoder, coord);
     }
@@ -317,24 +318,22 @@ Kirigami.Page {
         onStatusChanged: root.applyGeocoding("preview", previewGeocoder)
     }
 
-    /** Show departure and arrival on the map, after one of them was searched. */
+    /** Show departure and arrival on the map, after one of them was searched or picked on the map.
+     *  Once the journey planner is laid out, so they are not hidden behind it.
+     */
     function showJourneyEndpoints(): void {
+        root.focusLater("endpoints");
+    }
+
+    /** Coordinates of departure and arrival of the journey to search, those known so far. */
+    function journeyEndpointCoordinates(): var {
         let coords = [];
         for (const location of [root.journeyFrom ?? (root.hasPosition ? root.currentLocation() : undefined), root.journeyTo]) {
             if (location && location.hasCoordinate) {
                 coords.push(QtPositioning.coordinate(location.latitude, location.longitude));
             }
         }
-        if (coords.length === 0) {
-            return;
-        }
-        root.followPosition = false;
-        if (coords.length === 1) {
-            map.center = coords[0];
-            return;
-        }
-        // with room for the journey planner on top
-        map.fitViewportToGeoShape(QtPositioning.rectangle(coords), Kirigami.Units.gridUnit * 6);
+        return coords;
     }
 
     Component {
@@ -785,6 +784,15 @@ Kirigami.Page {
         root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
     }
 
+    /** The area containing all of @p coords, with x/y being longitude/latitude as for fitBoundingBox(). */
+    function boundingBox(coords: var): rect {
+        const lats = coords.map((c) => c.latitude);
+        const lons = coords.map((c) => c.longitude);
+        const minLat = Math.min(...lats);
+        const minLon = Math.min(...lons);
+        return Qt.rect(minLon, minLat, Math.max(...lons) - minLon, Math.max(...lats) - minLat);
+    }
+
     /** Center the map on @p coord within the part of it that is not hidden. */
     function centerOn(coord: var): void {
         root.followPosition = false;
@@ -816,9 +824,16 @@ Kirigami.Page {
             } else if (root.previewTo) {
                 // a route preview still being searched: where it starts and ends
                 const from = root.previewFrom ?? (root.hasPosition ? root.currentLocation() : root.previewTo);
-                const minLat = Math.min(from.latitude, root.previewTo.latitude);
-                const minLon = Math.min(from.longitude, root.previewTo.longitude);
-                root.fitBoundingBox(Qt.rect(minLon, minLat, Math.abs(from.longitude - root.previewTo.longitude), Math.abs(from.latitude - root.previewTo.latitude)));
+                root.fitBoundingBox(root.boundingBox([from, root.previewTo]));
+            }
+            return;
+        }
+        if (what === "endpoints") {
+            const coords = root.journeyEndpointCoordinates();
+            if (coords.length === 1) {
+                root.centerOn(coords[0]);
+            } else if (coords.length === 2) {
+                root.fitBoundingBox(root.boundingBox(coords));
             }
             return;
         }
@@ -826,15 +841,11 @@ Kirigami.Page {
             // the found places, and where they were searched from
             let coords = placeSearch.results.map((r) => QtPositioning.coordinate(r.latitude, r.longitude));
             coords.push(placeSearch.center);
-            const lats = coords.map((c) => c.latitude);
-            const lons = coords.map((c) => c.longitude);
-            const minLat = Math.min(...lats);
-            const minLon = Math.min(...lons);
-            const bbox = Qt.rect(minLon, minLat, Math.max(...lons) - minLon, Math.max(...lats) - minLat);
+            const bbox = root.boundingBox(coords);
             if (bbox.width > 0 || bbox.height > 0) {
                 map.zoomLevel = Math.min(KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, bottom - top - margin * 2), 17);
             }
-            root.centerOn(QtPositioning.coordinate(minLat + bbox.height / 2, minLon + bbox.width / 2));
+            root.centerOn(QtPositioning.coordinate(bbox.y + bbox.height / 2, bbox.x + bbox.width / 2));
             return;
         }
         const pos = map.fromCoordinate(what, false);
