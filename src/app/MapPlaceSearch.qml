@@ -26,10 +26,8 @@ import org.kde.itinerary
  *  the OpenStreetMap data within a few hundred metres of the search center, for categories whose
  *  places usually have no name, or if Photon finds few places.
  */
-Item {
+QtObject {
     id: root
-
-    visible: false
 
     /** A search was started and not cleared since. */
     readonly property bool active: root.text !== ""
@@ -186,7 +184,7 @@ Item {
         root.unnamedPlacesRadius = mapData.radius;
     }
 
-    KPublicTransport.LocationQueryModel {
+    readonly property KPublicTransport.LocationQueryModel queryModel: KPublicTransport.LocationQueryModel {
         id: query
         manager: LiveDataManager.publicTransportManager
         onLoadingChanged: {
@@ -208,7 +206,7 @@ Item {
         }
     }
 
-    KOSM.NearbyAmenityModel {
+    readonly property KOSM.NearbyAmenityModel mapDataModel: KOSM.NearbyAmenityModel {
         id: mapData
         onFinished: {
             if (root.mapDataPending) {

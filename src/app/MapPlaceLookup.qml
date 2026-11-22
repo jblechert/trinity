@@ -22,10 +22,8 @@ import org.kde.itinerary
  *  Things within the search radius come first. Areas containing the tapped point (such as a park
  *  or a school) are only included when there is nothing within the radius.
  */
-Item {
+QtObject {
     id: root
-
-    visible: false
 
     /** A lookup is running. */
     readonly property bool running: root.amenitiesPending || root.stopsPending
@@ -167,7 +165,7 @@ Item {
         root.finished(candidates);
     }
 
-    KOSM.NearbyAmenityModel {
+    readonly property KOSM.NearbyAmenityModel amenityModel: KOSM.NearbyAmenityModel {
         id: amenities
         onFinished: {
             if (root.amenitiesPending) {
@@ -177,7 +175,7 @@ Item {
         }
     }
 
-    KPublicTransport.LocationQueryModel {
+    readonly property KPublicTransport.LocationQueryModel stopQueryModel: KPublicTransport.LocationQueryModel {
         id: stopQuery
         manager: LiveDataManager.publicTransportManager
         onLoadingChanged: {
@@ -194,7 +192,7 @@ Item {
     }
 
     // don't let a slow backend delay showing what was found
-    Timer {
+    readonly property Timer stopTimer: Timer {
         id: stopTimeout
         interval: 5000
         onTriggered: {
