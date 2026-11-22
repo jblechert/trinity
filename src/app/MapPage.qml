@@ -864,6 +864,9 @@ Kirigami.Page {
     /** The route of a public transport trip shown on the map, from a tapped stop. */
     readonly property bool tripShown: sheetLoader.item?.hasTrip ?? false
 
+    /** Telling that places can only be tapped when zoomed in is only needed once. */
+    property bool zoomHintShown: false
+
     /** The distance on the map covered by a finger's width at @p position. */
     function fingerRadius(position: point): real {
         // also beyond the edge of the map, for taps close to it
@@ -875,6 +878,10 @@ Kirigami.Page {
     function lookupAt(position: point): void {
         // points of interest are shown from zoom level 15 on, below that a tap would just hit something random
         if (map.zoomLevel < 15) {
+            if (!root.zoomHintShown) {
+                root.zoomHintShown = true;
+                applicationWindow().showPassiveNotification(i18nc("@info", "Zoom in to see details of places and stops."));
+            }
             return;
         }
         const coord = map.toCoordinate(position);
