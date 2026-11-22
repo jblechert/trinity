@@ -786,7 +786,10 @@ Kirigami.Page {
     /** Show the area @p bbox (x/y being longitude/latitude) within the part of the map that is not hidden. */
     function fitBoundingBox(bbox: rect): void {
         const margin = Kirigami.Units.gridUnit;
-        const zoom = KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, root.visibleBottom - root.visibleTop - margin * 2);
+        // MapUtils.zoomLevel() falls back to showing a whole continent for an area of a few metres or a single point,
+        // such as departure and arrival at the same place
+        const tiny = bbox.width < 1e-4 && bbox.height < 1e-4;
+        const zoom = tiny ? 17 : KPublicTransportUi.MapUtils.zoomLevel(bbox, map.width - margin * 2, root.visibleBottom - root.visibleTop - margin * 2);
         map.zoomLevel = isFinite(zoom) ? Math.min(zoom, 17) : 17;
         const center = KPublicTransportUi.MapUtils.center(bbox);
         root.centerOn(QtPositioning.coordinate(center.latitude, center.longitude));
