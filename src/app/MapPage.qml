@@ -680,7 +680,7 @@ Kirigami.Page {
                 geometry.stops.push({ stopover: section.arrival, color: color, size: 14, isDeparture: false, isArrival: true });
                 const middle = root.pathMiddle(path);
                 if (middle) {
-                    geometry.labels.push({ section: section, coordinate: middle });
+                    geometry.labels.push({ section: section, coordinate: middle, length: root.pathLength(path) });
                 }
                 break;
             }
@@ -718,16 +718,21 @@ Kirigami.Page {
         return Math.sqrt(dx * dx + dy * dy) * 111195;
     }
 
+    /** Length of @p path in meters. */
+    function pathLength(path: var): real {
+        let length = 0;
+        for (let i = 0; i + 1 < path.length; ++i) {
+            length += root.roughDistance(path[i], path[i + 1]);
+        }
+        return length;
+    }
+
     /** The point halfway along @p path, e.g. to label a line there. */
     function pathMiddle(path: var): var {
         if (path.length === 0) {
             return undefined;
         }
-        let length = 0;
-        for (let i = 0; i + 1 < path.length; ++i) {
-            length += root.roughDistance(path[i], path[i + 1]);
-        }
-        let remaining = length / 2;
+        let remaining = root.pathLength(path) / 2;
         for (let i = 0; i + 1 < path.length; ++i) {
             const d = root.roughDistance(path[i], path[i + 1]);
             if (d >= remaining && d > 0) {
@@ -745,15 +750,44 @@ Kirigami.Page {
      */
     property var walkDots: []
 
+    /** The line labels of the shown journey that fit on the map at the current zoom level: not for lines too short
+     *  to tell them apart there, nor where they would hide other labels or where the journey starts and ends.
+     */
+    property var journeyLabels: []
+
+    function updateJourneyLabels(metersPerPixel: real): void {
+        const geometry = root.journeyGeometry;
+        // about the width of a label
+        const minDistance = Kirigami.Units.gridUnit * 4 * metersPerPixel;
+        let taken = [geometry.start, geometry.end].filter((coord) => coord !== undefined);
+        let labels = [];
+        // the longest lines first, as they matter most for the whole journey
+        for (const label of geometry.labels.slice().sort((lhs, rhs) => rhs.length - lhs.length)) {
+            if (label.length < minDistance || taken.some((coord) => coord.distanceTo(label.coordinate) < minDistance)) {
+                continue;
+            }
+            labels.push(label);
+            taken.push(label.coordinate);
+        }
+        // not when only moving the map, as that would create all labels again
+        if (labels.length !== root.journeyLabels.length || labels.some((label, i) => label !== root.journeyLabels[i])) {
+            root.journeyLabels = labels;
+        }
+    }
+
     function updateWalkDots(): void {
-        const walks = root.journeyGeometry.walks;
-        if (walks.length === 0 || map.width <= 0) {
-            root.walkDots = [];
+        if (map.width <= 0) {
             return;
         }
         const center = map.toCoordinate(Qt.point(map.width / 2, map.height / 2), false);
         const metersPerPixel = center.distanceTo(map.toCoordinate(Qt.point(map.width / 2 + 100, map.height / 2), false)) / 100;
         if (!(metersPerPixel > 0)) {
+            return;
+        }
+        root.updateJourneyLabels(metersPerPixel);
+        const walks = root.journeyGeometry.walks;
+        if (walks.length === 0) {
+            root.walkDots = [];
             return;
         }
         const spacing = metersPerPixel * Kirigami.Units.gridUnit * 0.8;
@@ -1269,7 +1303,7 @@ Kirigami.Page {
             }
         }
         QtLocation.MapItemView {
-            model: root.journeyPaneShown ? root.journeyGeometry.labels : []
+            model: root.journeyPaneShown ? root.journeyLabels : []
             z: 7
             delegate: QtLocation.MapQuickItem {
                 id: journeyLabelDelegate
