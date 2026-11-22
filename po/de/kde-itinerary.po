@@ -6387,11 +6387,6 @@ msgstr "Auto"
 
 #: fork
 msgctxt "@info"
-msgid "Navigation on foot, by bike or by car starts at your location."
-msgstr "Die Navigation zu Fuß, mit dem Fahrrad oder Auto beginnt an Ihrem Standort."
-
-#: fork
-msgctxt "@info"
 msgid "Voice guidance needs a text-to-speech app, and none is installed. SherpaTTS is a good choice: natural voices for many languages, working offline once a voice is downloaded."
 msgstr "Für Sprachansagen wird eine App zur Sprachausgabe benötigt, es ist aber keine installiert. Gut geeignet ist SherpaTTS: natürliche Stimmen für viele Sprachen, die offline funktionieren, sobald eine Stimme heruntergeladen ist."
 
@@ -6847,3 +6842,63 @@ msgstr "Nichts gefunden. Versuchen Sie es mit einem größeren Suchbereich."
 msgctxt "@info"
 msgid "Nothing found."
 msgstr "Nichts gefunden."
+
+#: fork
+msgctxt "@option:check consider flights in the journey search"
+msgid "Include flights"
+msgstr "Flüge einbeziehen"
+
+#: fork
+msgctxt "@info"
+msgid "Flight data is only available in a few regions so far"
+msgstr "Flugdaten gibt es bisher nur für wenige Regionen"
+
+#: fork
+msgctxt "@action:button show a journey on the map"
+msgid "Show on Map"
+msgstr "Auf der Karte zeigen"
+
+#: fork
+msgctxt "@info"
+msgid "All sections of the connection, with walks and stops"
+msgstr "Alle Abschnitte der Verbindung, mit Fußwegen und Haltestellen"
+
+#: fork
+msgctxt "@info separator between details of a journey"
+msgid " · "
+msgstr " · "
+
+#: fork
+msgctxt "@action:button show the list of found connections again"
+msgid "Back to the connections"
+msgstr "Zurück zu den Verbindungen"
+
+#: fork
+msgctxt "@title departure and arrival time of a journey"
+msgid "%1 – %2"
+msgstr "%1 – %2"
+
+#: fork
+msgctxt "@info"
+msgid "Searching for a route…"
+msgstr "Route wird gesucht …"
+
+#: fork
+msgctxt "@action:button show the entire journey on the map"
+msgid "Show All"
+msgstr "Alles zeigen"
+
+#: fork
+msgctxt "@action:button start navigation"
+msgid "Start"
+msgstr "Starten"
+
+#: fork
+msgctxt "@info"
+msgid "Navigation starts at your location."
+msgstr "Die Navigation beginnt an Ihrem Standort."
+
+#: fork
+msgctxt "@info arrival time of a journey section"
+msgid "Arrival %1"
+msgstr "Ankunft %1"
