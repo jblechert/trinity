@@ -398,6 +398,12 @@ Kirigami.Page {
         root.QQC2.ApplicationWindow.window.pageStack.layers.push(Qt.createComponent("org.kde.itinerary", "WalkingNavigationPage"), properties);
     }
 
+    /** Where shown journeys and the outcome of route previews are logged, e.g. for automated tests. */
+    readonly property LoggingCategory searchLog: LoggingCategory {
+        name: "org.kde.itinerary.journeysearch"
+        defaultLogLevel: LoggingCategory.Info
+    }
+
     /** The journey shown on the map: a public transport connection, or the preview of a route on foot, by bike or by car. */
     property var shownJourney
     /** The KPublicTransport.IndividualTransport mode of a route preview, -1 for a public transport connection. */
@@ -446,7 +452,7 @@ Kirigami.Page {
         root.journeyPaneShown = true;
         root.focusedSection = -1;
         root.focusLater("journey");
-        console.info("map: showing a journey with", journey.sections.length, "sections");
+        console.info(root.searchLog, "map: showing a journey with", journey.sections.length, "sections");
     }
 
     /** Show the route from @p from (undefined for the current location) to @p to, on foot, by bike or by car,
@@ -611,6 +617,17 @@ Kirigami.Page {
         }
     }
 
+    /** Log the outcome of a route preview, like JourneyQueryPage does for public transport searches. */
+    function logPreview(): void {
+        const count = previewModel.rowCount();
+        const route = count > 0 ? previewModel.data(previewModel.index(0, 0), KPublicTransport.JourneyQueryModel.JourneyRole) : undefined;
+        const mode = root.shownJourneyMode === KPublicTransport.IndividualTransport.Walk ? "walk"
+            : root.shownJourneyMode === KPublicTransport.IndividualTransport.Bike ? "bike" : "car";
+        const best = route ? "duration=" + route.duration + " distance=" + Math.round(route.distance) : "none";
+        console.info(root.searchLog, "route preview finished: mode=" + mode + " results=" + count
+            + " error=" + JSON.stringify(previewModel.errorMessage) + " best: " + best);
+    }
+
     KPublicTransport.JourneyQueryModel {
         id: previewModel
         /** The current request is being searched, so the results are its own once loading stops.
@@ -630,6 +647,7 @@ Kirigami.Page {
             if (!root.journeyPaneShown || root.shownJourneyMode < 0) {
                 return;
             }
+            root.logPreview();
             if (previewModel.rowCount() > 0) {
                 root.shownJourney = previewModel.data(previewModel.index(0, 0), KPublicTransport.JourneyQueryModel.JourneyRole);
                 root.focusLater("journey");

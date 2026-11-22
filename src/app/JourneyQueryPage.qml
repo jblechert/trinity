@@ -144,6 +144,12 @@ Kirigami.ScrollablePage {
         return best?.journey;
     }
 
+    /** Where searches are logged, see searchFinished(). */
+    readonly property LoggingCategory searchLog: LoggingCategory {
+        name: "org.kde.itinerary.journeysearch"
+        defaultLogLevel: LoggingCategory.Info
+    }
+
     /** Log the outcome of a search, e.g. for automated tests, and show the best journey on the map if requested. */
     function searchFinished(): void {
         const best = root.bestJourney();
@@ -173,7 +179,7 @@ Kirigami.ScrollablePage {
                 + " duration=" + best.duration + " changes=" + best.numberOfChanges
                 + " sections=" + JSON.stringify(lines.join(","));
         }
-        console.info("journey search finished: results=" + journeyModel.rowCount()
+        console.info(root.searchLog, "journey search finished: results=" + journeyModel.rowCount()
             + " shown=" + sortedJourneyModel.count
             + " error=" + JSON.stringify(journeyModel.errorMessage)
             + " best: " + summary);
