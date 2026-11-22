@@ -88,6 +88,110 @@ Kirigami.ScrollablePage {
         pageStack.push(map);
     }
 
+    /** Show the best journey found on the map once the search is done, see bestJourney(). */
+    property bool showBestOnMap: false
+
+    /** When the first train, bus, etc. of @p journey leaves, or when it starts if it has none. */
+    function departureOf(journey: var): var {
+        // what matters is when the first train, bus, etc. leaves, not when walking to it would have to start
+        let departing = journey;
+        for (const section of journey.sections) {
+            if (section.mode === JourneySection.PublicTransport) {
+                departing = section;
+                break;
+            }
+        }
+        return departing.hasExpectedDepartureTime ? departing.expectedDepartureTime : departing.scheduledDepartureTime;
+    }
+
+    /** Whether @p journey departs at or after the requested time. */
+    function departsInTime(journey: var): bool {
+        // the requested time is picked with minute precision, so compare with that
+        const requested = new Date(root.journeyRequest.dateTime);
+        requested.setSeconds(0, 0);
+        return root.departureOf(journey).getTime() >= requested.getTime();
+    }
+
+    /** The journey found that gets there first, of those departing at or after the requested time,
+     *  the one departing last if several arrive at the same time.
+     *  For an arrival query, the one departing last of those arriving in time. Undefined if there is none.
+     */
+    function bestJourney(): var {
+        const requested = new Date(root.journeyRequest.dateTime);
+        let best = undefined;
+        for (let i = 0; i < journeyModel.rowCount(); ++i) {
+            const journey = journeyModel.data(journeyModel.index(i, 0), JourneyQueryModel.JourneyRole);
+            if (journey.disruptionEffect === Disruption.NoService) {
+                continue;
+            }
+            const departure = root.departureOf(journey).getTime();
+            const arrival = (journey.hasExpectedArrivalTime ? journey.expectedArrivalTime : journey.scheduledArrivalTime).getTime();
+            if (root.isArrival ? arrival > requested.getTime() : !root.departsInTime(journey)) {
+                continue;
+            }
+            if (!best) {
+                best = { journey: journey, departure: departure, arrival: arrival };
+                continue;
+            }
+            const better = root.isArrival
+                ? departure > best.departure || (departure === best.departure && arrival < best.arrival)
+                : arrival < best.arrival || (arrival === best.arrival && departure > best.departure);
+            if (better) {
+                best = { journey: journey, departure: departure, arrival: arrival };
+            }
+        }
+        return best?.journey;
+    }
+
+    /** Log the outcome of a search, e.g. for automated tests, and show the best journey on the map if requested. */
+    function searchFinished(): void {
+        const best = root.bestJourney();
+        let summary = "none";
+        if (best) {
+            const lines = best.sections.map((section) => {
+                switch (section.mode) {
+                case JourneySection.PublicTransport:
+                    return section.route.line.name !== "" ? section.route.line.name : "?";
+                case JourneySection.Walking:
+                    return "walk";
+                case JourneySection.Transfer:
+                    return "transfer";
+                case JourneySection.Waiting:
+                    return "wait";
+                case JourneySection.RentedVehicle:
+                    return "rental";
+                case JourneySection.IndividualTransport:
+                    return "individual";
+                default:
+                    return "other";
+                }
+            });
+            const arrival = best.hasExpectedArrivalTime ? best.expectedArrivalTime : best.scheduledArrivalTime;
+            summary = "departure=" + Qt.formatDateTime(root.departureOf(best), "yyyy-MM-ddTHH:mm")
+                + " arrival=" + Qt.formatDateTime(arrival, "yyyy-MM-ddTHH:mm")
+                + " duration=" + best.duration + " changes=" + best.numberOfChanges
+                + " sections=" + JSON.stringify(lines.join(","));
+        }
+        console.info("journey search finished: results=" + journeyModel.rowCount()
+            + " shown=" + sortedJourneyModel.count
+            + " error=" + JSON.stringify(journeyModel.errorMessage)
+            + " best: " + summary);
+        if (root.showBestOnMap && best) {
+            root.showBestOnMap = false;
+            // not while the model is still emitting its signals
+            Qt.callLater(root.showOnMap, best);
+        }
+    }
+
+    Connections {
+        target: journeyModel
+        function onLoadingChanged(): void {
+            if (!journeyModel.loading) {
+                root.searchFinished();
+            }
+        }
+    }
+
     /** Load one more batch of earlier or later journeys, unless a query is still running. */
     function loadMore(earlier: bool): void {
         if (journeyModel.loading) {
@@ -295,19 +399,7 @@ Kirigami.ScrollablePage {
                 return true;
             }
             const journey = sourceModel.data(sourceModel.index(sourceRow, 0, sourceParent), JourneyQueryModel.JourneyRole);
-            // what matters is when the first train, bus, etc. leaves, not when walking to it would have to start
-            let departing = journey;
-            for (const section of journey.sections) {
-                if (section.mode === JourneySection.PublicTransport) {
-                    departing = section;
-                    break;
-                }
-            }
-            const departure = departing.hasExpectedDepartureTime ? departing.expectedDepartureTime : departing.scheduledDepartureTime;
-            // the requested time is picked with minute precision, so compare with that
-            const requested = new Date(root.journeyRequest.dateTime);
-            requested.setSeconds(0, 0);
-            return departure.getTime() >= requested.getTime();
+            return root.departsInTime(journey);
         }
         Component.onCompleted: Util.sortModel(sortedJourneyModel, 0, Qt.Ascending)
     }

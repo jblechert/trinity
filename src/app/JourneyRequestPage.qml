@@ -74,7 +74,8 @@ FormCard.FormCardPage {
         root.searchJourney();
     }
 
-    function searchJourney(): void {
+    /** Search the journey entered on this page, and return the page with the results. */
+    function searchJourney(): var {
         JourneyRequestHistoryModel.addJourneyRequest(root.departureStop, root.arrivalStop);
 
         applicationWindow().pageStack.push(journeyQueryPage);
@@ -110,6 +111,7 @@ FormCard.FormCardPage {
 
         console.log(req);
         queryPage.journeyRequest = req;
+        return queryPage;
     }
 
     // This is used if we are creating the first trip group
