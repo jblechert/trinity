@@ -226,7 +226,8 @@ static void handleCommandLineArguments(ApplicationController *appController,
     }
 
     if (!page.isEmpty()) {
-        appController->requestOpenPage(page);
+        // the same as a page: URL, so properties can be given as query, e.g. "map?to=50.11,8.68"
+        appController->handlePageUrl(QUrl(u"page:///"_s + page));
     }
 }
 

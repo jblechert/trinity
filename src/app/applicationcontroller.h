@@ -77,6 +77,10 @@ public:
     // page navigation intents
     void handleIntent(const KAndroidExtras::Intent &intent);
     void handleGeoUrl(const QUrl &url);
+    /** Open the page named by the path of a page: URL, e.g. page:///stats.
+     *  Query items are passed to the page as properties, e.g. page:///map?to=50.11,8.68.
+     */
+    void handlePageUrl(const QUrl &url);
 
     // data import
     Q_INVOKABLE void commitImport(ImportController *importController);

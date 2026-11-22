@@ -170,8 +170,7 @@ void ApplicationController::handleIntent(const KAndroidExtras::Intent &intent)
     if (action == Intent::ACTION_VIEW) {
         const QUrl url = intent.getData();
         if (url.scheme() == "page"_L1) {
-            qCDebug(Log) << url;
-            requestOpenPage(url.path().mid(1));
+            handlePageUrl(url);
         } else if (url.scheme() == "geo"_L1) {
             handleGeoUrl(url);
         }
@@ -179,6 +178,17 @@ void ApplicationController::handleIntent(const KAndroidExtras::Intent &intent)
 #else
     Q_UNUSED(intent)
 #endif
+}
+
+void ApplicationController::handlePageUrl(const QUrl &url)
+{
+    qCDebug(Log) << url;
+    QVariantMap properties;
+    const auto items = QUrlQuery(url).queryItems(QUrl::FullyDecoded);
+    for (const auto &[key, value] : items) {
+        properties.insert(key, value);
+    }
+    requestOpenPage(url.path().mid(1), properties);
 }
 
 void ApplicationController::handleGeoUrl(const QUrl &url)
