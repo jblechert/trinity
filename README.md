@@ -49,9 +49,12 @@ tickets you set once where they are valid: a country, or within a radius of wher
   from your current location is the default, and picked places are named by their address. Then choose how to get
   there: public transport connections between them, walking all the way included where that's all it takes, or
   navigation on foot, by bike or by car. Routes on foot, by bike or by car are shown on the map first, with duration,
-  length and ascent, before navigation starts.
+  length and ascent, before navigation starts. For now these are only found when they take up to about half an hour,
+  and not around Frankfurt and Hanau; both need fixes in KPublicTransport.
 - Show a connection from the journey search on the map: trains, buses and subways in their line colors with their stops
   and line names, walks as dotted lines, and a list of its sections to zoom to each of them.
+- Back (the key or gesture) closes what was last opened on the map: details of a place, a trip, search results, a
+  journey or the planner.
 - Tap a shop, café or other place on the map to see what OpenStreetMap knows about it: opening hours and whether it's
   open now, address, phone, website. Walk, cycle or drive there, or use it as start or destination of a journey.
 - Tap a bus stop or station on the map to see the lines departing there with their next departures, and tap a line to
@@ -105,8 +108,9 @@ tools/android/build-apk.sh arm64 all      # dependencies, application, APK
 tools/android/build-apk.sh arm64 install  # sign with the Android debug key and install via adb
 ```
 
-`tools/test/journey-e2e.py` runs journey searches between random places in the app on a device or emulator and writes
-a report with screenshots, see [docs/testing.md](docs/testing.md).
+`tools/test/journey-e2e.py` runs journey searches between random places in the app on a device or emulator, by public
+transport and optionally on foot, by bike or by car (`--modes`), and writes a report with screenshots, see
+[docs/testing.md](docs/testing.md).
 
 ## Contributing
 
