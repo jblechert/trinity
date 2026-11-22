@@ -3,12 +3,19 @@
 #
 # Build for iOS on GitHub's macOS runners, see docs/ios/PORTING.md.
 # Builds the dependencies and an unsigned app bundle for arm64 devices, and the same for the simulator,
-# where the app is started as a smoke test.
+# where the app is started as a smoke test. For a release tag, the unsigned app is added to the release.
 name: iOS
 
 on:
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Add the unsigned app to this existing release (tag name), e.g. for a release made before this workflow did so'
+        required: false
+        default: ''
   push:
+    # path filters don't apply to tags, so every release tag is built
+    tags: ['v*']
     branches: [android-fork, ios-app, ios-sim]
     paths:
       - 'tools/ios/**'
@@ -24,15 +31,20 @@ jobs:
     # and Xcode cross-compiles for iOS devices from either; the simulator slices of Qt for iOS are x86_64
     runs-on: macos-15-intel
     timeout-minutes: 360
+    permissions:
+      contents: write # adding the app to a release
     strategy:
       fail-fast: false
       matrix:
         platform: [device, simulator]
     env:
       IOS_PLATFORM: ${{ matrix.platform }}
-      # separate dependency caches; the device one keeps its old name
-      DEPS_CACHE: ${{ matrix.platform == 'device' && 'ios-deps' || 'ios-simulator-deps' }}
-      ARTIFACT: ${{ matrix.platform == 'device' && 'itinerary-ios-unsigned' || 'itinerary-ios-simulator' }}
+      # The installed dependencies contain absolute paths, so they are built outside of the checkout,
+      # whose path changes with the name of the repository. v2: since they moved there.
+      IOS_PREFIX: /Users/runner/ios-prefix
+      DEPS_CACHE: ${{ matrix.platform == 'device' && 'ios-deps-v2' || 'ios-simulator-deps-v2' }}
+      ARTIFACT: ${{ matrix.platform == 'device' && 'trinity-ios-unsigned' || 'trinity-ios-simulator' }}
+      RELEASE: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release }}
     steps:
       - uses: actions/checkout@v4
 
@@ -54,7 +66,7 @@ jobs:
       - name: Restore dependency build
         uses: actions/cache/restore@v4
         with:
-          path: ios-prefix
+          path: ${{ env.IOS_PREFIX }}
           key: ${{ env.DEPS_CACHE }}-${{ github.run_id }}
           restore-keys: ${{ env.DEPS_CACHE }}-
 
@@ -63,20 +75,20 @@ jobs:
           export PATH="$(brew --prefix bison)/bin:$(brew --prefix flex)/bin:$(brew --prefix gettext)/bin:$PATH"
           # flex rejects the UTF-8 characters in KOpeningHours' scanner unless it reads its input byte-wise
           export LC_ALL=C
-          tools/ios/build-deps.sh "$QT_ROOT_DIR" "$PWD/ios-prefix"
+          tools/ios/build-deps.sh "$QT_ROOT_DIR" "$IOS_PREFIX"
 
       - name: Save dependency build
         if: always()
         uses: actions/cache/save@v4
         with:
-          path: ios-prefix
+          path: ${{ env.IOS_PREFIX }}
           key: ${{ env.DEPS_CACHE }}-${{ github.run_id }}
 
       - name: Build app
         run: |
           # msgfmt for the translations
           export PATH="$(brew --prefix gettext)/bin:$PATH"
-          tools/ios/build-app.sh "$QT_ROOT_DIR" "$PWD/ios-prefix" "$PWD/ios-build"
+          tools/ios/build-app.sh "$QT_ROOT_DIR" "$IOS_PREFIX" "$PWD/ios-build"
 
       - name: Package app bundle
         run: |
@@ -89,6 +101,19 @@ jobs:
         with:
           name: ${{ env.ARTIFACT }}
           path: ios-artifacts/${{ env.ARTIFACT }}.zip
+
+      # An .ipa is a zip of the app bundle in a Payload directory. It is unsigned, so it has to be signed before it
+      # can be installed, e.g. with the certificate and provisioning profile of the one installing it.
+      - name: Add the unsigned app to the release
+        if: matrix.platform == 'device' && env.RELEASE != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ipa/Payload
+          ditto ios-build/bin/*.app ipa/Payload/"$(basename ios-build/bin/*.app)"
+          (cd ipa && ditto -c -k --keepParent Payload ../trinity-ios-unsigned.ipa)
+          # the release is created right after pushing its tag, long before the app is built
+          gh release upload "$RELEASE" trinity-ios-unsigned.ipa --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Start the app in the simulator
         if: matrix.platform == 'simulator'
@@ -112,7 +137,7 @@ jobs:
           # the generated QML plugin imports and Info.plist are in hidden .qt directories
           include-hidden-files: true
           path: |
-            ios-prefix/logs
+            ${{ env.IOS_PREFIX }}/logs
             ios-build/CMakeCache.txt
             ios-build/src/app/*_plugin_imports*.cpp
             ios-build/src/app/.qt/qml_imports/**

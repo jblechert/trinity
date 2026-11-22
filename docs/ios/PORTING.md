@@ -171,15 +171,25 @@ distributing GPL code through Apple's App Store is widely considered incompatibl
 the only reason for this. PDF import works fine technically and stays enabled on all other platforms; Apple Wallet
 passes, barcodes and the other import paths are available on iOS.
 
-## Licensing (needs to be resolved before publishing)
+## Licensing
 
-- Itinerary and the KDE libraries are LGPL. LGPL code in an App Store app requires that users can relink the
-  app with modified libraries, e.g. by building the libraries as dynamic frameworks or providing object files.
-- Qt is used under LGPLv3 with the same requirement.
+- Itinerary and the KDE libraries are LGPL. LGPL code in a statically linked app requires that users can relink
+  the app with modified libraries. For the unsigned builds attached to the GitHub releases this is the case: the app
+  itself is free software, and its complete source and the scripts building it and all dependencies are in this
+  repository, so it can be rebuilt with modified libraries.
+- Qt is used under LGPLv3 with the same requirement. Only LGPL modules are linked into the app (Core, Gui, Quick,
+  Qml, Location, Positioning, Multimedia, Network, Svg, WebSockets, ...); Qt Shader Tools (GPL) is only used while
+  building Kirigami, to compile its shaders.
+- For the App Store this still needs to be resolved, as its terms add restrictions of their own.
 - Poppler (PDF ticket extraction in kitinerary) is GPL, which is why PDF import is removed on iOS, see above.
 - KDE e.V. publishes some apps in Apple's App Store (e.g. KDE Connect), they may be able to advise.
 
 ## Publishing
+
+For each release tag, the CI adds the unsigned app for devices to the GitHub release as `trinity-ios-unsigned.ipa`
+(for a release made before that, run the workflow by hand with the tag as `release`). It has to be signed before it
+can be installed, e.g. with a development certificate and provisioning profile for its bundle identifier
+(`at.blechert.trinity`, or another one after re-signing).
 
 App Store uploads have to be signed with a distribution certificate and provisioning profile of the account
 that publishes the app, so a finished binary can't be signed by someone else in advance. Workable setups:

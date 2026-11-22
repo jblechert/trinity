@@ -68,6 +68,9 @@ Rubber, made in Germany. Thank you!
 (Android 9 or later, 64-bit ARM), or pick a specific build from the
 [releases page](https://github.com/jblechert/trinity/releases).
 
+For iOS, each release also has an unsigned app (`trinity-ios-unsigned.ipa`), which has to be signed before it can be
+installed, see [docs/ios/PORTING.md](docs/ios/PORTING.md).
+
 Things to know before installing:
 
 - These are development builds, provided as-is and without any warranty. Whether you run them is up to you.
