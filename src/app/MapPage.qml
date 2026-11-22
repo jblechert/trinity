@@ -717,15 +717,21 @@ Kirigami.Page {
     /** The route of a public transport trip shown on the map, from a tapped stop. */
     readonly property bool tripShown: sheetLoader.item?.hasTrip ?? false
 
+    /** The distance on the map covered by a finger's width at @p position. */
+    function fingerRadius(position: point): real {
+        // also beyond the edge of the map, for taps close to it
+        const coord = map.toCoordinate(position, false);
+        return coord.distanceTo(map.toCoordinate(Qt.point(position.x + Kirigami.Units.gridUnit * 1.5, position.y), false));
+    }
+
     /** Find out what is at @p position on the map: a point of interest or a public transport stop. */
     function lookupAt(position: point): void {
         // points of interest are shown from zoom level 15 on, below that a tap would just hit something random
         if (map.zoomLevel < 15) {
             return;
         }
-        // within a finger's width
         const coord = map.toCoordinate(position);
-        const radius = coord.distanceTo(map.toCoordinate(Qt.point(position.x + Kirigami.Units.gridUnit * 1.5, position.y)));
+        const radius = root.fingerRadius(position);
         placeLookup.lookup(coord, Math.max(radius, 10));
     }
 
@@ -1331,7 +1337,7 @@ Kirigami.Page {
         }
         // routes within a finger's width
         const coord = map.toCoordinate(position);
-        const radius = coord.distanceTo(map.toCoordinate(Qt.point(position.x + Kirigami.Units.gridUnit * 1.5, position.y)));
+        const radius = root.fingerRadius(position);
         root.routeListShown = true;
         markedRoutes.findRoutes(coord.latitude, coord.longitude, radius);
     }
