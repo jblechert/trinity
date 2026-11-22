@@ -6428,7 +6428,7 @@ msgstr "Der digitale Reiseassistent der KDE-Community, auf dem Trinity basiert."
 #: fork
 msgctxt "@title places found where the map was tapped"
 msgid "Places Here"
-msgstr "Orte hier"
+msgstr "Orte an dieser Stelle"
 
 #: fork
 msgctxt "@action:button"
@@ -6783,7 +6783,7 @@ msgstr "Kartenmitte"
 #: fork
 msgctxt "@option:radio search the nearest places"
 msgid "Nearby"
-msgstr "Nächstgelegene"
+msgstr "Die nächsten"
 
 #: fork
 msgctxt "@action:button search places such as shops or restaurants on the map"
@@ -6902,3 +6902,18 @@ msgstr "Die Navigation beginnt an Ihrem Standort."
 msgctxt "@info arrival time of a journey section"
 msgid "Arrival %1"
 msgstr "Ankunft %1"
+
+#: fork
+msgctxt "@info why no route on foot, by bike or by car was found"
+msgid ""
+"Some routes can't be found yet, mostly those taking longer than about half "
+"an hour. Public transport connections can be searched with Transit."
+msgstr ""
+"Manche Wege können noch nicht gefunden werden, vor allem solche, die länger "
+"als etwa eine halbe Stunde dauern. Verbindungen mit öffentlichen "
+"Verkehrsmitteln finden Sie über „Öffis“."
+
+#: fork
+msgctxt "@info"
+msgid "Zoom in to see details of places and stops."
+msgstr "Vergrößern Sie die Karte, um Details zu Orten und Haltestellen zu sehen."
