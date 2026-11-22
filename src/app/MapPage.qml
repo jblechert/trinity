@@ -358,21 +358,49 @@ Kirigami.Page {
         }
 
         TapHandler {
+            id: mapTapHandler
             onTapped: (eventPoint) => {
-                if (root.overlay === "" || markedRoutes.hasRoute) {
+                // a double tap zooms in, so a single tap is only handled once it can't become a double tap anymore
+                if (mapTapHandler.tapCount >= 2) {
+                    singleTapTimer.stop();
+                    root.zoomInAt(eventPoint.position);
                     return;
                 }
-                // routes within a finger's width
-                const coord = map.toCoordinate(eventPoint.position);
-                const radius = coord.distanceTo(map.toCoordinate(Qt.point(eventPoint.position.x + Kirigami.Units.gridUnit * 1.5, eventPoint.position.y)));
-                root.routeListShown = true;
-                markedRoutes.findRoutes(coord.latitude, coord.longitude, radius);
+                singleTapTimer.position = eventPoint.position;
+                singleTapTimer.restart();
             }
             onLongPressed: {
+                singleTapTimer.stop();
                 root.pickedCoordinate = map.toCoordinate(point.position);
                 routeMenu.popup();
             }
         }
+    }
+
+    Timer {
+        id: singleTapTimer
+        property point position
+        interval: Qt.styleHints.mouseDoubleClickInterval
+        onTriggered: root.handleTap(singleTapTimer.position)
+    }
+
+    function handleTap(position: point): void {
+        if (root.overlay === "" || markedRoutes.hasRoute) {
+            return;
+        }
+        // routes within a finger's width
+        const coord = map.toCoordinate(position);
+        const radius = coord.distanceTo(map.toCoordinate(Qt.point(position.x + Kirigami.Units.gridUnit * 1.5, position.y)));
+        root.routeListShown = true;
+        markedRoutes.findRoutes(coord.latitude, coord.longitude, radius);
+    }
+
+    /** Zoom in by one level, keeping the place at @p position where it is. */
+    function zoomInAt(position: point): void {
+        const coord = map.toCoordinate(position);
+        root.followPosition = false;
+        map.zoomLevel = Math.min(map.maximumZoomLevel, Math.floor(map.zoomLevel + 1));
+        map.alignCoordinateToPoint(coord, position);
     }
 
     QQC2.Menu {
