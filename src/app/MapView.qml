@@ -22,6 +22,22 @@ QtLocation.Map {
     property alias attribution: attributionLabel
     /** The user is currently moving or zooming the map. */
     readonly property bool userInteracting: drag.active || pinch.active
+    /** Items on top of the map, such as panes with controls, where input should not reach the map.
+     *  Without this the pointer handlers of the map also get input on those items, and dragging there
+     *  would move the map instead of e.g. scrolling a list.
+     */
+    property list<Item> coveringItems
+
+    containmentMask: QtObject {
+        function contains(point: point): bool {
+            for (const item of map.coveringItems) {
+                if (item.visible && item.contains(item.mapFromItem(map, point))) {
+                    return false;
+                }
+            }
+            return point.x >= 0 && point.y >= 0 && point.x < map.width && point.y < map.height;
+        }
+    }
 
     Rectangle {
         color: "#B0ffffff"

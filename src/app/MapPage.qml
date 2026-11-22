@@ -293,6 +293,7 @@ Kirigami.Page {
         id: map
         anchors.fill: parent
         zoomLevel: 15
+        coveringItems: [plannerPane, routePane]
 
         onUserInteractingChanged: {
             if (map.userInteracting) {
