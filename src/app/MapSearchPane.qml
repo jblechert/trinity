@@ -56,6 +56,27 @@ QQC2.Pane {
         checkable: true
     }
 
+    /** Fades out the end of a horizontally scrolling row, to show there is more in it. */
+    component EndFade: Rectangle {
+        id: fade
+        required property Flickable flickable
+        // on top of the flickable, rather than on its content moving with it
+        parent: fade.flickable
+        z: 1
+        anchors {
+            top: parent.top
+            bottom: parent.bottom
+            right: parent.right
+        }
+        width: Kirigami.Units.gridUnit * 2
+        visible: fade.flickable.contentX + fade.flickable.width < fade.flickable.contentWidth - 1
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: "transparent" }
+            GradientStop { position: 1.0; color: Kirigami.Theme.backgroundColor }
+        }
+    }
+
     contentItem: ColumnLayout {
         spacing: Kirigami.Units.smallSpacing
 
@@ -65,7 +86,15 @@ QQC2.Pane {
                 id: searchField
                 autoAccept: false
                 placeholderText: i18nc("@info:placeholder", "Find places, e.g. bakery")
-                onAccepted: root.search("")
+                onAccepted: {
+                    // also emitted by the button clearing the field, which takes the focus from it
+                    if (searchField.text === "") {
+                        searchField.forceActiveFocus();
+                        Qt.inputMethod.show();
+                        return;
+                    }
+                    root.search("");
+                }
                 Layout.fillWidth: true
             }
             QQC2.ToolButton {
@@ -78,12 +107,17 @@ QQC2.Pane {
 
         // where to search
         Flickable {
+            id: areaFlickable
             contentWidth: areaRow.implicitWidth
             implicitHeight: areaRow.implicitHeight
             flickableDirection: Flickable.HorizontalFlick
             boundsBehavior: Flickable.StopAtBounds
             clip: true
             Layout.fillWidth: true
+
+            EndFade {
+                flickable: areaFlickable
+            }
 
             RowLayout {
                 id: areaRow
@@ -138,6 +172,7 @@ QQC2.Pane {
             }
         }
 
+
         // what to search, for quick access
         ListView {
             id: categoryView
@@ -148,6 +183,9 @@ QQC2.Pane {
             clip: true
             implicitHeight: categoryView.currentItem ? categoryView.currentItem.implicitHeight : Kirigami.Units.gridUnit * 2
             Layout.fillWidth: true
+            EndFade {
+                flickable: categoryView
+            }
             delegate: Kirigami.Chip {
                 id: categoryChip
                 required property var modelData
@@ -162,5 +200,6 @@ QQC2.Pane {
                 }
             }
         }
+
     }
 }
