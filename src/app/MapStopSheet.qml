@@ -51,31 +51,51 @@ ColumnLayout {
     /** Departures grouped by line and direction, in the order of their next departure. */
     property var lines: []
 
+    /** The query of the trip to show while it is loaded, only the last one counts. */
+    property var tripReply: null
+
+    function cancelTrip(): void {
+        if (root.tripReply) {
+            root.tripReply.finished.disconnect(root.tripReplyFinished);
+            root.tripReply.destroy();
+            root.tripReply = null;
+        }
+        root.tripLoading = false;
+    }
+
+    // this is gone when another place is selected, possibly before the trip is loaded
+    Component.onDestruction: root.cancelTrip()
+
     /** Show the route of the trip departing at @p stopover. */
     function showTrip(stopover: KPublicTransport.stopover): void {
+        root.cancelTrip();
         root.tripLoading = true;
-        let reply = LiveDataManager.publicTransportManager.queryTrip({
+        root.tripReply = LiveDataManager.publicTransportManager.queryTrip({
             stopover: stopover,
             downloadAssets: Settings.wikimediaOnlineContentEnabled
         });
-        reply.finished.connect(() => {
-            root.tripLoading = false;
-            if (reply.error === KPublicTransport.Reply.NoError) {
-                root.trip = reply.trip;
-                let stops = [reply.trip.departure];
-                for (const s of reply.trip.intermediateStops) {
-                    stops.push(s);
-                }
-                stops.push(reply.trip.arrival);
-                root.tripStops = stops;
-                root.tripStopIndex = reply.stopoverIndex;
-                root.tripLoaded = true;
-                root.tripReady();
-            } else {
-                applicationWindow().showPassiveNotification(reply.errorString);
+        root.tripReply.finished.connect(root.tripReplyFinished);
+    }
+
+    function tripReplyFinished(): void {
+        const reply = root.tripReply;
+        root.tripReply = null;
+        root.tripLoading = false;
+        if (reply.error === KPublicTransport.Reply.NoError) {
+            root.trip = reply.trip;
+            let stops = [reply.trip.departure];
+            for (const s of reply.trip.intermediateStops) {
+                stops.push(s);
             }
-            reply.destroy();
-        });
+            stops.push(reply.trip.arrival);
+            root.tripStops = stops;
+            root.tripStopIndex = reply.stopoverIndex;
+            root.tripLoaded = true;
+            root.tripReady();
+        } else {
+            applicationWindow().showPassiveNotification(reply.errorString);
+        }
+        reply.destroy();
     }
 
     function hideTrip(): void {
