@@ -730,6 +730,8 @@ Kirigami.Page {
     }
 
     function select(candidate: var): void {
+        // the map stays where the new selection is
+        root.tripViewport = undefined;
         root.candidates = [];
         root.selection = candidate;
         // a new sheet for each selection, so nothing of the previous one is left
@@ -925,11 +927,25 @@ Kirigami.Page {
      */
     property var savedViewport
 
+    /** Where the map was before it was moved to show the route of a trip from a stop, see savedViewport. */
+    property var tripViewport
+
+    /** The part of the world the map shows, for savedViewport and tripViewport. */
+    function currentViewport(): var {
+        // a copy, map.center would be a reference to the property, changing with it
+        const center = QtPositioning.coordinate(map.center.latitude, map.center.longitude);
+        return { center: center, zoomLevel: map.zoomLevel, followPosition: root.followPosition };
+    }
+
+    function applyViewport(viewport: var): void {
+        map.zoomLevel = viewport.zoomLevel;
+        map.center = viewport.center;
+        root.followPosition = viewport.followPosition;
+    }
+
     function saveViewport(): void {
         if (root.savedViewport === undefined) {
-            // a copy, map.center would be a reference to the property, changing with it
-            const center = QtPositioning.coordinate(map.center.latitude, map.center.longitude);
-            root.savedViewport = { center: center, zoomLevel: map.zoomLevel, followPosition: root.followPosition };
+            root.savedViewport = root.currentViewport();
         }
     }
 
@@ -942,9 +958,20 @@ Kirigami.Page {
         if (root.focusTarget === "results" || root.focusTarget === "journey") {
             root.focusTarget = undefined;
         }
-        map.zoomLevel = viewport.zoomLevel;
-        map.center = viewport.center;
-        root.followPosition = viewport.followPosition;
+        root.applyViewport(viewport);
+    }
+
+    // back to where the map was when the route of a trip is closed, unless another place was selected meanwhile
+    onTripShownChanged: {
+        if (root.tripShown || root.tripViewport === undefined) {
+            return;
+        }
+        const viewport = root.tripViewport;
+        root.tripViewport = undefined;
+        if (root.focusTarget === "trip") {
+            root.focusTarget = undefined;
+        }
+        root.applyViewport(viewport);
     }
     /** Details of the found places loaded so far, by OSM element id, see MapSearchResultDelegate. */
     property var amenityCache: ({})
@@ -1947,6 +1974,9 @@ Kirigami.Page {
                     root.setJourneyEndpointToSelection(endpoint);
                 }
                 function onTripReady(): void {
+                    if (root.tripViewport === undefined) {
+                        root.tripViewport = root.currentViewport();
+                    }
                     root.focusLater("trip");
                 }
                 function onTripStopSelected(stopover: var): void {
