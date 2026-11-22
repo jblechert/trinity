@@ -97,7 +97,17 @@ ColumnLayout {
                 Layout.fillWidth: true
             }
             QQC2.Label {
-                text: infoModel.category !== "" ? infoModel.category : (root.place.typeName !== "" ? root.place.typeName : (root.amenity?.typeName ?? ""))
+                text: {
+                    // the translated names first, the same as in lists of places
+                    if (root.place.typeName !== "") {
+                        return root.place.typeName;
+                    }
+                    if ((root.amenity?.typeName ?? "") !== "") {
+                        return root.amenity.typeName;
+                    }
+                    // for tags without translation this is the raw tag value, such as "household_linen"
+                    return infoModel.category.replace(/_/g, " ");
+                }
                 visible: text !== "" && text !== root.place.name
                 elide: Text.ElideRight
                 opacity: 0.7
