@@ -525,6 +525,91 @@ Kirigami.Page {
         return -1;
     }
 
+    /** Go back to the search results the shown connection was picked from. */
+    function showJourneyResults(): void {
+        const index = root.journeyResultsPageIndex();
+        if (index >= 0) {
+            root.QQC2.ApplicationWindow.window.pageStack.currentIndex = index;
+        }
+    }
+
+    /** Close what was opened last on the map, such as the details of a place or a shown journey,
+     *  when going back. Only checks whether there is something to close if @p apply is false.
+     */
+    function closeLast(apply: bool): bool {
+        if (routeMenu.opened) {
+            return false; // the menu handles that itself
+        }
+        if (root.selection !== undefined || root.candidates.length > 0) {
+            if (apply) {
+                if (root.tripShown) {
+                    sheetLoader.item.hideTrip();
+                } else {
+                    root.clearSelection();
+                }
+            }
+            return true;
+        }
+        if (routePane.visible) {
+            if (apply) {
+                markedRoutes.clearRoute();
+                root.routeListShown = false;
+                root.routeShown = false;
+            }
+            return true;
+        }
+        if (root.journeyPaneShown) {
+            if (apply) {
+                if (root.journeyResultsPageIndex() >= 0) {
+                    root.showJourneyResults();
+                } else {
+                    root.closeJourney();
+                }
+            }
+            return true;
+        }
+        if (root.searchShown) {
+            if (apply) {
+                if (placeSearch.active) {
+                    placeSearch.clear();
+                } else {
+                    root.closeSearch();
+                }
+            }
+            return true;
+        }
+        if (root.plannerShown) {
+            if (apply) {
+                root.plannerShown = false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // Going back is handled with the keyboard focus on this page, which actions in the header take away from it,
+    // e.g. the one opening the journey planner. Take it back when there is something to close.
+    readonly property bool canGoBack: root.closeLast(false)
+    onCanGoBackChanged: {
+        if (root.canGoBack && !root.activeFocus && root.isCurrentPage) {
+            root.forceActiveFocus();
+        }
+    }
+
+    onBackRequested: (event) => {
+        event.accepted = root.closeLast(true);
+    }
+    // the page stack only asks pages after the first one, the map is usually the first page of its tab though,
+    // so handle the key itself as well; instead of a shortcut, as two shortcuts for it would be ambiguous
+    Keys.onShortcutOverride: (event) => {
+        event.accepted = event.key === Qt.Key_Back && root.closeLast(false);
+    }
+    Keys.onPressed: (event) => {
+        if (event.key === Qt.Key_Back) {
+            event.accepted = root.closeLast(true);
+        }
+    }
+
     KPublicTransport.JourneyQueryModel {
         id: previewModel
         /** The current request is being searched, so the results are its own once loading stops.
@@ -1972,12 +2057,7 @@ Kirigami.Page {
             }
         }
         onCloseRequested: root.closeJourney()
-        onResultsRequested: {
-            const index = root.journeyResultsPageIndex();
-            if (index >= 0) {
-                root.QQC2.ApplicationWindow.window.pageStack.currentIndex = index;
-            }
-        }
+        onResultsRequested: root.showJourneyResults()
         onSectionRequested: (index) => root.focusJourneySection(index)
         onTravelModeRequested: (mode) => root.changePreviewMode(mode)
         onStartRequested: root.startNavigation(root.previewTo, root.shownJourneyMode, root.shownJourney)
