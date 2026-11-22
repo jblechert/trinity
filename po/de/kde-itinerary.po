@@ -6496,6 +6496,354 @@ msgid "Trip Details"
 msgstr "Fahrtdetails"
 
 #: fork
-msgctxt "@info type of a place and its distance"
-msgid "%1 · %2"
-msgstr "%1 · %2"
+msgctxt "@item place category"
+msgid "Bakery"
+msgstr "Bäckerei"
+
+#: fork
+msgctxt "@item place category"
+msgid "Supermarket"
+msgstr "Supermarkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Pharmacy"
+msgstr "Apotheke"
+
+#: fork
+msgctxt "@item place category"
+msgid "Café"
+msgstr "Café"
+
+#: fork
+msgctxt "@item place category"
+msgid "Restaurant"
+msgstr "Restaurant"
+
+#: fork
+msgctxt "@item place category"
+msgid "Fast Food"
+msgstr "Imbiss"
+
+#: fork
+msgctxt "@item place category"
+msgid "ATM"
+msgstr "Geldautomat"
+
+#: fork
+msgctxt "@item place category"
+msgid "Toilets"
+msgstr "Toiletten"
+
+#: fork
+msgctxt "@item place category"
+msgid "Fuel Station"
+msgstr "Tankstelle"
+
+#: fork
+msgctxt "@item place category"
+msgid "Charging Station"
+msgstr "Ladestation"
+
+#: fork
+msgctxt "@item place category"
+msgid "Parking"
+msgstr "Parkplatz"
+
+#: fork
+msgctxt "@item place category"
+msgid "Hotel"
+msgstr "Hotel"
+
+#: fork
+msgctxt "@item place category"
+msgid "Bar or Pub"
+msgstr "Bar oder Kneipe"
+
+#: fork
+msgctxt "@item place category"
+msgid "Ice Cream"
+msgstr "Eisdiele"
+
+#: fork
+msgctxt "@item place category"
+msgid "Kiosk"
+msgstr "Kiosk"
+
+#: fork
+msgctxt "@item place category"
+msgid "Convenience Store"
+msgstr "Minimarkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Post Office"
+msgstr "Post"
+
+#: fork
+msgctxt "@item place category"
+msgid "Parcel Locker"
+msgstr "Paketstation"
+
+#: fork
+msgctxt "@item place category"
+msgid "Bank"
+msgstr "Bank"
+
+#: fork
+msgctxt "@item place category"
+msgid "Doctor"
+msgstr "Arzt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Dentist"
+msgstr "Zahnarzt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Hospital"
+msgstr "Krankenhaus"
+
+#: fork
+msgctxt "@item place category"
+msgid "Drinking Water"
+msgstr "Trinkwasser"
+
+#: fork
+msgctxt "@item place category"
+msgid "Butcher"
+msgstr "Metzgerei"
+
+#: fork
+msgctxt "@item place category"
+msgid "Beverage Store"
+msgstr "Getränkemarkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Drugstore"
+msgstr "Drogerie"
+
+#: fork
+msgctxt "@item place category"
+msgid "Bicycle Parking"
+msgstr "Fahrradstellplatz"
+
+#: fork
+msgctxt "@item place category"
+msgid "Bicycle Rental"
+msgstr "Fahrradverleih"
+
+#: fork
+msgctxt "@item place category"
+msgid "Bicycle Shop"
+msgstr "Fahrradladen"
+
+#: fork
+msgctxt "@item place category"
+msgid "Car Rental"
+msgstr "Autovermietung"
+
+#: fork
+msgctxt "@item place category"
+msgid "Taxi Stand"
+msgstr "Taxistand"
+
+#: fork
+msgctxt "@item place category"
+msgid "Car Repair"
+msgstr "Autowerkstatt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Campground"
+msgstr "Campingplatz"
+
+#: fork
+msgctxt "@item place category"
+msgid "Museum"
+msgstr "Museum"
+
+#: fork
+msgctxt "@item place category"
+msgid "Tourist Information"
+msgstr "Touristeninformation"
+
+#: fork
+msgctxt "@item place category"
+msgid "Tourist Attraction"
+msgstr "Sehenswürdigkeit"
+
+#: fork
+msgctxt "@item place category"
+msgid "Viewpoint"
+msgstr "Aussichtspunkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Playground"
+msgstr "Spielplatz"
+
+#: fork
+msgctxt "@item place category"
+msgid "Park"
+msgstr "Park"
+
+#: fork
+msgctxt "@item place category"
+msgid "Swimming Pool"
+msgstr "Schwimmbad"
+
+#: fork
+msgctxt "@item place category"
+msgid "Cinema"
+msgstr "Kino"
+
+#: fork
+msgctxt "@item place category"
+msgid "Theater"
+msgstr "Theater"
+
+#: fork
+msgctxt "@item place category"
+msgid "Library"
+msgstr "Bibliothek"
+
+#: fork
+msgctxt "@item place category"
+msgid "Place of Worship"
+msgstr "Gotteshaus"
+
+#: fork
+msgctxt "@item place category"
+msgid "Police"
+msgstr "Polizei"
+
+#: fork
+msgctxt "@item place category"
+msgid "Town Hall"
+msgstr "Rathaus"
+
+#: fork
+msgctxt "@item place category"
+msgid "Veterinarian"
+msgstr "Tierarzt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Optician"
+msgstr "Optiker"
+
+#: fork
+msgctxt "@item place category"
+msgid "Hairdresser"
+msgstr "Friseur"
+
+#: fork
+msgctxt "@item place category"
+msgid "Laundry"
+msgstr "Waschsalon"
+
+#: fork
+msgctxt "@item place category"
+msgid "Hardware Store"
+msgstr "Baumarkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Garden Center"
+msgstr "Gartencenter"
+
+#: fork
+msgctxt "@item place category"
+msgid "Electronics Store"
+msgstr "Elektronikmarkt"
+
+#: fork
+msgctxt "@item place category"
+msgid "Recycling"
+msgstr "Recycling"
+
+#: fork
+msgctxt "@info separator between type, distance and address of a place"
+msgid " · "
+msgstr " · "
+
+#: fork
+msgctxt "@info:placeholder"
+msgid "Find places, e.g. bakery"
+msgstr "Orte suchen, z. B. Bäckerei"
+
+#: fork
+msgctxt "@option:radio search places around the current location"
+msgid "Near Me"
+msgstr "In meiner Nähe"
+
+#: fork
+msgctxt "@option:radio search places around the center of the map"
+msgid "Map Center"
+msgstr "Kartenmitte"
+
+#: fork
+msgctxt "@option:radio search the nearest places"
+msgid "Nearby"
+msgstr "Nächstgelegene"
+
+#: fork
+msgctxt "@action:button search places such as shops or restaurants on the map"
+msgid "Find Places"
+msgstr "Orte finden"
+
+#: fork
+msgctxt "@title search results for a name, %1 is the name"
+msgid "“%1”"
+msgstr "„%1“"
+
+#: fork
+msgctxt "@info"
+msgid "Searching…"
+msgstr "Suche läuft …"
+
+#: fork
+msgctxt "@info"
+msgid "The nearest place within %2"
+msgid_plural "The nearest %1 places within %2"
+msgstr[0] "Der nächstgelegene Ort im Umkreis von %2"
+msgstr[1] "Die %1 nächstgelegenen Orte im Umkreis von %2"
+
+#: fork
+msgctxt "@info"
+msgid "The nearest place"
+msgid_plural "The nearest %1 places"
+msgstr[0] "Der nächstgelegene Ort"
+msgstr[1] "Die %1 nächstgelegenen Orte"
+
+#: fork
+msgctxt "@info"
+msgid "One place within %2"
+msgid_plural "%1 places within %2"
+msgstr[0] "Ein Ort im Umkreis von %2"
+msgstr[1] "%1 Orte im Umkreis von %2"
+
+#: fork
+msgctxt "@info"
+msgid "One place nearby"
+msgid_plural "%1 places nearby"
+msgstr[0] "Ein Ort in der Nähe"
+msgstr[1] "%1 Orte in der Nähe"
+
+#: fork
+msgctxt "@info %1 is a distance"
+msgid "Places without a name are only included within %1."
+msgstr "Orte ohne Namen sind nur im Umkreis von %1 enthalten."
+
+#: fork
+msgctxt "@info"
+msgid "Nothing found. Try a larger search area."
+msgstr "Nichts gefunden. Versuchen Sie es mit einem größeren Suchbereich."
+
+#: fork
+msgctxt "@info"
+msgid "Nothing found."
+msgstr "Nichts gefunden."
