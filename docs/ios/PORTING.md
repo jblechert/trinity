@@ -37,8 +37,8 @@ languages the app is translated to), where KI18n and ECM's Qt translation loader
 data locations (patches for KI18n and ECM). The country data of iso-codes (`iso_3166-1.json`, `iso_3166-2.json`)
 used by KI18n's locale data is bundled in `itinerary.app/iso-codes/json/` the same way.
 
-`build-app.sh` sets the bundle identifier (`org.example.itinerary-fork`, a placeholder) and the name on the home
-screen (`Itinerary (unofficial)`); both can be overridden with `ITINERARY_IOS_BUNDLE_IDENTIFIER` and
+`build-app.sh` sets the bundle identifier (`at.blechert.trinity`) and the name on the home
+screen (`Trinity`); both can be overridden with `ITINERARY_IOS_BUNDLE_IDENTIFIER` and
 `ITINERARY_IOS_DISPLAY_NAME`. The Info.plist is `src/app/ios/Info.plist.in`.
 
 The bundle is not signed (signing is done by the publishing account, see "Publishing"). For running it from Xcode,
@@ -104,7 +104,7 @@ a sample of its stacks (simulated apps are host processes, so `sample` works on 
 The location permission is granted beforehand and a location is set: the app asks for the permission right away, and
 without a location starting the app took about 20 seconds longer.
 
-Locally, `xcrun simctl launch --console-pty booted org.example.itinerary-fork` shows the app's output.
+Locally, `xcrun simctl launch --console-pty booted at.blechert.trinity` shows the app's output.
 The settings of the app (QSettings) are in the user defaults of the app on iOS, they can be changed with
 `xcrun simctl spawn booted defaults write <app data container>/Library/Preferences/org.kde.itinerary <key> <value>`.
 
