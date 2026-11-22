@@ -220,6 +220,7 @@ Kirigami.Page {
             console.warn("No valid departure or arrival given to open the map with:", JSON.stringify(args));
             return;
         }
+        root.pendingSearch = undefined;
         root.closeJourney();
         root.prepareJourneyDisplay();
         root.journeyFrom = from;
@@ -235,39 +236,72 @@ Kirigami.Page {
         if (!to) {
             return;
         }
-        switch (args.search) {
-        case "transit": {
+        if (args.search === "transit") {
             const time = args.time ? new Date(args.time) : undefined;
             if (time && isNaN(time.getTime())) {
                 console.warn("Invalid departure time:", args.time);
                 return;
             }
-            root.searchConnectionAt(time, args.show === "best");
-            break;
+            // once departure and arrival are named by their address, as the search shows and remembers their names
+            root.pendingSearch = { time: time, showBest: args.show === "best" };
+            pendingSearchTimer.restart();
+            root.runPendingSearch(false);
+            return;
         }
-        case "walk":
-            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Walk);
-            break;
-        case "bike":
-            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Bike);
-            break;
-        case "car":
-            root.previewRoute(from, to, KPublicTransport.IndividualTransport.Car);
-            break;
+        const modes = {
+            walk: KPublicTransport.IndividualTransport.Walk,
+            bike: KPublicTransport.IndividualTransport.Bike,
+            car: KPublicTransport.IndividualTransport.Car,
+        };
+        if (modes[args.search] !== undefined) {
+            root.previewRoute(from, to, modes[args.search]);
+            if (!args.toName) {
+                root.geocode(previewGeocoder, QtPositioning.coordinate(to.latitude, to.longitude));
+            }
         }
+    }
+
+    /** A journey search requested by openRequest(), waiting for departure and arrival to be named. */
+    property var pendingSearch
+
+    /** Run the pending journey search once departure and arrival are named, or right away with @p force. */
+    function runPendingSearch(force: bool): void {
+        if (!root.pendingSearch) {
+            return;
+        }
+        if (!force && (fromGeocoder.status === QtLocation.GeocodeModel.Loading || toGeocoder.status === QtLocation.GeocodeModel.Loading)) {
+            return;
+        }
+        const search = root.pendingSearch;
+        root.pendingSearch = undefined;
+        pendingSearchTimer.stop();
+        root.searchConnectionAt(search.time, search.showBest);
+    }
+
+    Timer {
+        id: pendingSearchTimer
+        // don't wait for the names forever
+        interval: 3000
+        onTriggered: root.runPendingSearch(true)
     }
 
     QtLocation.GeocodeModel {
         id: fromGeocoder
         autoUpdate: false
         limit: 1
-        onStatusChanged: root.applyGeocoding("from", fromGeocoder)
+        onStatusChanged: {
+            root.applyGeocoding("from", fromGeocoder);
+            root.runPendingSearch(false);
+        }
     }
     QtLocation.GeocodeModel {
         id: toGeocoder
         autoUpdate: false
         limit: 1
-        onStatusChanged: root.applyGeocoding("to", toGeocoder)
+        onStatusChanged: {
+            root.applyGeocoding("to", toGeocoder);
+            root.runPendingSearch(false);
+        }
     }
     QtLocation.GeocodeModel {
         id: placeGeocoder
