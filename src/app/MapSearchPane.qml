@@ -38,7 +38,6 @@ QQC2.Pane {
 
     // internal
     property bool aroundMapCenter: false
-    readonly property bool imperialUnits: Qt.locale().measurementSystem !== Locale.MetricSystem && !Settings.forceMetricUnits
 
     function search(categoryId: string): void {
         if (root.text.trim() === "") {
@@ -122,7 +121,7 @@ QQC2.Pane {
                 QQC2.ButtonGroup { id: radiusGroup }
                 Repeater {
                     // about 1, 3 and 10 miles with imperial units
-                    model: root.imperialUnits ? [0, 1609, 4828, 16093] : [0, 1000, 5000, 20000]
+                    model: Settings.imperialDistances ? [0, 1609, 4828, 16093] : [0, 1000, 5000, 20000]
                     delegate: OptionChip {
                         id: radiusChip
                         required property int modelData

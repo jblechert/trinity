@@ -50,6 +50,8 @@ class Settings : public QObject
 
     Q_PROPERTY(bool useFahrenheit READ useFahrenheit NOTIFY useFahrenheitChanged)
     Q_PROPERTY(KFormat::DistanceFormatOptions distanceFormat READ distanceFormat NOTIFY forceMetricUnitsChanged)
+    /** Distances are shown in miles and feet, as with distanceFormat. */
+    Q_PROPERTY(bool imperialDistances READ imperialDistances NOTIFY forceMetricUnitsChanged)
 
 public:
     explicit Settings(QObject *parent = nullptr);
@@ -135,6 +137,7 @@ public:
 
     [[nodiscard]] bool useFahrenheit() const;
     [[nodiscard]] KFormat::DistanceFormatOptions distanceFormat() const;
+    [[nodiscard]] bool imperialDistances() const;
 
 Q_SIGNALS:
     void weatherForecastEnabledChanged(bool enabled);

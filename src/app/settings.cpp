@@ -481,4 +481,9 @@ KFormat::DistanceFormatOptions Settings::distanceFormat() const
     return KFormat::LocaleDistanceUnits;
 }
 
+bool Settings::imperialDistances() const
+{
+    return QLocale().measurementSystem() != QLocale::MetricSystem && !m_forceMetricUnits;
+}
+
 #include "moc_settings.cpp"
