@@ -9,23 +9,25 @@ import org.kde.coreaddons as CoreAddons
 import org.kde.kopeninghours as OH
 import org.kde.itinerary
 
-/** List entry for a place or stop found on the map, as found by MapPlaceLookup,
- *  with its category, distance and whether it is open now.
+/** List entry for a place or stop found on the map, as found by MapPlaceLookup or MapPlaceSearch,
+ *  with its category, distance, address and whether it is open now.
  */
 QQC2.ItemDelegate {
     id: root
 
     /** The place or stop to show. */
     required property var modelData
+    /** Details of a place, such as its opening hours, as provided by KOSMIndoorMap's NearbyAmenityModel. */
+    property var amenity: root.modelData.amenity
 
     width: ListView.view.width
 
     // internal
-    readonly property string openingHours: root.modelData.amenity?.openingHours ?? ""
+    readonly property string openingHours: root.amenity?.openingHours ?? ""
     readonly property var oh: {
         let v = OH.OpeningHoursParser.parse(root.openingHours);
-        v.region = root.modelData.amenity?.regionCode ?? "";
-        v.timeZone = root.modelData.amenity?.timeZone ?? "";
+        v.region = root.amenity?.regionCode ?? "";
+        v.timeZone = root.amenity?.timeZone ?? "";
         v.setLocation(root.modelData.latitude, root.modelData.longitude);
         return v;
     }
@@ -52,11 +54,16 @@ QQC2.ItemDelegate {
             }
             QQC2.Label {
                 text: {
-                    const distance = CoreAddons.Format.formatDistance(root.modelData.distance, Settings.distanceFormat);
-                    if (root.modelData.typeName === "" || root.modelData.typeName === root.modelData.name) {
-                        return distance;
+                    let parts = [];
+                    const typeName = root.modelData.typeName !== "" ? root.modelData.typeName : (root.amenity?.typeName ?? "");
+                    if (typeName !== "" && typeName !== root.modelData.name) {
+                        parts.push(typeName);
                     }
-                    return i18nc("@info type of a place and its distance", "%1 · %2", root.modelData.typeName, distance);
+                    parts.push(CoreAddons.Format.formatDistance(root.modelData.distance, Settings.distanceFormat));
+                    if (root.modelData.address) {
+                        parts.push(root.modelData.address);
+                    }
+                    return parts.join(i18nc("@info separator between type, distance and address of a place", " · "));
                 }
                 elide: Text.ElideRight
                 font: Kirigami.Theme.smallFont

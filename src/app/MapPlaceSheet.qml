@@ -14,12 +14,15 @@ import org.kde.itinerary
 /** Details of a point of interest picked on the map, such as a shop or a restaurant:
  *  its category, opening hours, address and contact information as far as known in OpenStreetMap,
  *  and actions to go there.
+ *  For a place found by MapPlaceSearch the details are loaded from the OpenStreetMap data around it.
  */
 ColumnLayout {
     id: root
 
-    /** The place to show, a candidate as found by MapPlaceLookup. */
+    /** The place to show, a candidate as found by MapPlaceLookup or MapPlaceSearch. */
     required property var place
+    /** Details of the place as provided by NearbyAmenityModel, undefined while unknown. */
+    readonly property var amenity: root.place.amenity ?? root.loadedAmenity
     /** Height available for the details list. */
     property real maximumListHeight: Kirigami.Units.gridUnit * 12
 
@@ -32,11 +35,44 @@ ColumnLayout {
 
     spacing: Kirigami.Units.smallSpacing
 
+    // internal
+    property var loadedAmenity
+
+    Component.onCompleted: {
+        if (!root.place.amenity && root.place.osmId) {
+            // the element first, otherwise this would look for anything around the coordinate
+            detailsLookup.elementId = root.place.osmId;
+            detailsLookup.latitude = root.place.latitude;
+            detailsLookup.longitude = root.place.longitude;
+        }
+    }
+
+    KOSM.NearbyAmenityModel {
+        id: detailsLookup
+        radius: 30
+        onFinished: root.loadedAmenity = detailsLookup.count > 0 ? detailsLookup.get(0) : undefined
+    }
+
     KOSM.OSMElementInformationModel {
         id: infoModel
-        element: root.place.amenity.element
         allowOnlineContent: Settings.wikimediaOnlineContentEnabled
         debug: Settings.developmentMode
+    }
+    Binding {
+        target: infoModel
+        property: "element"
+        value: root.amenity?.element
+        when: root.amenity !== undefined
+    }
+
+    /** Link to the place on openstreetmap.org. */
+    readonly property string osmUrl: {
+        if (root.amenity !== undefined) {
+            return root.amenity.element.isNull ? "" : root.amenity.element.url;
+        }
+        const types = { n: "node", w: "way", r: "relation" };
+        const id = root.place.osmId ?? "";
+        return types[id.charAt(0)] ? "https://www.openstreetmap.org/" + types[id.charAt(0)] + "/" + id.substring(1) : "";
     }
 
     RowLayout {
@@ -61,7 +97,7 @@ ColumnLayout {
                 Layout.fillWidth: true
             }
             QQC2.Label {
-                text: infoModel.category !== "" ? infoModel.category : root.place.typeName
+                text: infoModel.category !== "" ? infoModel.category : (root.place.typeName !== "" ? root.place.typeName : (root.amenity?.typeName ?? ""))
                 visible: text !== "" && text !== root.place.name
                 elide: Text.ElideRight
                 opacity: 0.7
@@ -72,8 +108,8 @@ ColumnLayout {
             icon.name: "internet-services"
             text: i18nc("@action:button", "Show on OpenStreetMap")
             display: QQC2.AbstractButton.IconOnly
-            visible: !root.place.amenity.element.isNull
-            onClicked: Qt.openUrlExternally(root.place.amenity.element.url)
+            visible: root.osmUrl !== ""
+            onClicked: Qt.openUrlExternally(root.osmUrl)
             QQC2.ToolTip.text: text
             QQC2.ToolTip.visible: hovered
             QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
@@ -137,7 +173,22 @@ ColumnLayout {
     }
 
     Kirigami.Separator {
-        visible: infoView.count > 0
+        visible: infoView.count > 0 || detailsLookup.loading || fallbackAddress.visible
+        Layout.fillWidth: true
+    }
+
+    QQC2.BusyIndicator {
+        running: detailsLookup.loading
+        visible: running
+        Layout.alignment: Qt.AlignHCenter
+    }
+
+    // the address as known from the search, if there are no details from OpenStreetMap
+    QQC2.Label {
+        id: fallbackAddress
+        text: root.place.address ?? ""
+        visible: text !== "" && !detailsLookup.loading && infoView.count === 0
+        wrapMode: Text.Wrap
         Layout.fillWidth: true
     }
 
@@ -188,8 +239,8 @@ ColumnLayout {
                 KOSM.OSMElementInformationDialogOpeningHoursDelegate {
                     id: openingHoursDelegate
                     width: openingHoursItem.width
-                    regionCode: root.place.amenity.regionCode
-                    timeZoneId: root.place.amenity.timeZone
+                    regionCode: root.amenity?.regionCode ?? ""
+                    timeZoneId: root.amenity?.timeZone ?? ""
                     latitude: root.place.latitude
                     longitude: root.place.longitude
                     openingHours: openingHoursItem.row?.value ?? ""
