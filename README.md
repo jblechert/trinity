@@ -53,6 +53,9 @@ tickets you set once where they are valid: a country, or within a radius of wher
   open now, address, phone, website. Walk, cycle or drive there, or use it as start or destination of a journey.
 - Tap a bus stop or station on the map to see the lines departing there with their next departures, and tap a line to
   see its route on the map with all its stops. Double tap the map to zoom in.
+- Find places on the map by name or by category: "Bäckerei", "pharmacies" or "nearest ATM", or pick one of about fifty
+  categories. Search near you or around the center of the map, for the nearest places or within 1, 5 or 20 km. The
+  results are listed by distance with whether they're open now, shown on the map, and open the same details as a tap.
 - Ascent and descent of walks and bike rides, where the routing service provides them (KPublicTransport extension,
   to be proposed to KDE).
 - Rental bikes in the journey search, if you like: to and from stations or all the way, shown in the timeline with
