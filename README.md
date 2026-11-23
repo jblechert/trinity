@@ -54,7 +54,7 @@ tickets you set once where they are valid: a country, or within a radius of wher
 - Show a connection from the journey search on the map: trains, buses and subways in their line colors with their stops
   and line names, walks as dotted lines, and a list of its sections to zoom to each of them.
 - Back (the key or gesture) closes what was last opened on the map: details of a place, a trip, search results, a
-  journey or the planner.
+  journey or the planner. From the results of a journey search started on the map it goes straight back to the map.
 - Tap a shop, café or other place on the map to see what OpenStreetMap knows about it: opening hours and whether it's
   open now, address, phone, website. Walk, cycle or drive there, or use it as start or destination of a journey.
 - Tap a bus stop or station on the map to see the lines departing there with their next departures, and tap a line to
@@ -62,7 +62,8 @@ tickets you set once where they are valid: a country, or within a radius of wher
   zoom in.
 - Find places on the map by name or by category: "Bäckerei", "pharmacies" or "nearest ATM", or pick one of about fifty
   categories. Search near you or around the center of the map, for the nearest places or within 1, 5 or 20 km. The
-  results are listed by distance with whether they're open now, shown on the map, and open the same details as a tap.
+  results are listed by distance with whether they're open now, shown on the map, and open the same details as a tap,
+  zoomed in on the place.
 - Ascent and descent of walks and bike rides, where the routing service provides them (KPublicTransport extension,
   to be proposed to KDE).
 - Rental bikes in the journey search, if you like: to and from stations or all the way, shown in the timeline with
