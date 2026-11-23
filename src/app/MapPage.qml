@@ -2101,16 +2101,19 @@ Kirigami.Page {
     }
 
     Components.FloatingButton {
-        icon.name: "mark-location-symbolic"
-        text: i18nc("@action:button", "Follow my location")
-        visible: !root.followPosition
-        z: map.z + 2
-        onClicked: {
-            root.followPosition = true;
-            if (positionSource.valid) {
-                map.center = positionSource.position.coordinate;
+        // with an action, as the button reads its tooltip from that
+        action: Kirigami.Action {
+            icon.name: "mark-location-symbolic"
+            text: i18nc("@action:button", "Follow my location")
+            onTriggered: {
+                root.followPosition = true;
+                if (positionSource.valid) {
+                    map.center = positionSource.position.coordinate;
+                }
             }
         }
+        visible: !root.followPosition
+        z: map.z + 2
         anchors {
             right: parent.right
             bottom: parent.bottom
