@@ -49,16 +49,11 @@ FormCard.FormCardPage {
 
     title: i18n("Select Journey")
 
-    /** The search was started on the map. When this becomes the first page, after a connection found was shown
-     *  on the map (see JourneyQueryPage.showOnMap()), going back returns to the map.
+    /** The search was started on the map. Going back from its results returns to the map (see
+     *  JourneyQueryPage.returnsToMap), and so does going back from this page once it became the first page,
+     *  after a connection found was shown on the map (see JourneyQueryPage.showOnMap()).
      */
     property bool returnsToMap: false
-
-    function returnToMap(): void {
-        const pageStack = applicationWindow().pageStack;
-        pageStack.clear();
-        pageStack.push(pagepool.loadPage(Qt.resolvedUrl("MapPage.qml")));
-    }
 
     // the page stack doesn't go back from its first page
     readonly property bool isFirstPage: root.Kirigami.ColumnView.index === 0
@@ -69,7 +64,7 @@ FormCard.FormCardPage {
         if (event.key === Qt.Key_Back && root.returnsToMap && root.isFirstPage) {
             event.accepted = true;
             // not while handling an event of this page, which is gone then
-            Qt.callLater(root.returnToMap);
+            Qt.callLater(pagepool.loadPage(Qt.resolvedUrl("MapPage.qml")).returnFromJourneySearch);
         }
     }
 
@@ -104,6 +99,7 @@ FormCard.FormCardPage {
 
         applicationWindow().pageStack.push(journeyQueryPage);
         const queryPage = applicationWindow().pageStack.currentItem;
+        queryPage.returnsToMap = root.returnsToMap;
         queryPage.allLineModes = root.lineModes;
         queryPage.localLineModes = root.lineModes.filter((mode) => root.nonLocalLineModes.indexOf(mode) === -1);
         const req = queryPage.journeyRequest;

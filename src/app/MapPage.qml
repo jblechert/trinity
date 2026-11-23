@@ -548,6 +548,18 @@ Kirigami.Page {
         }
     }
 
+    /** Come back to the map from the results of a journey search started on it, see JourneyRequestPage.returnsToMap.
+     *  A connection from them shown on the map is closed as well, as going back from the results discards them.
+     */
+    function returnFromJourneySearch(): void {
+        if (root.journeyPaneShown && root.journeyResultsPage) {
+            root.closeJourney();
+        }
+        const pageStack = applicationWindow().pageStack;
+        pageStack.clear();
+        pageStack.push(root);
+    }
+
     /** Close what was opened last on the map, such as the details of a place or a shown journey,
      *  when going back. Only checks whether there is something to close if @p apply is false.
      */

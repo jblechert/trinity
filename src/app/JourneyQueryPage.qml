@@ -27,6 +27,18 @@ Kirigami.ScrollablePage {
     /** Label of the button for selecting a journey, describing what selecting it does. */
     property string selectText: i18n("Select")
 
+    /** The search was started on the map. Going back returns there rather than to the search form
+     *  the map filled in, see JourneyRequestPage.returnsToMap.
+     */
+    property bool returnsToMap: false
+    onBackRequested: (event) => {
+        if (root.returnsToMap) {
+            event.accepted = true;
+            // not while handling an event of this page, which is gone then
+            Qt.callLater(pagepool.loadPage(Qt.resolvedUrl("MapPage.qml")).returnFromJourneySearch);
+        }
+    }
+
     /** Showing results for an arrival query. */
     readonly property bool isArrival: root.journeyRequest.dateTimeMode == JourneyRequest.Arrival
 
@@ -81,7 +93,7 @@ Kirigami.ScrollablePage {
         pageStack.layers.clear();
         // the map goes on top of these results, so going back returns to them, also when it was open before
         // (going back to it would close the pages after it); if the search was started on the map, going back
-        // from the first page returns to it then, see JourneyRequestPage.returnsToMap
+        // from these results returns to it then, see returnsToMap
         if (pageStack.columnView.containsItem(map)) {
             pageStack.removePage(map);
         }
