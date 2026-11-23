@@ -6932,3 +6932,13 @@ msgstr "Mit dem Auto zu %1"
 msgctxt "@info a place in the journey planner, %1 is a street address, %2 a town"
 msgid "%1, %2"
 msgstr "%1, %2"
+
+#: fork
+msgctxt "@info why no public transport connection was found"
+msgid ""
+"Only stops within a short walk of departure and arrival are considered. If "
+"one of them is far from public transport, try a stop nearby instead."
+msgstr ""
+"Es werden nur Haltestellen berücksichtigt, die von Start und Ziel aus kurz "
+"zu Fuß erreichbar sind. Ist Start oder Ziel weit von Bus und Bahn entfernt, "
+"wählen Sie stattdessen eine Haltestelle in der Nähe."
