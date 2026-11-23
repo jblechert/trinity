@@ -32,6 +32,18 @@ QQC2.ItemDelegate {
         return v;
     }
     readonly property bool hasOpeningHours: root.openingHours !== "" && root.oh.error === OH.OpeningHours.NoError
+    /** When the opening state was determined, it is updated regularly while shown, so it matches the details
+     *  opened from here, which tell it as of when they are opened.
+     */
+    property date now: new Date()
+    Timer {
+        interval: 10000
+        repeat: true
+        // also when shown again
+        triggeredOnStart: true
+        running: root.visible && root.hasOpeningHours
+        onTriggered: root.now = new Date()
+    }
 
     contentItem: RowLayout {
         spacing: Kirigami.Units.largeSpacing
@@ -72,12 +84,13 @@ QQC2.ItemDelegate {
             }
             QQC2.Label {
                 visible: root.hasOpeningHours && text !== ""
-                text: root.hasOpeningHours ? OH.Display.currentState(root.oh) : ""
+                // depends on now, which Display.currentState() uses as well
+                text: root.hasOpeningHours && root.now ? OH.Display.currentState(root.oh) : ""
                 color: {
                     if (!root.hasOpeningHours) {
                         return Kirigami.Theme.textColor;
                     }
-                    switch (root.oh.interval(new Date()).state) {
+                    switch (root.oh.interval(root.now).state) {
                         case OH.Interval.Open: return Kirigami.Theme.positiveTextColor;
                         case OH.Interval.Closed: return Kirigami.Theme.negativeTextColor;
                         default: return Kirigami.Theme.textColor;
