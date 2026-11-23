@@ -14,7 +14,7 @@ index 8c2a4c6b..27114dfa 100644
  Copyright: none
  License: CC0-1.0
 diff --git a/autotests/CMakeLists.txt b/autotests/CMakeLists.txt
-index 9b846999..b4163a13 100644
+index 9b846999..35e45f14 100644
 --- a/autotests/CMakeLists.txt
 +++ b/autotests/CMakeLists.txt
 @@ -20,15 +20,18 @@ ecm_add_test(uicrailwaycoachtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
@@ -36,7 +36,7 @@ index 9b846999..b4163a13 100644
  ecm_add_test(networkconfigtest.cpp LINK_LIBRARIES Qt::Test)
  ecm_add_test(vehiclelayoutquerymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(locationhistorymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
-@@ -50,14 +53,16 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+@@ -50,14 +53,17 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(efarequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME efarequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  ecm_add_test(deutschebahntest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(deutschebahnparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
@@ -49,6 +49,7 @@ index 9b846999..b4163a13 100644
  ecm_add_test(ojpparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
 -ecm_add_test(motis2parsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport KF6::I18nLocaleData)
 +ecm_add_test(motis2parsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport KF6::I18n KF6::I18nLocaleData)
++ecm_add_test(motis2requesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME motis2requesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  ecm_add_test(opentransportswissformationtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
 +ecm_add_test(photonparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
 +ecm_add_test(photonrequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME photonrequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
@@ -6619,6 +6620,112 @@ index 094cbbbb..df1486d4 100644
                          },
                          {
                              "path": {
+diff --git a/autotests/data/motis2/location-geo-search.out.json b/autotests/data/motis2/location-geo-search.out.json
+index f36f491e..09013406 100644
+--- a/autotests/data/motis2/location-geo-search.out.json
++++ b/autotests/data/motis2/location-geo-search.out.json
+@@ -6,7 +6,7 @@
+             "motis": "ch-opentransportdataswiss_Parent8023179"
+         },
+         "latitude": 51.345474,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.382064,
+         "name": "Leipzig Hbf",
+         "postalCode": "04109",
+@@ -21,7 +21,7 @@
+             "motis": "ch-opentransportdataswiss_Parent8023179"
+         },
+         "latitude": 51.345474,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.382064,
+         "name": "Leipzig Hbf",
+         "postalCode": "04109",
+@@ -36,7 +36,7 @@
+             "motis": "node/3575061420"
+         },
+         "latitude": 51.3450271,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3817197,
+         "name": "Deutsche Bahn",
+         "postalCode": "04109",
+@@ -50,7 +50,7 @@
+             "motis": "node/3575061421"
+         },
+         "latitude": 51.3450365,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3816896,
+         "name": "Deutsche Bahn",
+         "postalCode": "04109",
+@@ -64,7 +64,7 @@
+             "motis": "node/2202309900"
+         },
+         "latitude": 51.3448745,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3819165,
+         "name": "Deutsche Bahn",
+         "postalCode": "04109",
+@@ -78,7 +78,7 @@
+             "motis": "node/6510099866"
+         },
+         "latitude": 51.3449263,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3815594,
+         "name": "Thüringer Grill",
+         "postalCode": "04109",
+@@ -92,7 +92,7 @@
+             "motis": "node/2140362880"
+         },
+         "latitude": 51.3452195,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3811144,
+         "name": "Deutsche Bahn",
+         "postalCode": "04109",
+@@ -106,7 +106,7 @@
+             "motis": "node/6510099867"
+         },
+         "latitude": 51.3450387,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3812945,
+         "name": "Crepes-Express",
+         "postalCode": "04109",
+@@ -120,7 +120,7 @@
+             "motis": "node/2140362881"
+         },
+         "latitude": 51.3452333,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3810763,
+         "name": "Deutsche Bahn",
+         "postalCode": "04109",
+@@ -134,7 +134,7 @@
+             "motis": "node/6510099869"
+         },
+         "latitude": 51.344935,
+-        "locality": "Mitte",
++        "locality": "Leipzig",
+         "longitude": 12.3814312,
+         "name": "Bäcker Lukas",
+         "postalCode": "04109",
+diff --git a/autotests/data/motis2/location-name-search.out.json b/autotests/data/motis2/location-name-search.out.json
+index bf3cefa4..8aa0f02f 100644
+--- a/autotests/data/motis2/location-name-search.out.json
++++ b/autotests/data/motis2/location-name-search.out.json
+@@ -66,6 +66,7 @@
+             "motis": "way/61739387"
+         },
+         "latitude": 52.945417,
++        "locality": "Nottingham",
+         "longitude": -1.1485075,
+         "name": "Karlsruhe House",
+         "region": "GB-ENG",
 diff --git a/autotests/data/otp/de-stadtnavi-elevation-journey.in.json b/autotests/data/otp/de-stadtnavi-elevation-journey.in.json
 new file mode 100644
 index 00000000..a085b1dd
@@ -14974,6 +15081,169 @@ index 9474235c..75451cca 100644
      void testParseTrip_data()
      {
          QTest::addColumn<QString>("inFileName");
+diff --git a/autotests/motis2requesttest.cpp b/autotests/motis2requesttest.cpp
+new file mode 100644
+index 00000000..6b48557a
+--- /dev/null
++++ b/autotests/motis2requesttest.cpp
+@@ -0,0 +1,157 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "mocknetworkaccessmanager.h"
++
++#include <KPublicTransport/IndividualTransport>
++#include <KPublicTransport/JourneyReply>
++#include <KPublicTransport/JourneyRequest>
++#include <KPublicTransport/Manager>
++
++#include <QDir>
++#include <QSignalSpy>
++#include <QStandardPaths>
++#include <QTest>
++#include <QUrlQuery>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++class Motis2RequestTest : public QObject
++{
++    Q_OBJECT
++private:
++    MockNetworkAccessManager m_nam;
++    Manager m_mgr;
++
++    [[nodiscard]] static Location address(double lat, double lon)
++    {
++        Location loc;
++        loc.setType(Location::Address);
++        loc.setCoordinate(lat, lon);
++        return loc;
++    }
++
++    [[nodiscard]] static Location stop(double lat, double lon)
++    {
++        Location loc;
++        loc.setType(Location::Stop);
++        loc.setName(u"Stop"_s);
++        loc.setCoordinate(lat, lon);
++        return loc;
++    }
++
++    [[nodiscard]] static JourneyRequest request(const Location &from, const Location &to)
++    {
++        JourneyRequest req(from, to);
++        req.setBackendIds({u"un_transitous"_s});
++        req.setDateTime(QDateTime({2026, 11, 24}, {9, 0}, QTimeZone::UTC));
++        return req;
++    }
++
++    [[nodiscard]] static MockNetworkAccessManager::Reply emptyResult()
++    {
++        MockNetworkAccessManager::Reply reply;
++        reply.error = QNetworkReply::NoError;
++        reply.statusCode = 200;
++        reply.data = R"({"itineraries": [], "direct": [], "previousPageCursor": "", "nextPageCursor": ""})";
++        reply.errorMessage.clear();
++        return reply;
++    }
++
++    void runQuery(const JourneyRequest &req)
++    {
++        m_nam.requests.clear();
++        QVERIFY(req.isValid());
++        auto reply = m_mgr.queryJourney(req);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++    }
++
++    [[nodiscard]] QUrlQuery requestQuery(std::size_t idx) const
++    {
++        return QUrlQuery(m_nam.requests.at(idx).request.url());
++    }
++
++private Q_SLOTS:
++    void initTestCase()
++    {
++        QStandardPaths::setTestModeEnabled(true);
++        QDir(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)).removeRecursively();
++        qputenv("TZ", "UTC");
++        m_mgr.setNetworkAccessManager(&m_nam);
++    }
++
++    void testDirectTime()
++    {
++        // by car, far beyond the server default limit of 30 minutes
++        auto req = request(address(50.1998, 9.112), address(48.137, 11.575));
++        req.setModes(JourneySection::IndividualTransport);
++        req.setIndividualTransportModes({IndividualTransport(IndividualTransport::Car)});
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(requestQuery(0).queryItemValue(u"directModes"_s), u"CAR"_s);
++        QCOMPARE(requestQuery(0).queryItemValue(u"maxDirectTime"_s), u"21600"_s);
++
++        // on foot
++        req.setModes(JourneySection::Walking);
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(requestQuery(0).queryItemValue(u"directModes"_s), u"WALK"_s);
++        QCOMPARE(requestQuery(0).queryItemValue(u"maxDirectTime"_s), u"21600"_s);
++
++        // with public transport, direct routes stay at the server default
++        req.setModes(JourneySection::PublicTransport | JourneySection::Walking);
++        runQuery(req);
++        QVERIFY(!m_nam.requests.empty());
++        QVERIFY(!requestQuery(0).hasQueryItem(u"maxDirectTime"_s));
++    }
++
++    void testLongAccessRetry()
++    {
++        // nothing found from an address: retry walking further to and from public transport
++        auto req = request(address(51.2838, 7.9060), address(50.4722, 7.1078));
++        m_nam.replies.push(emptyResult());
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 2);
++        QVERIFY(!requestQuery(0).hasQueryItem(u"maxPreTransitTime"_s));
++        QVERIFY(!requestQuery(0).hasQueryItem(u"maxPostTransitTime"_s));
++        QCOMPARE(requestQuery(1).queryItemValue(u"maxPreTransitTime"_s), u"3600"_s);
++        QCOMPARE(requestQuery(1).queryItemValue(u"maxPostTransitTime"_s), u"3600"_s);
++        QCOMPARE(requestQuery(1).queryItemValue(u"fromPlace"_s), requestQuery(0).queryItemValue(u"fromPlace"_s));
++
++        // only the side that is not a stop walks further
++        req = request(stop(51.2838, 7.9060), address(50.4722, 7.1078));
++        m_nam.replies.push(emptyResult());
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 2);
++        QVERIFY(!requestQuery(1).hasQueryItem(u"maxPreTransitTime"_s));
++        QCOMPARE(requestQuery(1).queryItemValue(u"maxPostTransitTime"_s), u"3600"_s);
++
++        // between stops, there is nothing to retry
++        req = request(stop(51.2838, 7.9060), stop(50.4722, 7.1078));
++        m_nam.replies.push(emptyResult());
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 1);
++
++        // nor without public transport
++        req = request(address(51.2838, 7.9060), address(50.4722, 7.1078));
++        req.setModes(JourneySection::Walking);
++        m_nam.replies.push(emptyResult());
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 1);
++
++        // a failed request is not retried (at another time, as the failed retry above is cached)
++        req = request(address(51.2838, 7.9060), address(50.4722, 7.1078));
++        req.setDateTime(req.dateTime().addDays(1));
++        runQuery(req);
++        QCOMPARE(m_nam.requests.size(), 1);
++    }
++};
++
++QTEST_GUILESS_MAIN(Motis2RequestTest)
++
++#include "motis2requesttest.moc"
 diff --git a/autotests/navigationtesthelpers.h b/autotests/navigationtesthelpers.h
 new file mode 100644
 index 00000000..c16c862e
@@ -17804,8 +18074,149 @@ index b39a3f64..08ac5792 100644
      if (m_stations.empty()) {
          if (!m_stationDataTask) {
              auto mutThis = const_cast<LTGLinkBackend *>(this);
+diff --git a/src/lib/backends/motis2backend.cpp b/src/lib/backends/motis2backend.cpp
+index 9f5840ab..288c6572 100644
+--- a/src/lib/backends/motis2backend.cpp
++++ b/src/lib/backends/motis2backend.cpp
+@@ -5,6 +5,7 @@
+ 
+ #include "motis2backend.h"
+ #include "cache.h"
++#include "logging.h"
+ #include "motis2parser.h"
+ 
+ #include <KPublicTransport/Journey>
+@@ -310,7 +311,53 @@ static void mapIndividualTransportFormFactors(const std::vector<IndividualTransp
+     }
+ }
+ 
++// how long direct routes on foot, by bike or by car may take
++// the server default is 30 minutes, 6 hours is the most Transitous returns
++constexpr inline auto MAX_DIRECT_TIME = 6 * 3600;
++// how long to walk (or ride) to the first and from the last stop when nothing is found within the server default of 15 minutes
++constexpr inline auto LONG_ACCESS_TIME = 3600;
++
++static QString journeyPageCursor(const QVariant &context)
++{
++    if (context.typeId() == QMetaType::QVariantMap) {
++        return context.toMap().value("cursor"_L1).toString();
++    }
++    return context.toString();
++}
++
++static bool journeyLongAccess(const QVariant &context)
++{
++    return context.typeId() == QMetaType::QVariantMap && context.toMap().value("longAccess"_L1).toBool();
++}
++
++static QVariant journeyRequestContext(const QString &pageCursor, bool longAccess)
++{
++    if (!longAccess || pageCursor.isEmpty()) {
++        return pageCursor;
++    }
++    return QVariantMap({{u"cursor"_s, pageCursor}, {u"longAccess"_s, true}});
++}
++
++[[nodiscard]] static bool needsLongAccess(const JourneyRequest &req)
++{
++    return (req.modes() & JourneySection::PublicTransport) && (req.from().type() != Location::Stop || req.to().type() != Location::Stop);
++}
++
++[[nodiscard]] static bool hasPublicTransport(const std::vector<Journey> &journeys)
++{
++    return std::ranges::any_of(journeys, [](const auto &jny) {
++        return std::ranges::any_of(jny.sections(), [](const auto &section) { return section.mode() == JourneySection::PublicTransport; });
++    });
++}
++
+ bool Motis2Backend::queryJourney(const JourneyRequest &req, JourneyReply *reply, QNetworkAccessManager *nam) const
++{
++    const auto context = requestContextData(req);
++    doQueryJourney(req, reply, nam, journeyLongAccess(context));
++    return true;
++}
++
++void Motis2Backend::doQueryJourney(const JourneyRequest &req, JourneyReply *reply, QNetworkAccessManager *nam, bool longAccess) const
+ {
+     QUrlQuery query;
+     query.addQueryItem(u"fromPlace"_s, encodeLocation(req.from()));
+@@ -350,6 +397,18 @@ bool Motis2Backend::queryJourney(const JourneyRequest &req, JourneyReply *reply,
+     directModeFormFactors.removeDuplicates();
+     if (!directModes.empty()) {
+         query.addQueryItem(u"directModes"_s, directModes.join(','_L1));
++        // alongside public transport, a long direct route is hardly ever useful and only costs time on the server
++        if ((req.modes() & JourneySection::PublicTransport) == 0) {
++            query.addQueryItem(u"maxDirectTime"_s, QString::number(MAX_DIRECT_TIME));
++        }
++    }
++    if (longAccess) {
++        if (req.from().type() != Location::Stop) {
++            query.addQueryItem(u"maxPreTransitTime"_s, QString::number(LONG_ACCESS_TIME));
++        }
++        if (req.to().type() != Location::Stop) {
++            query.addQueryItem(u"maxPostTransitTime"_s, QString::number(LONG_ACCESS_TIME));
++        }
+     }
+     if (!directModeFormFactors.empty()) {
+         query.addQueryItem(u"directRentalFormFactors"_s, directModeFormFactors.join(','_L1));
+@@ -381,13 +440,14 @@ bool Motis2Backend::queryJourney(const JourneyRequest &req, JourneyReply *reply,
+     }
+ 
+     query.addQueryItem(u"numItineraries"_s, QString::number(req.maximumResults()));
+-    if (const auto pageCursor = requestContextData(req).toString(); !pageCursor.isEmpty()) {
++    const auto pageCursor = journeyPageCursor(requestContextData(req));
++    if (!pageCursor.isEmpty()) {
+         query.addQueryItem(u"pageCursor"_s, pageCursor);
+     }
+     query.addQueryItem(u"arriveBy"_s, req.dateTimeMode() == JourneyRequest::Arrival ? u"true"_s : u"false"_s);
+ 
+     auto netReply = makeRequest(req, reply, "v5/plan"_L1, query, nam);
+-    QObject::connect(netReply, &QNetworkReply::finished, reply, [this, netReply, reply]() {
++    QObject::connect(netReply, &QNetworkReply::finished, reply, [this, netReply, reply, req, nam, longAccess, pageCursor]() {
+         netReply->deleteLater();
+         const auto data = netReply->readAll();
+         logReply(reply, netReply, data);
+@@ -395,16 +455,21 @@ bool Motis2Backend::queryJourney(const JourneyRequest &req, JourneyReply *reply,
+         Motis2Parser p(m_locationIdentifierType);
+         auto result = p.parseItineraries(data);
+         if (netReply->error() == QNetworkReply::NoError) {
+-            setPreviousRequestContext(reply, p.m_previousPageCursor);
+-            setNextRequestContext(reply, p.m_nextPageCursor);
++            // nothing by public transport from or to a place further away from a stop than the
++            // server walks by default: try again walking further, rather than finding nothing at all
++            if (!longAccess && pageCursor.isEmpty() && needsLongAccess(req) && !hasPublicTransport(result)) {
++                qCDebug(Log) << "no public transport found, retrying with longer access and egress";
++                doQueryJourney(req, reply, nam, true);
++                return;
++            }
++            setPreviousRequestContext(reply, journeyRequestContext(p.m_previousPageCursor, longAccess));
++            setNextRequestContext(reply, journeyRequestContext(p.m_nextPageCursor, longAccess));
+             addResult(reply, this, std::move(result));
+         } else {
+             addError(reply, Reply::NetworkError, netReply->errorString() + ' '_L1 + QString::fromUtf8(data));
+         }
+ 
+     });
+-
+-    return true;
+ }
+ 
+ bool Motis2Backend::queryTrip(const TripRequest &req, TripReply *reply, QNetworkAccessManager *nam) const
+diff --git a/src/lib/backends/motis2backend.h b/src/lib/backends/motis2backend.h
+index 7f340cd2..6f804093 100644
+--- a/src/lib/backends/motis2backend.h
++++ b/src/lib/backends/motis2backend.h
+@@ -42,6 +42,8 @@ public:
+     [[nodiscard]] bool queryTrip(const TripRequest &req, TripReply *reply, QNetworkAccessManager *nam) const override;
+ 
+ private:
++    void doQueryJourney(const JourneyRequest &req, JourneyReply *reply, QNetworkAccessManager *nam, bool longAccess) const;
++
+     template <typename Request>
+     QNetworkReply* makeRequest(const Request &req, QObject *parent, QLatin1StringView command, QUrlQuery query, QNetworkAccessManager *nam) const;
+ 
 diff --git a/src/lib/backends/motis2parser.cpp b/src/lib/backends/motis2parser.cpp
-index 976d5b13..a94928df 100644
+index 976d5b13..6c43c010 100644
 --- a/src/lib/backends/motis2parser.cpp
 +++ b/src/lib/backends/motis2parser.cpp
 @@ -339,12 +339,25 @@ std::vector<Journey> Motis2Parser::parseItineraries(const QByteArray &data)
@@ -17895,6 +18306,32 @@ index 976d5b13..a94928df 100644
              if (!pathSections.empty()) {
                  Path path;
                  path.setSections(std::move(pathSections));
+@@ -611,7 +651,24 @@ std::vector<Location> Motis2Parser::parseLocations(const QByteArray &data) const
+         // city name
+         // TODO needs a proper country-specific admin-level mapping, for now taken from Motis v1 parser
+         // see https://wiki.openstreetmap.org/wiki/Key:admin_level
+-        for (int i = 8; i < (int)adminLevels.size(); ++i) {
++        // without a municipality (admin level 8), take the area the server marks to show along with the place,
++        // that's the city in places like Berlin (4) or Frankfurt am Main (6), rather than one of its districts;
++        // unless it shares its level with another area, which might be a boundary of some other kind
++        l.setLocality(adminLevels[8].value("name"_L1).toString());
++        for (const auto &areaV : areas) {
++            const auto area = areaV.toObject();
++            const auto level = area.value("adminLevel"_L1).toInt();
++            if (!l.locality().isEmpty() || !area.value("default"_L1).toBool() || level <= 2) {
++                continue;
++            }
++            const auto sameLevel = std::count_if(areas.begin(), areas.end(), [level](const auto &a) {
++                return a.toObject().value("adminLevel"_L1).toInt() == level;
++            });
++            if (sameLevel == 1) {
++                l.setLocality(area.value("name"_L1).toString());
++            }
++        }
++        for (int i = 9; i < (int)adminLevels.size() && l.locality().isEmpty(); ++i) {
+             if (const auto n = adminLevels[i].value("name"_L1).toString(); !n.isEmpty()) {
+                 l.setLocality(n);
+                 break;
 diff --git a/src/lib/backends/openjourneyplannerbackend.cpp b/src/lib/backends/openjourneyplannerbackend.cpp
 index 90f77318..606cb577 100644
 --- a/src/lib/backends/openjourneyplannerbackend.cpp
@@ -21437,7 +21874,7 @@ index 501d6967..6f605557 100644
      /** Create a LocationRequest from @p locaction.
       *  Whatever fields set in @p location will be used for the search request.
 diff --git a/src/lib/manager.cpp b/src/lib/manager.cpp
-index f09767ea..6792570e 100644
+index f09767ea..16f408da 100644
 --- a/src/lib/manager.cpp
 +++ b/src/lib/manager.cpp
 @@ -27,6 +27,7 @@
@@ -21448,7 +21885,21 @@ index f09767ea..6792570e 100644
  #include "update/updatejob_p.h"
  #include "update/updatestate_p.h"
  
-@@ -785,6 +786,16 @@ int ManagerPrivate::queryLocationOnBackend(const LocationRequest &req, LocationR
+@@ -612,10 +613,11 @@ JourneyReply* Manager::queryJourney(const JourneyRequest &req) const
+                 }
+ 
+                 triedBackends.insert(backend.identifier());
+-                foundSymmetricNonGlobalCoverage |= !coverage.isGlobal() && bothLocationMatch;
+-
++                // only a backend that takes the request makes those with less specific coverage unnecessary,
++                // not e.g. one for public transport only when asked for a route on foot or by car
+                 if (d->queryJourney(BackendPrivate::impl(backend), req, reply)) {
+                     ++pendingOps;
++                    foundSymmetricNonGlobalCoverage |= !coverage.isGlobal() && bothLocationMatch;
+                 }
+             };
+ 
+@@ -785,6 +787,16 @@ int ManagerPrivate::queryLocationOnBackend(const LocationRequest &req, LocationR
      return 0;
  }
  
@@ -21465,7 +21916,7 @@ index f09767ea..6792570e 100644
  LocationReply* Manager::queryLocation(const LocationRequest &req) const
  {
      auto reply = d->makeReply<LocationReply>(req);
-@@ -810,7 +821,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -810,7 +822,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
                  if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                      continue;
                  }
@@ -21474,7 +21925,7 @@ index f09767ea..6792570e 100644
                  if (backendTypes == 0) {
                      continue;
                  }
-@@ -840,7 +851,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -840,7 +852,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
                  if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                      continue;
                  }
@@ -21483,7 +21934,7 @@ index f09767ea..6792570e 100644
                  if (backendTypes == 0) {
                      continue;
                  }
-@@ -865,7 +876,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -865,7 +877,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
              if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                  continue;
              }
@@ -21492,7 +21943,7 @@ index f09767ea..6792570e 100644
              if (backendTypes == 0) {
                  continue;
              }
-@@ -1052,6 +1063,7 @@ void Manager::reload()
+@@ -1052,6 +1064,7 @@ void Manager::reload()
  {
      HafasAttributeMap::reload();
      GBFSServiceRepository::reload();

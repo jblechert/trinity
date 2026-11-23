@@ -805,6 +805,19 @@ index 90660df8..51043dee 100644
      osmaddress.cpp
      osmelement.cpp
      osmelementinformationmodel.cpp
+diff --git a/src/map-quick/OSMElementInformationDialogOpeningHoursDelegate.qml b/src/map-quick/OSMElementInformationDialogOpeningHoursDelegate.qml
+index d08172ec..b1039e1c 100644
+--- a/src/map-quick/OSMElementInformationDialogOpeningHoursDelegate.qml
++++ b/src/map-quick/OSMElementInformationDialogOpeningHoursDelegate.qml
+@@ -128,7 +128,7 @@ ColumnLayout {
+ 
+     ListView {
+         id: intervalView
+-        width: parent.width
++        Layout.fillWidth: true
+         height: contentHeight
+         boundsBehavior: Flickable.StopAtBounds
+         visible: root.oh.error == OH.OpeningHours.NoError
 diff --git a/src/map-quick/abstractamenitymodel.cpp b/src/map-quick/abstractamenitymodel.cpp
 new file mode 100644
 index 00000000..2e60ab76

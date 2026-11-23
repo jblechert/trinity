@@ -49,8 +49,8 @@ tickets you set once where they are valid: a country, or within a radius of wher
   from your current location is the default, and picked places are named by their address. Then choose how to get
   there: public transport connections between them, walking all the way included where that's all it takes, or
   navigation on foot, by bike or by car. Routes on foot, by bike or by car are shown on the map first, with duration,
-  length and ascent, before navigation starts. For now these are only found when they take up to about half an hour,
-  and not around Frankfurt and Hanau; both need fixes in KPublicTransport.
+  length and ascent, before navigation starts. These are found when they take up to about six hours, which is what
+  Transitous routes at most.
 - Show a connection from the journey search on the map: trains, buses and subways in their line colors with their stops
   and line names, walks as dotted lines, and a list of its sections to zoom to each of them.
 - Back (the key or gesture) closes what was last opened on the map: details of a place, a trip, search results, a

@@ -275,9 +275,7 @@ QQC2.Pane {
             Layout.fillWidth: true
         }
         QQC2.Label {
-            // TODO remove once KPublicTransport asks Transitous for longer direct routes, and asks it for routes
-            // around Frankfurt as well, see the README
-            text: i18nc("@info why no route on foot, by bike or by car was found", "Some routes can't be found yet, mostly those taking longer than about half an hour. Public transport connections can be searched with Transit.")
+            text: i18nc("@info why no route on foot, by bike or by car was found", "Routes on foot, by bike or by car are found when they take up to about six hours. Public transport connections can be searched with Transit.")
             visible: root.isPreview && !root.loading && !root.hasJourney && root.errorMessage === ""
             wrapMode: Text.WordWrap
             font: Kirigami.Theme.smallFont
