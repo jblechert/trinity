@@ -572,7 +572,7 @@ Kirigami.Page {
                 if (root.tripShown) {
                     sheetLoader.item.hideTrip();
                 } else {
-                    root.clearSelection();
+                    root.closeSelection();
                 }
             }
             return true;
@@ -763,6 +763,7 @@ Kirigami.Page {
     }
 
     function clearSelection(): void {
+        root.zoomedToResult = false;
         placeLookup.cancel();
         root.focusTarget = undefined;
         root.selection = undefined;
@@ -941,6 +942,26 @@ Kirigami.Page {
     function selectSearchResult(result: var): void {
         const amenity = root.amenityCache[result.osmId];
         root.select(amenity ? Object.assign({}, result, { amenity: amenity }) : result);
+        // the results are shown so that all of them fit, often too small to tell which one this is
+        if (map.zoomLevel < 17) {
+            map.zoomLevel = 17;
+            root.centerOn(QtPositioning.coordinate(result.latitude, result.longitude));
+            root.zoomedToResult = true;
+        }
+    }
+
+    /** The map was zoomed in on a search result to show its details, see selectSearchResult(). */
+    property bool zoomedToResult: false
+
+    /** Close the details of a place or stop, or the list of those at a tapped place.
+     *  Back to all search results if the map was zoomed in on one of them.
+     */
+    function closeSelection(): void {
+        const zoomed = root.zoomedToResult;
+        root.clearSelection();
+        if (zoomed && root.searchResultsShown) {
+            root.focusLater("results");
+        }
     }
 
     MapPlaceSearch {
@@ -1309,6 +1330,8 @@ Kirigami.Page {
                 color: "#3daee9"
                 textColor: "#eff0f1"
                 iconName: resultDelegate.modelData.iconSource
+                // the one whose details are shown stands out
+                opacity: root.selection === undefined || root.selection.osmId === resultDelegate.modelData.osmId ? 1 : 0.5
                 onClicked: root.selectSearchResult(resultDelegate.modelData)
             }
         }
@@ -2011,7 +2034,7 @@ Kirigami.Page {
                 target: sheetLoader.item
                 ignoreUnknownSignals: true
                 function onCloseRequested(): void {
-                    root.clearSelection();
+                    root.closeSelection();
                 }
                 function onNavigationRequested(mode: int): void {
                     root.previewRoute(undefined, root.selectionLocation(), mode);
