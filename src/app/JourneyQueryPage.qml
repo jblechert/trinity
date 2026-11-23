@@ -655,7 +655,16 @@ Kirigami.ScrollablePage {
             visible: sortedJourneyModel.count === 0
 
             icon.name: journeyModel.errorMessage.length > 0 ? "network-disconnect-symbolic" : ""
-            explanation: journeyModel.errorMessage
+            explanation: {
+                if (journeyModel.errorMessage.length > 0 || journeyModel.loading) {
+                    return journeyModel.errorMessage;
+                }
+                // searches only walk a short way to and from public transport, nothing is found for addresses far from a stop
+                if (root.journeyRequest.from.type !== Location.Stop || root.journeyRequest.to.type !== Location.Stop) {
+                    return i18nc("@info why no public transport connection was found", "Only stops within a short walk of departure and arrival are considered. If one of them is far from public transport, try a stop nearby instead.");
+                }
+                return "";
+            }
             progressBar.visible: journeyModel.loading
             anchors.centerIn: parent
             width: parent.width - Kirigami.Units.gridUnit * 4
