@@ -14,7 +14,7 @@ index 8c2a4c6b..27114dfa 100644
  Copyright: none
  License: CC0-1.0
 diff --git a/autotests/CMakeLists.txt b/autotests/CMakeLists.txt
-index 9b846999..35e45f14 100644
+index 9b846999..469bde85 100644
 --- a/autotests/CMakeLists.txt
 +++ b/autotests/CMakeLists.txt
 @@ -20,15 +20,18 @@ ecm_add_test(uicrailwaycoachtest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
@@ -36,7 +36,7 @@ index 9b846999..35e45f14 100644
  ecm_add_test(networkconfigtest.cpp LINK_LIBRARIES Qt::Test)
  ecm_add_test(vehiclelayoutquerymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(locationhistorymodeltest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
-@@ -50,14 +53,17 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+@@ -50,16 +53,20 @@ ecm_add_test(efaparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(efarequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME efarequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  ecm_add_test(deutschebahntest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
  ecm_add_test(deutschebahnparsertest.cpp LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
@@ -55,7 +55,10 @@ index 9b846999..35e45f14 100644
 +ecm_add_test(photonrequesttest.cpp mocknetworkaccessmanager.cpp TEST_NAME photonrequesttest LINK_LIBRARIES Qt::Test KPublicTransport Qt::Network)
  
  ecm_add_test(publictransportmanagertest.cpp mocknetworkaccessmanager.cpp TEST_NAME publictransportmanagertest LINK_LIBRARIES Qt::Network Qt::Test KPublicTransport)
++ecm_add_test(journeyfallbacktest.cpp mocknetworkaccessmanager.cpp TEST_NAME journeyfallbacktest LINK_LIBRARIES Qt::Network Qt::Test KPublicTransport)
  set_property(TEST publictransportmanagertest PROPERTY RUN_SERIAL 1)
+ ecm_add_test(cachetest.cpp LINK_LIBRARIES Qt::Test KPublicTransport)
+ set_property(TEST cachetest PROPERTY RUN_SERIAL 1)
 diff --git a/autotests/data/db-hafas/journey-coord-based.out.json b/autotests/data/db-hafas/journey-coord-based.out.json
 index 8c5785f4..fb831c92 100644
 --- a/autotests/data/db-hafas/journey-coord-based.out.json
@@ -14430,6 +14433,103 @@ index 00000000..45d16464
 +        "type": "PointOfInterest"
 +    }
 +]
+diff --git a/autotests/journeyfallbacktest.cpp b/autotests/journeyfallbacktest.cpp
+new file mode 100644
+index 00000000..cf01bb5d
+--- /dev/null
++++ b/autotests/journeyfallbacktest.cpp
+@@ -0,0 +1,91 @@
++/*
++    SPDX-FileCopyrightText: 2026 Janis Blechert <janis@blechert.at>
++    SPDX-License-Identifier: LGPL-2.0-or-later
++*/
++
++#include "mocknetworkaccessmanager.h"
++
++#include <KPublicTransport/JourneyReply>
++#include <KPublicTransport/JourneyRequest>
++#include <KPublicTransport/Manager>
++
++#include <QDir>
++#include <QFile>
++#include <QSignalSpy>
++#include <QStandardPaths>
++#include <QTest>
++
++using namespace Qt::Literals;
++using namespace KPublicTransport;
++
++class JourneyFallbackTest : public QObject
++{
++    Q_OBJECT
++private:
++    MockNetworkAccessManager m_nam;
++    Manager m_mgr;
++
++    [[nodiscard]] static JourneyRequest request(int day)
++    {
++        Location from, to;
++        from.setCoordinate(51.331134, 13.435609);
++        to.setCoordinate(50.615686, 12.409764);
++        JourneyRequest req(from, to);
++        // DB covers both places in more detail than Transitous
++        req.setBackendIds({u"de_db"_s, u"un_transitous"_s});
++        req.setDateTime(QDateTime({2026, 11, day}, {9, 0}, QTimeZone::UTC));
++        req.setDownloadAssets(false);
++        return req;
++    }
++
++    [[nodiscard]] static MockNetworkAccessManager::Reply reply(const QByteArray &data)
++    {
++        MockNetworkAccessManager::Reply reply;
++        reply.error = QNetworkReply::NoError;
++        reply.statusCode = 200;
++        reply.data = data;
++        reply.errorMessage.clear();
++        return reply;
++    }
++
++    void runQuery(const JourneyRequest &req)
++    {
++        m_nam.requests.clear();
++        auto reply = m_mgr.queryJourney(req);
++        QSignalSpy finishedSpy(reply, &Reply::finished);
++        QVERIFY(finishedSpy.wait());
++        reply->deleteLater();
++    }
++
++private Q_SLOTS:
++    void initTestCase()
++    {
++        QStandardPaths::setTestModeEnabled(true);
++        QDir(QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation)).removeRecursively();
++        qputenv("TZ", "UTC");
++        m_mgr.setNetworkAccessManager(&m_nam);
++    }
++
++    void testFallbackWhenNothingFound()
++    {
++        m_nam.replies.push(reply(R"({"verbindungen":[],"verbindungReference":{}})"));
++        runQuery(request(24));
++        QCOMPARE(m_nam.requests.size(), 2);
++        QCOMPARE(m_nam.requests[0].request.url().host(), u"www.bahn.de"_s);
++        QCOMPARE(m_nam.requests[1].request.url().host(), u"api.transitous.org"_s);
++    }
++
++    void testNoFallbackWithResults()
++    {
++        QFile f(QStringLiteral(SOURCE_DIR "/data/db-hafas/journey-walk.in.json"));
++        QVERIFY(f.open(QFile::ReadOnly));
++        m_nam.replies.push(reply(f.readAll()));
++        runQuery(request(25));
++        QCOMPARE(m_nam.requests.size(), 1);
++        QCOMPARE(m_nam.requests[0].request.url().host(), u"www.bahn.de"_s);
++    }
++};
++
++QTEST_GUILESS_MAIN(JourneyFallbackTest)
++
++#include "journeyfallbacktest.moc"
 diff --git a/autotests/journeytest.cpp b/autotests/journeytest.cpp
 index b6709cba..bf29d516 100644
 --- a/autotests/journeytest.cpp
@@ -20744,10 +20844,43 @@ index bdca428c..a7a3a0b4 100644
  class QPolygonF;
  
 diff --git a/src/lib/journeyreply.cpp b/src/lib/journeyreply.cpp
-index 47e169ae..d705bbf3 100644
+index 47e169ae..3d2092a9 100644
 --- a/src/lib/journeyreply.cpp
 +++ b/src/lib/journeyreply.cpp
-@@ -201,6 +201,7 @@ void JourneyReplyPrivate::postProcessJourneys(std::vector<Journey> &journeys)
+@@ -38,15 +38,32 @@ class JourneyReplyPrivate : public ReplyPrivate {
+ public:
+     void finalizeResult() override;
+     bool needToWaitForAssets() const override;
++    bool continueQuery() override;
+     static void postProcessJourneys(std::vector<Journey> &journeys);
+ 
+     JourneyRequest request;
+     JourneyRequest nextRequest;
+     JourneyRequest prevRequest;
+     std::vector<Journey> journeys;
++    std::function<int()> fallbackQuery;
+ };
+ }
+ 
++bool JourneyReplyPrivate::continueQuery()
++{
++    if (!journeys.empty() || !fallbackQuery) {
++        return false;
++    }
++
++    const auto query = std::move(fallbackQuery);
++    fallbackQuery = {};
++    // like Manager::queryJourney, ignore results added synchronously from the cache while issuing the queries
++    pendingOps = -1;
++    pendingOps = query();
++    qCDebug(Log) << "nothing found, asking" << pendingOps << "more backends";
++    return pendingOps > 0;
++}
++
+ void JourneyReplyPrivate::finalizeResult()
+ {
+     if (journeys.empty()) {
+@@ -201,6 +218,7 @@ void JourneyReplyPrivate::postProcessJourneys(std::vector<Journey> &journeys)
  
          for (auto &section : sections) {
              JourneyUtil::postProcessPath(section);
@@ -20755,7 +20888,7 @@ index 47e169ae..d705bbf3 100644
          }
  
          journey.setSections(std::move(sections));
-@@ -263,6 +264,9 @@ void JourneyReply::addResult(const AbstractBackend *backend, std::vector<Journey
+@@ -263,6 +281,9 @@ void JourneyReply::addResult(const AbstractBackend *backend, std::vector<Journey
  {
      Q_D(JourneyReply);
      d->postProcessJourneys(res);
@@ -20765,6 +20898,41 @@ index 47e169ae..d705bbf3 100644
  
      // update context for next/prev requests
      // do this first, before res gets moved from below
+@@ -321,6 +342,12 @@ void JourneyReply::addResult(const AbstractBackend *backend, std::vector<Journey
+     d->emitFinishedIfDone(this);
+ }
+ 
++void JourneyReply::setFallbackQuery(std::function<int()> &&query)
++{
++    Q_D(JourneyReply);
++    d->fallbackQuery = std::move(query);
++}
++
+ void JourneyReply::setNextContext(const AbstractBackend *backend, const QVariant &data)
+ {
+     Q_D(JourneyReply);
+diff --git a/src/lib/journeyreply.h b/src/lib/journeyreply.h
+index ebb83cc2..d91b06c1 100644
+--- a/src/lib/journeyreply.h
++++ b/src/lib/journeyreply.h
+@@ -9,6 +9,8 @@
+ 
+ #include "reply.h"
+ 
++#include <functional>
++
+ #include <vector>
+ 
+ namespace KPublicTransport {
+@@ -50,6 +52,8 @@ private:
+     Q_DECL_HIDDEN void addResult(const AbstractBackend *backend, std::vector<Journey> &&res);
+     using Reply::addError;
+     Q_DECL_HIDDEN void addError(const AbstractBackend *backend, Reply::Error error, const QString &errorMsg);
++    /** Queries to run if nothing is found otherwise, returning the number of pending operations they started. */
++    Q_DECL_HIDDEN void setFallbackQuery(std::function<int()> &&query);
+ 
+     Q_DECL_HIDDEN void setNextContext(const AbstractBackend *backend, const QVariant &data);
+     Q_DECL_HIDDEN void setPreviousContext(const AbstractBackend *backend, const QVariant &data);
 diff --git a/src/lib/knowledgedb/ticketshop.cpp b/src/lib/knowledgedb/ticketshop.cpp
 new file mode 100644
 index 00000000..b7d984ec
@@ -21874,7 +22042,7 @@ index 501d6967..6f605557 100644
      /** Create a LocationRequest from @p locaction.
       *  Whatever fields set in @p location will be used for the search request.
 diff --git a/src/lib/manager.cpp b/src/lib/manager.cpp
-index f09767ea..16f408da 100644
+index f09767ea..6d35623b 100644
 --- a/src/lib/manager.cpp
 +++ b/src/lib/manager.cpp
 @@ -27,6 +27,7 @@
@@ -21885,7 +22053,15 @@ index f09767ea..16f408da 100644
  #include "update/updatejob_p.h"
  #include "update/updatestate_p.h"
  
-@@ -612,10 +613,11 @@ JourneyReply* Manager::queryJourney(const JourneyRequest &req) const
+@@ -60,6 +61,7 @@
+ #include <QJsonObject>
+ #include <QMetaProperty>
+ #include <QNetworkAccessManager>
++#include <QPointer>
+ #include <QStandardPaths>
+ #include <QTimer>
+ #include <QTimeZone>
+@@ -612,10 +614,11 @@ JourneyReply* Manager::queryJourney(const JourneyRequest &req) const
                  }
  
                  triedBackends.insert(backend.identifier());
@@ -21899,7 +22075,43 @@ index f09767ea..16f408da 100644
                  }
              };
  
-@@ -785,6 +787,16 @@ int ManagerPrivate::queryLocationOnBackend(const LocationRequest &req, LocationR
+@@ -636,6 +639,35 @@ JourneyReply* Manager::queryJourney(const JourneyRequest &req) const
+             }
+         }
+ 
++        // backends with less specific coverage (e.g. Transitous) were skipped in favor of the ones found so far,
++        // but if those find nothing (e.g. for places far away from stops), ask the others after all
++        if (pendingOps && foundSymmetricNonGlobalCoverage) {
++            reply->setFallbackQuery([mgr = QPointer<Manager>(const_cast<Manager*>(this)), req, reply, triedBackends]() mutable {
++                int ops = 0;
++                if (!mgr) {
++                    return ops;
++                }
++                for (const auto coverageType : { CoverageArea::Realtime, CoverageArea::Regular, CoverageArea::Any }) {
++                    for (const auto &backend : mgr->d->m_backends) {
++                        if (triedBackends.contains(backend.identifier()) || mgr->d->shouldSkipBackend(backend, req)) {
++                            continue;
++                        }
++                        if (backend.coverageArea(coverageType).isEmpty()) {
++                            continue;
++                        }
++                        if (!backend.coversLocation(req.from(), coverageType) && !backend.coversLocation(req.to(), coverageType)) {
++                            continue;
++                        }
++                        triedBackends.insert(backend.identifier());
++                        if (mgr->d->queryJourney(BackendPrivate::impl(backend), req, reply)) {
++                            ++ops;
++                        }
++                    }
++                }
++                return ops;
++            });
++        }
++
+     // subsequent earlier/later query
+     } else {
+         for (const auto &context : req.contexts()) {
+@@ -785,6 +817,16 @@ int ManagerPrivate::queryLocationOnBackend(const LocationRequest &req, LocationR
      return 0;
  }
  
@@ -21916,7 +22128,7 @@ index f09767ea..16f408da 100644
  LocationReply* Manager::queryLocation(const LocationRequest &req) const
  {
      auto reply = d->makeReply<LocationReply>(req);
-@@ -810,7 +822,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -810,7 +852,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
                  if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                      continue;
                  }
@@ -21925,7 +22137,7 @@ index f09767ea..16f408da 100644
                  if (backendTypes == 0) {
                      continue;
                  }
-@@ -840,7 +852,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -840,7 +882,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
                  if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                      continue;
                  }
@@ -21934,7 +22146,7 @@ index f09767ea..16f408da 100644
                  if (backendTypes == 0) {
                      continue;
                  }
-@@ -865,7 +877,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
+@@ -865,7 +907,7 @@ LocationReply* Manager::queryLocation(const LocationRequest &req) const
              if (triedBackends.contains(backend.identifier()) || d->shouldSkipBackend(backend, req)) {
                  continue;
              }
@@ -21943,7 +22155,7 @@ index f09767ea..16f408da 100644
              if (backendTypes == 0) {
                  continue;
              }
-@@ -1052,6 +1064,7 @@ void Manager::reload()
+@@ -1052,6 +1094,7 @@ void Manager::reload()
  {
      HafasAttributeMap::reload();
      GBFSServiceRepository::reload();
@@ -22960,6 +23172,47 @@ index 00000000..7f5f58a7
 @@ -0,0 +1,2 @@
 +SPDX-License-Identifier: CC0-1.0
 +SPDX-FileCopyrightText: Janis Blechert <janis@blechert.at>
+diff --git a/src/lib/reply.cpp b/src/lib/reply.cpp
+index 9ee83eba..fb19f8d5 100644
+--- a/src/lib/reply.cpp
++++ b/src/lib/reply.cpp
+@@ -17,6 +17,9 @@ using namespace KPublicTransport;
+ void ReplyPrivate::emitFinishedIfDone(Reply *q)
+ {
+     if (pendingOps == 0 && (!needToWaitForAssets() || AssetRepository::instance()->isQueueEmpty())) {
++        if (continueQuery()) {
++            return;
++        }
+         finalizeResult();
+         // delayed, as this is trigged from the backend settings results on us, which can be a multi-step process
+         QMetaObject::invokeMethod(q, &Reply::finished, Qt::QueuedConnection);
+@@ -35,6 +38,11 @@ bool ReplyPrivate::needToWaitForAssets() const
+     return false;
+ }
+ 
++bool ReplyPrivate::continueQuery()
++{
++    return false;
++}
++
+ Reply::Reply(ReplyPrivate *dd, QObject *parent)
+     : QObject(parent)
+     , d_ptr(dd)
+diff --git a/src/lib/reply_p.h b/src/lib/reply_p.h
+index e3e0f40f..0152ff4b 100644
+--- a/src/lib/reply_p.h
++++ b/src/lib/reply_p.h
+@@ -27,6 +27,10 @@ public:
+ 
+     virtual void finalizeResult() = 0;
+     virtual bool needToWaitForAssets() const;
++    /** Called once all pending operations are done, before finishing.
++     *  Return @c true if more operations were started, and the reply isn't finished yet.
++     */
++    virtual bool continueQuery();
+ 
+     void emitUpdated(Reply *q);
+     void emitFinishedIfDone(Reply *q);
 diff --git a/src/lib/uic/uicstationcode.cpp b/src/lib/uic/uicstationcode.cpp
 index 995ae6ad..f5ef2112 100644
 --- a/src/lib/uic/uicstationcode.cpp
