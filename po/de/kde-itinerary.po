@@ -6906,12 +6906,12 @@ msgstr "Ankunft %1"
 #: fork
 msgctxt "@info why no route on foot, by bike or by car was found"
 msgid ""
-"Some routes can't be found yet, mostly those taking longer than about half "
-"an hour. Public transport connections can be searched with Transit."
+"Routes on foot, by bike or by car are found when they take up to about six "
+"hours. Public transport connections can be searched with Transit."
 msgstr ""
-"Manche Wege können noch nicht gefunden werden, vor allem solche, die länger "
-"als etwa eine halbe Stunde dauern. Verbindungen mit öffentlichen "
-"Verkehrsmitteln finden Sie über „Öffis“."
+"Wege zu Fuß, mit dem Rad oder mit dem Auto werden gefunden, wenn sie bis zu "
+"etwa sechs Stunden dauern. Verbindungen mit öffentlichen Verkehrsmitteln "
+"finden Sie über „Öffis“."
 
 #: fork
 msgctxt "@info"
