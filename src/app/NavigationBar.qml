@@ -11,7 +11,8 @@ import org.kde.itinerary
 Kirigami.NavigationTabBar {
     id: root
 
-    visible: pageStack.layers.depth < 2
+    // nor while typing, it would sit on top of the on-screen keyboard taking room from what is typed into
+    visible: pageStack.layers.depth < 2 && !(Kirigami.Settings.isMobile && Qt.inputMethod.visible)
     actions: [
         Kirigami.PagePoolAction {
             icon.name: "format-list-unordered"
