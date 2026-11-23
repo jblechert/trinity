@@ -1448,6 +1448,13 @@ Kirigami.Page {
 
     QQC2.Menu {
         id: routeMenu
+        // dismissed without picking anything, the place isn't needed anymore; only afterwards, as an entry
+        // picked may be triggered after the menu closed, and needs the place
+        onClosed: Qt.callLater(() => {
+            if (!routeMenu.opened) {
+                root.pickedCoordinate = undefined;
+            }
+        })
         QQC2.MenuItem {
             icon.name: "mark-location-symbolic"
             text: i18nc("@action:inmenu", "Walk Here")
